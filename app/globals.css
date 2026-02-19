@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.dark body {
+  @apply bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-200;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-minecraft-grass rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-minecraft-grass/80;
+}
+
+/* Minecraft block pattern background */
+.minecraft-bg {
+  position: relative;
+}
+
+.dark .minecraft-bg {
+  position: relative;
+}
+
+/* Glow effect */
+.glow {
+  @apply shadow-lg shadow-minecraft-grass/50;
+}
+
+.glow-blue {
+  @apply shadow-lg shadow-minecraft-diamond/50;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Toast container styles */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+.Toastify__toast {
+  @apply bg-white text-gray-900 border border-gray-200 rounded-lg;
+}
+
+.dark .Toastify__toast {
+  @apply bg-gray-900 text-white border border-gray-700;
+}
+
+.Toastify__toast--success {
+  @apply border-green-500;
+}
+
+.Toastify__toast--error {
+  @apply border-red-500;
+}
+
+.Toastify__toast--info {
+  @apply border-blue-500;
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #e5e7eb 4%, #f3f4f6 25%, #e5e7eb 36%);
+  background-size: 1000px 100%;
+}
+
+.dark .shimmer {
+  background: linear-gradient(to right, #1f2937 4%, #374151 25%, #1f2937 36%);
+}

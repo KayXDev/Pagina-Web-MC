@@ -1,0 +1,71 @@
+import { NextResponse } from 'next/server';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { requireAuth } from '@/lib/session';
+import { isCloudinaryEnabled, uploadImageBuffer } from '@/lib/cloudinary';
+
+export const dynamic = 'force-dynamic';
+
+const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+
+function safeExtFromType(mime: string) {
+  if (mime === 'image/png') return 'png';
+  if (mime === 'image/jpeg') return 'jpg';
+  if (mime === 'image/webp') return 'webp';
+  if (mime === 'image/gif') return 'gif';
+  return '';
+}
+
+export async function POST(request: Request) {
+  try {
+    await requireAuth();
+
+    const form = await request.formData();
+    const file = form.get('file');
+
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'Archivo requerido' }, { status: 400 });
+    }
+
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json({ error: 'Tipo de imagen no permitido' }, { status: 400 });
+    }
+
+    if (file.size > MAX_BYTES) {
+      return NextResponse.json({ error: 'La imagen excede 5MB' }, { status: 400 });
+    }
+
+    const ext = safeExtFromType(file.type);
+    if (!ext) {
+      return NextResponse.json({ error: 'Tipo de imagen inválido' }, { status: 400 });
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    if (isCloudinaryEnabled()) {
+      const uploaded = await uploadImageBuffer({
+        buffer,
+        folder: 'forum',
+        publicId: `forum_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      });
+      return NextResponse.json({ url: uploaded.url });
+    }
+
+    const dir = path.join(process.cwd(), 'public', 'uploads', 'forum');
+    await fs.mkdir(dir, { recursive: true });
+
+    const filename = `forum_${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
+    const fullPath = path.join(dir, filename);
+    await fs.writeFile(fullPath, buffer);
+
+    return NextResponse.json({ url: `/uploads/forum/${filename}` });
+  } catch (error: any) {
+    if (error?.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    return NextResponse.json({ error: 'Error al subir imagen' }, { status: 500 });
+  }
+}

@@ -1,0 +1,132 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Card, Button, Input, Textarea } from '@/components/ui';
+import { FaCog } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+
+export default function AdminMaintenancePage() {
+  const [lang, setLang] = useState<Lang>('es');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState({
+    maintenance_mode: 'false',
+    maintenance_message: 'Estamos en mantenimiento. Vuelve más tarde.',
+    maintenance_discord_webhook: '',
+  });
+
+  useEffect(() => {
+    setLang(getClientLangFromCookie());
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/settings');
+      if (!response.ok) throw new Error(t(lang, 'admin.settings.loadError'));
+      const data = await response.json();
+      setSettings(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      toast.error(t(lang, 'admin.settings.loadError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+
+      if (!response.ok) throw new Error(t(lang, 'admin.settings.saveError'));
+
+      const data = await response.json().catch(() => ({}));
+
+      toast.success(t(lang, 'admin.settings.saveSuccess'));
+      if (data?.webhookError) {
+        toast.warn(`${t(lang, 'admin.settings.webhookWarn')}: ${data.webhookError}`);
+      }
+    } catch (error) {
+      toast.error(t(lang, 'admin.settings.saveError'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-xl">{t(lang, 'admin.settings.loading')}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">{t(lang, 'admin.settings.title')}</h1>
+        <p className="text-gray-400">{t(lang, 'admin.settings.subtitle')}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <FaCog className="mr-2" />
+            {t(lang, 'admin.settings.sectionTitle')}
+          </h2>
+          <p className="text-gray-400 mb-4">
+            {t(lang, 'admin.settings.sectionDesc')}
+          </p>
+          <label className="flex items-center space-x-2 cursor-pointer mb-4">
+            <input
+              type="checkbox"
+              className="w-4 h-4"
+              checked={settings.maintenance_mode === 'true'}
+              onChange={(e) => setSettings({ ...settings, maintenance_mode: e.target.checked ? 'true' : 'false' })}
+            />
+            <span className="text-gray-300">{t(lang, 'admin.settings.enableMaintenance')}</span>
+          </label>
+
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            {t(lang, 'admin.settings.messageLabel')}
+          </label>
+          <Textarea
+            rows={4}
+            value={settings.maintenance_message}
+            onChange={(e) => setSettings({ ...settings, maintenance_message: e.target.value })}
+            placeholder={t(lang, 'admin.settings.messagePlaceholder')}
+          />
+
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              {t(lang, 'admin.settings.webhookLabel')}
+            </label>
+            <Input
+              type="text"
+              value={settings.maintenance_discord_webhook}
+              onChange={(e) => setSettings({ ...settings, maintenance_discord_webhook: e.target.value })}
+              placeholder="https://discord.com/api/webhooks/..."
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              {t(lang, 'admin.settings.webhookHint')}
+            </p>
+          </div>
+        </Card>
+
+        <Button type="submit" className="w-full" size="lg" disabled={saving}>
+          {saving ? t(lang, 'common.saving') : t(lang, 'admin.settings.saveButton')}
+        </Button>
+      </form>
+    </div>
+  );
+}
