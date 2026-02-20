@@ -2,6 +2,12 @@
 
 Una página web completa, moderna y profesional para servidores de Minecraft construida con Next.js 14, TypeScript, MongoDB y NextAuth.
 
+## Demo (Vercel)
+
+- Live: https://999wrldnetwork.vercel.app
+
+[![Preview de la web](https://image.thum.io/get/width/1400/https://999wrldnetwork.vercel.app)](https://999wrldnetwork.vercel.app)
+
 ## ✨ Características
 
 ### 🌐 Frontend
