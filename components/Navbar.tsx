@@ -146,6 +146,13 @@ const Navbar = () => {
     setCartItems(normalized);
 
     if (session?.user) {
+      // Keep local cart empty when using server-side cart
+      try {
+        localStorage.setItem(localCartKey, JSON.stringify([]));
+      } catch {
+        // ignore
+      }
+
       try {
         await fetch('/api/shop/cart', {
           method: 'PUT',

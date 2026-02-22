@@ -142,6 +142,13 @@ export default function TiendaPage() {
     setCartItems(normalized);
 
     if (status === 'authenticated') {
+      // Avoid stale local cart resurrecting items after server-side updates.
+      try {
+        localStorage.setItem(localCartKey, JSON.stringify([]));
+      } catch {
+        // ignore
+      }
+
       setSavingCart(true);
       try {
         const res = await fetch('/api/shop/cart', {
@@ -165,6 +172,14 @@ export default function TiendaPage() {
 
   useEffect(() => {
     loadCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  useEffect(() => {
+    // Sync cart across pages/components (e.g., navbar dropdown remove).
+    const onCartUpdated = () => loadCart();
+    window.addEventListener('shop-cart-updated', onCartUpdated);
+    return () => window.removeEventListener('shop-cart-updated', onCartUpdated);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
