@@ -3,13 +3,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Card, Button, Input } from '@/components/ui';
 import { FaComments, FaTimes } from 'react-icons/fa';
+import { useSession } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 
 type ChatMsg = { role: 'user' | 'assistant'; content: string };
 
+type Mode = 'AI' | 'AGENT';
+
+type TicketReply = {
+  _id: string;
+  message: string;
+  isStaff: boolean;
+  createdAt: string;
+  username: string;
+};
+
 export default function ChatbotWidget() {
+  const { status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState('');
+  const [mode, setMode] = useState<Mode>('AI');
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [ticketReplies, setTicketReplies] = useState<TicketReply[]>([]);
+  const [ticketSyncing, setTicketSyncing] = useState(false);
+  const [handoffConfirm, setHandoffConfirm] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: 'assistant', content: 'Hola, ¿en qué puedo ayudarte?' },
   ]);
@@ -23,6 +44,13 @@ export default function ChatbotWidget() {
     [messages]
   );
 
+  const transcript = useMemo(() => {
+    const lines = messages
+      .map((m) => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
+      .join('\n');
+    return lines.trim();
+  }, [messages]);
+
   useEffect(() => {
     if (!open) return;
     const el = listRef.current;
@@ -30,15 +58,141 @@ export default function ChatbotWidget() {
     el.scrollTop = el.scrollHeight;
   }, [open, messages.length]);
 
+  const pushAssistant = (content: string) => {
+    setMessages((prev) => [...prev, { role: 'assistant', content }]);
+  };
+
+  const goLoginForAgent = () => {
+    const cb = typeof pathname === 'string' && pathname.length > 0 ? pathname : '/';
+    router.push(`/auth/login?callbackUrl=${encodeURIComponent(cb)}`);
+  };
+
+  const normalizeIntent = (value: string) => value.trim().toLowerCase();
+
+  const wantsHuman = (value: string) => {
+    const v = normalizeIntent(value);
+    const hasHumanWord =
+      v.includes('agente') || v.includes('humano') || v.includes('admin') || v.includes('persona');
+    const hasAskVerb = v.includes('hablar') || v.includes('deriva') || v.includes('pasame') || v.includes('pásame');
+    return hasHumanWord && (hasAskVerb || v.startsWith('agente') || v.startsWith('humano'));
+  };
+
+  const createTicketAndSwitch = async () => {
+    if (status !== 'authenticated') {
+      pushAssistant('Para hablar con un agente humano, primero tienes que iniciar sesión.');
+      return;
+    }
+
+    setLoading(true);
+    setHandoffConfirm(false);
+
+    try {
+      const subject = 'Chatbot: derivación a agente';
+      const base =
+        'El usuario ha pedido hablar con un agente humano desde el chatbot.\n\n' +
+        'Transcripción del chat:\n' +
+        transcript;
+      const message = base.length >= 20 ? base : base.padEnd(20, '.');
+
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject,
+          category: 'TECHNICAL',
+          message,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any)?.error || 'Error');
+
+      const id = String((data as any)?._id || '').trim();
+      if (!id) throw new Error('Error');
+
+      setTicketId(id);
+      setMode('AGENT');
+      pushAssistant(
+        'Listo. Te he derivado a un agente humano. Escribe aquí y un admin/staff te responderá en cuanto pueda.'
+      );
+    } catch (e: any) {
+      pushAssistant(String(e?.message || 'No se pudo abrir el ticket de soporte.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncTicket = async (id: string, opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setTicketSyncing(true);
+    try {
+      const res = await fetch(`/api/tickets/${id}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any)?.error || 'Error');
+      setTicketReplies(Array.isArray((data as any).replies) ? ((data as any).replies as TicketReply[]) : []);
+    } catch {
+      // ignore transient polling errors
+    } finally {
+      if (!opts?.silent) setTicketSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode !== 'AGENT') return;
+    if (!ticketId) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      if (cancelled) return;
+      await syncTicket(ticketId);
+    };
+
+    run();
+
+    const interval = setInterval(() => {
+      syncTicket(ticketId, { silent: true });
+    }, 4_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [open, mode, ticketId]);
+
   const send = async () => {
     if (!trimmed || loading) return;
 
     const nextUserMsg: ChatMsg = { role: 'user', content: trimmed };
     setMessages((prev) => [...prev, nextUserMsg]);
     setText('');
+
+    // If the user explicitly asks for a human agent, offer handoff.
+    if (mode === 'AI' && wantsHuman(trimmed)) {
+      setHandoffConfirm(true);
+      pushAssistant('Entiendo. ¿Quieres que te derive a un agente humano del staff para seguir por aquí?');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      if (mode === 'AGENT') {
+        if (!ticketId) throw new Error('No hay ticket activo');
+        if (status !== 'authenticated') {
+          throw new Error('Necesitas iniciar sesión para hablar con un agente.');
+        }
+
+        const res = await fetch(`/api/tickets/${ticketId}/replies`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: nextUserMsg.content }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((data as any)?.error || 'Error');
+        await syncTicket(ticketId, { silent: true });
+        return;
+      }
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,14 +208,40 @@ export default function ChatbotWidget() {
 
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (e: any) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: String(e?.message || 'Error del chatbot') },
-      ]);
+      const errText = String(e?.message || 'Error del chatbot');
+      const offer =
+        mode === 'AI'
+          ? 'Si lo prefieres, puedo derivarte a un agente humano. ¿Quieres hablar con alguien del staff?'
+          : '';
+
+      setMessages((prev) => {
+        const next = [...prev, { role: 'assistant' as const, content: errText }];
+        return offer ? [...next, { role: 'assistant' as const, content: offer }] : next;
+      });
+
+      if (mode === 'AI') setHandoffConfirm(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const renderConversation = () => {
+    if (mode !== 'AGENT') {
+      return messages;
+    }
+
+    // In agent mode we still show the assistant/system messages we already added,
+    // plus the real ticket conversation as assistant bubbles when staff replies.
+    // Only render staff replies from the DB to avoid duplicating user messages
+    // (user messages are already stored in local state when sending).
+    const mappedReplies: ChatMsg[] = ticketReplies
+      .filter((r) => r.isStaff)
+      .map((r) => ({ role: 'assistant', content: r.message }));
+
+    return [...messages, ...mappedReplies];
+  };
+
+  const conversation = renderConversation();
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -78,7 +258,13 @@ export default function ChatbotWidget() {
               <div className="min-w-0">
                 <div className="text-white font-semibold leading-5 truncate">Asistente</div>
                 <div className="text-xs text-gray-400 leading-4">
-                  {loading ? 'Escribiendo…' : 'Soporte automático'}
+                    {loading
+                      ? 'Escribiendo…'
+                      : mode === 'AGENT'
+                        ? ticketSyncing
+                          ? 'Conectando con un agente…'
+                          : 'Agente humano'
+                        : 'Soporte automático'}
                 </div>
               </div>
             </div>
@@ -94,11 +280,77 @@ export default function ChatbotWidget() {
             </Button>
           </div>
 
+            {mode === 'AI' ? (
+              <div className="-mt-1 mb-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setHandoffConfirm(true);
+                    pushAssistant('¿Quieres que te derive a un agente humano del staff?');
+                  }}
+                  disabled={loading}
+                >
+                  Hablar con un agente
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setHandoffConfirm(true);
+                    pushAssistant('Vale. Si lo prefieres, puedo derivarte a un agente humano. ¿Quieres que lo haga?');
+                  }}
+                  disabled={loading}
+                >
+                  No me ayudó
+                </Button>
+              </div>
+            ) : null}
+
+            {handoffConfirm ? (
+              <div className="mb-2 rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-sm text-gray-200">
+                  {status === 'authenticated'
+                    ? '¿Derivamos tu conversación a un admin/staff para que te responda?'
+                    : 'Para hablar con un agente humano necesitas iniciar sesión.'}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {status === 'authenticated' ? (
+                    <>
+                      <Button type="button" size="sm" onClick={createTicketAndSwitch} disabled={loading}>
+                        Sí, hablar con un agente
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setHandoffConfirm(false)}
+                        disabled={loading}
+                      >
+                        Seguir con la IA
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button type="button" size="sm" onClick={goLoginForAgent}>
+                        Iniciar sesión
+                      </Button>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => setHandoffConfirm(false)}>
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
           <div
             ref={listRef}
             className="h-72 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-3 space-y-2"
           >
-            {messages.map((m, idx) => (
+            {conversation.map((m, idx) => (
               <div key={idx} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
                 <div
                   className={
@@ -125,7 +377,7 @@ export default function ChatbotWidget() {
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Escribe tu mensaje…"
+              placeholder={mode === 'AGENT' ? 'Escribe para el agente…' : 'Escribe tu mensaje…'}
               disabled={loading}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -138,6 +390,12 @@ export default function ChatbotWidget() {
               Enviar
             </Button>
           </div>
+
+          {mode === 'AGENT' && ticketId ? (
+            <div className="mt-2 text-xs text-gray-400">
+              Ticket: <a className="underline hover:text-gray-300" href={`/soporte/${ticketId}`}>/soporte/{ticketId}</a>
+            </div>
+          ) : null}
         </Card>
       ) : (
         <button
