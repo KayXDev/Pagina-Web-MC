@@ -5,8 +5,9 @@ import Product from '@/models/Product';
 import ShopOrder from '@/models/ShopOrder';
 import { resolveMinecraftAccount } from '@/lib/minecraftAccount';
 import { getCurrentUser } from '@/lib/session';
+import { paypalCreateOrder } from '@/lib/paypal';
 
-const checkoutSchema = z.object({
+const schema = z.object({
   minecraftUsername: z.string().min(1),
   productId: z.string().min(1).optional(),
   items: z
@@ -19,10 +20,16 @@ const checkoutSchema = z.object({
     .optional(),
 });
 
+function getSiteUrl(request: Request): string {
+  const fromEnv = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  return new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const parsed = checkoutSchema.safeParse(body);
+    const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
@@ -87,8 +94,11 @@ export async function POST(request: Request) {
     });
 
     const totalPrice = orderItems.reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
-    const first = orderItems[0];
+    if (!Number.isFinite(totalPrice) || totalPrice <= 0) {
+      return NextResponse.json({ error: 'Total inválido' }, { status: 400 });
+    }
 
+    const first = orderItems[0];
     const user = await getCurrentUser().catch(() => null);
 
     const headers = new Headers(request.headers);
@@ -104,35 +114,46 @@ export async function POST(request: Request) {
       productPrice: first?.unitPrice || 0,
       items: orderItems,
       totalPrice,
-      currency: process.env.SHOP_CURRENCY || 'EUR',
+      currency: String(process.env.SHOP_CURRENCY || 'EUR').toUpperCase(),
       status: 'PENDING',
-      provider: 'MANUAL',
+      provider: 'PAYPAL',
       ip,
       userAgent,
     });
 
+    const siteUrl = getSiteUrl(request);
+    const returnUrl = `${siteUrl}/carrito/paypal/return?orderId=${encodeURIComponent(String(order._id))}`;
+    const cancelUrl = `${siteUrl}/carrito/paypal/cancel?orderId=${encodeURIComponent(String(order._id))}`;
+
+    const description = String(process.env.SITE_NAME || 'Shop') + ` - Order ${String(order._id)}`;
+
+    const created = await paypalCreateOrder({
+      totalPrice,
+      currency: (order as any).currency || 'EUR',
+      description,
+      customId: String(order._id),
+      returnUrl,
+      cancelUrl,
+    });
+
+    await ShopOrder.updateOne(
+      { _id: order._id },
+      {
+        $set: {
+          paypalOrderId: created.paypalOrderId,
+          paypalStatus: created.status,
+        },
+      }
+    );
+
     return NextResponse.json({
       orderId: String(order._id),
-      status: order.status,
-      provider: order.provider,
-      minecraftUsername: order.minecraftUsername,
-      minecraftUuid: order.minecraftUuid,
-      currency: order.currency,
-      totalPrice: (order as any).totalPrice || 0,
-      items: (order as any).items || [],
-      product:
-        Array.isArray((order as any).items) && (order as any).items.length === 1
-          ? {
-              id: order.productId,
-              name: order.productName,
-              price: order.productPrice,
-              currency: order.currency,
-            }
-          : null,
+      paypalOrderId: created.paypalOrderId,
+      approvalUrl: created.approvalUrl,
     });
-  } catch (error) {
-    console.error('Error creating checkout:', error);
-    return NextResponse.json({ error: 'Error al crear pedido' }, { status: 500 });
+  } catch (error: any) {
+    console.error('PayPal create order error:', error);
+    return NextResponse.json({ error: error?.message || 'Error al crear pago con PayPal' }, { status: 500 });
   }
 }
 

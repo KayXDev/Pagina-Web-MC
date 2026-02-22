@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaShoppingCart, FaCheck, FaTags } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Badge, Input } from '@/components/ui';
@@ -31,6 +32,9 @@ export default function TiendaPage() {
 
   const changeMinecraftLabel = lang === 'es' ? 'Cambiar' : 'Change';
 
+  const addToCartLabel = lang === 'es' ? 'Añadir' : 'Add';
+  const cartErrorLabel = lang === 'es' ? 'Error al guardar el carrito' : 'Failed to save cart';
+
   const [minecraftUsernameInput, setMinecraftUsernameInput] = useState('');
   const [minecraftResolved, setMinecraftResolved] = useState<null | {
     username: string;
@@ -40,6 +44,11 @@ export default function TiendaPage() {
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
   const [savingMinecraft, setSavingMinecraft] = useState(false);
   const [shopUnlocked, setShopUnlocked] = useState(false);
+
+  type CartItem = { productId: string; quantity: number };
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loadingCart, setLoadingCart] = useState(false);
+  const [savingCart, setSavingCart] = useState(false);
 
   useEffect(() => {
     setLang(getClientLangFromCookie());
@@ -63,6 +72,99 @@ export default function TiendaPage() {
       // ignore
     }
   }, []);
+
+  const localCartKey = 'shop.cart.items';
+  const readLocalCart = (): CartItem[] => {
+    try {
+      const raw = localStorage.getItem(localCartKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((it: any) => ({ productId: String(it?.productId || ''), quantity: Number(it?.quantity || 0) }))
+        .filter((it: CartItem) => Boolean(it.productId) && Number.isFinite(it.quantity) && it.quantity > 0)
+        .map((it: CartItem) => ({ ...it, quantity: Math.min(99, Math.max(1, Math.floor(it.quantity))) }));
+    } catch {
+      return [];
+    }
+  };
+
+  const writeLocalCart = (items: CartItem[]) => {
+    try {
+      localStorage.setItem(localCartKey, JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+  };
+
+  const normalizeCart = (items: CartItem[]): CartItem[] => {
+    const map = new Map<string, number>();
+    for (const it of items) {
+      const id = String(it.productId || '').trim();
+      const qty = Math.floor(Number(it.quantity || 0));
+      if (!id || !Number.isFinite(qty) || qty <= 0) continue;
+      map.set(id, Math.min(99, (map.get(id) || 0) + qty));
+    }
+    return Array.from(map.entries()).map(([productId, quantity]) => ({ productId, quantity }));
+  };
+
+  const loadCart = async () => {
+    setLoadingCart(true);
+    try {
+      if (status === 'authenticated') {
+        const local = readLocalCart();
+        const res = await fetch('/api/shop/cart', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        const serverItems = res.ok && Array.isArray((data as any).items) ? ((data as any).items as CartItem[]) : [];
+        const merged = normalizeCart([...(serverItems || []), ...(local || [])]);
+        setCartItems(merged);
+
+        // If there was anything locally, migrate to server and clear local
+        if (local.length) {
+          writeLocalCart([]);
+          await fetch('/api/shop/cart', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: merged }),
+          }).catch(() => null);
+        }
+      } else {
+        setCartItems(readLocalCart());
+      }
+    } finally {
+      setLoadingCart(false);
+    }
+  };
+
+  const persistCart = async (items: CartItem[]) => {
+    const normalized = normalizeCart(items);
+    setCartItems(normalized);
+
+    if (status === 'authenticated') {
+      setSavingCart(true);
+      try {
+        const res = await fetch('/api/shop/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: normalized }),
+        });
+        if (!res.ok) {
+          toast.error(cartErrorLabel);
+        }
+      } catch {
+        toast.error(cartErrorLabel);
+      } finally {
+        setSavingCart(false);
+      }
+    } else {
+      writeLocalCart(normalized);
+    }
+  };
+
+  useEffect(() => {
+    loadCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   useEffect(() => {
     // If logged in, prefer the account-linked MC user
@@ -214,27 +316,20 @@ export default function TiendaPage() {
     }
   };
 
-  const handlePurchase = async (product: Product) => {
-    if (!minecraftResolved?.uuid) {
-      toast.error(t(lang, 'shop.minecraftNeedUsername'));
-      return;
-    }
+  const addToCart = async (productId: string) => {
+    const next = normalizeCart([...cartItems, { productId, quantity: 1 }]);
+    await persistCart(next);
+  };
 
-    try {
-      const res = await fetch('/api/shop/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: product._id,
-          minecraftUsername: minecraftResolved.username,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any).error || 'Error');
-      toast.success(t(lang, 'shop.orderCreated'));
-    } catch (err: any) {
-      toast.error(err?.message || 'Error');
-    }
+  const setQty = async (productId: string, quantity: number) => {
+    const q = Math.min(99, Math.max(1, Math.floor(Number(quantity || 1))));
+    const next = cartItems.map((it) => (it.productId === productId ? { ...it, quantity: q } : it));
+    await persistCart(next);
+  };
+
+  const removeFromCart = async (productId: string) => {
+    const next = cartItems.filter((it) => it.productId !== productId);
+    await persistCart(next);
   };
 
   return (
@@ -395,20 +490,37 @@ export default function TiendaPage() {
           </Card>
 
           {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            {categories.map((category) => (
-              <button
-                key={category.value}
-                onClick={() => setSelectedCategory(category.value)}
-                className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
-                  selectedCategory === category.value
-                    ? 'bg-minecraft-grass text-white'
-                    : 'bg-gray-900/50 text-gray-300 hover:bg-gray-800'
-                }`}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-12">
+            <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+              {categories.map((category) => (
+                <button
+                  key={category.value}
+                  onClick={() => setSelectedCategory(category.value)}
+                  className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
+                    selectedCategory === category.value
+                      ? 'bg-minecraft-grass text-white'
+                      : 'bg-gray-900/50 text-gray-300 hover:bg-gray-800'
+                  }`}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center sm:justify-end">
+              <Link
+                href="/carrito"
+                className="relative inline-flex items-center justify-center h-11 w-11 rounded-xl border border-white/10 bg-gray-950/25 hover:bg-gray-950/35 transition-colors"
+                aria-label={lang === 'es' ? 'Abrir carrito' : 'Open cart'}
               >
-                {category.label}
-              </button>
-            ))}
+                <FaShoppingCart className="text-xl text-white" />
+                <span className="absolute -top-2 -right-2">
+                  <Badge variant={cartItems.length ? 'info' : 'default'}>
+                    {cartItems.reduce((sum, it) => sum + (it.quantity || 0), 0)}
+                  </Badge>
+                </span>
+              </Link>
+            </div>
           </div>
 
           {/* Products Grid */}
@@ -467,9 +579,9 @@ export default function TiendaPage() {
                       <div className="mt-auto pt-4 border-t border-gray-800">
                         <div className="flex items-center justify-between">
                           <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
-                          <Button onClick={() => handlePurchase(product)}>
+                          <Button onClick={() => addToCart(product._id)} disabled={savingCart}>
                             <FaShoppingCart />
-                            <span>{t(lang, 'shop.buy')}</span>
+                            <span>{addToCartLabel}</span>
                           </Button>
                         </div>
                       </div>

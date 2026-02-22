@@ -67,7 +67,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { key: 'settings', name: t(lang, 'admin.menu.settings'), href: '/admin/settings', icon: FaCog, group: 'system' },
   ];
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const normalizePath = (p: string) => (p || '').replace(/\/+$/, '') || '/';
+  const isActive = (href: string) => {
+    const current = normalizePath(pathname);
+    const target = normalizePath(href);
+    if (target === '/admin') return current === '/admin';
+    return current === target || current.startsWith(`${target}/`);
+  };
 
   const activeLabel = (() => {
     if (pathname.startsWith('/admin/permisos')) return t(lang, 'admin.menu.permissions');
