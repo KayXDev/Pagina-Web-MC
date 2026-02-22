@@ -11,6 +11,8 @@ let maintenanceCache:
   | null = null;
 
 const MAINTENANCE_CACHE_MS = 5000;
+const MAINTENANCE_TIMEOUT_MS = 2000;
+const MAINTENANCE_FALLBACK_MAX_AGE_MS = 60_000;
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
@@ -40,17 +42,19 @@ export async function middleware(request: NextRequest) {
   };
 
   // Modo mantenimiento (dinámico desde Settings)
-  try {
-    const now = Date.now();
-    let enabled: boolean | null = null;
-    let paths: string[] = [];
+  const now = Date.now();
+  let maintenanceEnabled: boolean | null = null;
+  let maintenancePaths: string[] = [];
+  let maintenanceKnown = false;
 
+  try {
     if (maintenanceCache && now - maintenanceCache.ts < MAINTENANCE_CACHE_MS) {
-      enabled = maintenanceCache.enabled;
-      paths = maintenanceCache.paths;
+      maintenanceEnabled = maintenanceCache.enabled;
+      maintenancePaths = maintenanceCache.paths;
+      maintenanceKnown = true;
     } else {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600);
+      const timeoutId = setTimeout(() => controller.abort(), MAINTENANCE_TIMEOUT_MS);
 
       const res = await fetch(new URL('/api/maintenance', request.url), {
         cache: 'no-store',
@@ -59,12 +63,22 @@ export async function middleware(request: NextRequest) {
 
       clearTimeout(timeoutId);
       const maintenance = await res.json();
-      enabled = Boolean(maintenance?.enabled);
-      paths = Array.isArray(maintenance?.paths) ? maintenance.paths.map((p: any) => String(p)) : [];
-      maintenanceCache = { enabled, paths, ts: now };
+      maintenanceEnabled = Boolean(maintenance?.enabled);
+      maintenancePaths = Array.isArray(maintenance?.paths) ? maintenance.paths.map((p: any) => String(p)) : [];
+      maintenanceCache = { enabled: maintenanceEnabled, paths: maintenancePaths, ts: now };
+      maintenanceKnown = true;
     }
+  } catch {
+    // Fallback: en conexiones lentas (móvil) o cold starts, usa el último valor conocido.
+    if (maintenanceCache && now - maintenanceCache.ts < MAINTENANCE_FALLBACK_MAX_AGE_MS) {
+      maintenanceEnabled = maintenanceCache.enabled;
+      maintenancePaths = maintenanceCache.paths;
+      maintenanceKnown = true;
+    }
+  }
 
-    if (enabled) {
+  if (maintenanceKnown) {
+    if (maintenanceEnabled) {
       const isStaff = token?.role === 'ADMIN' || token?.role === 'STAFF' || token?.role === 'OWNER';
 
       const allowList =
@@ -74,7 +88,7 @@ export async function middleware(request: NextRequest) {
 
       if (!isStaff && !allowList) {
         // If no paths are configured, keep legacy behaviour (maintenance applies to all pages)
-        if (!paths.length || matchesMaintenancePath(paths, pathname)) {
+        if (!maintenancePaths.length || matchesMaintenancePath(maintenancePaths, pathname)) {
           return NextResponse.redirect(new URL('/mantenimiento', request.url));
         }
       }
@@ -84,8 +98,6 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url));
       }
     }
-  } catch {
-    // Si falla la comprobación, no bloqueamos
   }
   
   // Check if user is trying to access admin routes
