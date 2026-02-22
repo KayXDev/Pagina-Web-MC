@@ -198,7 +198,7 @@ export default function AdminBlogPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-4xl w-full my-8"
+            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-4xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
           >
             <h2 className="text-2xl font-bold text-white mb-6">
               {editingPost
