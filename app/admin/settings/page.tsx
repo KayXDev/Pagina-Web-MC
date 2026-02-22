@@ -17,6 +17,41 @@ export default function AdminMaintenancePage() {
     maintenance_discord_webhook: '',
   });
 
+  const MAINTENANCE_ROUTE_OPTIONS: Array<{ path: string; labelKey: string }> = [
+    { path: '/', labelKey: 'admin.settings.maintenanceRoute.home' },
+    { path: '/tienda', labelKey: 'admin.settings.maintenanceRoute.shop' },
+    { path: '/carrito', labelKey: 'admin.settings.maintenanceRoute.cart' },
+    { path: '/noticias', labelKey: 'admin.settings.maintenanceRoute.news' },
+    { path: '/foro', labelKey: 'admin.settings.maintenanceRoute.forum' },
+    { path: '/soporte', labelKey: 'admin.settings.maintenanceRoute.support' },
+    { path: '/perfil', labelKey: 'admin.settings.maintenanceRoute.profile' },
+    { path: '/vote', labelKey: 'admin.settings.maintenanceRoute.vote' },
+    { path: '/normas', labelKey: 'admin.settings.maintenanceRoute.rules' },
+    { path: '/staff', labelKey: 'admin.settings.maintenanceRoute.staff' },
+    { path: '/notificaciones', labelKey: 'admin.settings.maintenanceRoute.notifications' },
+  ];
+
+  const parseMaintenancePaths = (value: string) =>
+    String(value || '')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+  const stringifyMaintenancePaths = (paths: string[]) => {
+    const unique = Array.from(new Set(paths.map((p) => String(p || '').trim()).filter(Boolean)));
+    unique.sort((a, b) => a.localeCompare(b));
+    return unique.join('\n');
+  };
+
+  const selectedMaintenancePaths = new Set(parseMaintenancePaths(settings.maintenance_paths));
+
+  const toggleMaintenancePath = (path: string) => {
+    const next = new Set(selectedMaintenancePaths);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
+    setSettings({ ...settings, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) });
+  };
+
   useEffect(() => {
     setLang(getClientLangFromCookie());
   }, []);
@@ -121,12 +156,25 @@ export default function AdminMaintenancePage() {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               {t(lang, 'admin.settings.maintenancePathsLabel')}
             </label>
-            <Textarea
-              rows={4}
-              value={settings.maintenance_paths}
-              onChange={(e) => setSettings({ ...settings, maintenance_paths: e.target.value })}
-              placeholder={t(lang, 'admin.settings.maintenancePathsPlaceholder')}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {MAINTENANCE_ROUTE_OPTIONS.map((opt) => (
+                <label
+                  key={opt.path}
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4"
+                    checked={selectedMaintenancePaths.has(opt.path)}
+                    onChange={() => toggleMaintenancePath(opt.path)}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
+                    <div className="text-xs text-gray-400 truncate">{opt.path}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
             <p className="text-xs text-gray-500 mt-2">
               {t(lang, 'admin.settings.maintenancePathsHint')}
             </p>

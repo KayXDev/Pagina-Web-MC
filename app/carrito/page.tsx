@@ -330,10 +330,24 @@ export default function CartPage() {
       <div className="mt-8">
         {cartItems.length === 0 ? (
           <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
-            <div className="flex flex-col items-start gap-3">
-              <div className="text-gray-400">{emptyLabel}</div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl border border-white/10 bg-black/20 grid place-items-center text-white">
+                  <FaShoppingCart />
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-lg">{emptyLabel}</div>
+                  <div className="text-gray-400 text-sm mt-1">
+                    {lang === 'es'
+                      ? 'Explora la tienda y añade productos al carrito.'
+                      : 'Browse the shop and add items to your cart.'}
+                  </div>
+                </div>
+              </div>
               <Link href="/tienda">
-                <Button variant="secondary">{backToShopLabel}</Button>
+                <Button variant="secondary" className="whitespace-nowrap">
+                  {backToShopLabel}
+                </Button>
               </Link>
             </div>
           </Card>
@@ -341,105 +355,127 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Items */}
             <div className="lg:col-span-8 space-y-4">
-              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/10 bg-gray-950/30">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-white font-semibold">{cartTitle}</div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        {loadingCart || loadingProducts
-                          ? lang === 'es'
-                            ? 'Cargando…'
-                            : 'Loading…'
-                          : lang === 'es'
-                            ? 'Productos y cantidades.'
-                            : 'Items and quantities.'}
-                      </div>
+              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-white font-bold text-xl">
+                      {lang === 'es' ? 'Tus productos' : 'Your items'}
                     </div>
-                    <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
+                    <div className="text-sm text-gray-400 mt-1">
+                      {loadingCart || loadingProducts
+                        ? lang === 'es'
+                          ? 'Cargando…'
+                          : 'Loading…'
+                        : savingCart
+                          ? lang === 'es'
+                            ? 'Guardando cambios…'
+                            : 'Saving changes…'
+                          : lang === 'es'
+                            ? 'Ajusta cantidades y revisa el total.'
+                            : 'Adjust quantities and review the total.'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={totalQty ? 'info' : 'default'}>
+                      {totalQty} {lang === 'es' ? 'art.' : 'items'}
+                    </Badge>
+                    <Link href="/tienda">
+                      <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                        {backToShopLabel}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
+              </Card>
 
-                <div className="p-6 space-y-3">
-                  {cartItems.map((it) => {
-                    const p = productById.get(String(it.productId));
-                    const name = p?.name || (lang === 'es' ? 'Producto' : 'Product');
-                    const unit = Number(p?.price || 0);
-                    const line = unit * it.quantity;
+              <div className="space-y-3">
+                {cartItems.map((it) => {
+                  const p = productById.get(String(it.productId));
+                  const name = p?.name || (lang === 'es' ? 'Producto' : 'Product');
+                  const unit = Number(p?.price || 0);
+                  const line = unit * it.quantity;
 
-                    return (
-                      <div
-                        key={it.productId}
-                        className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-12 h-12 rounded-2xl border border-white/10 bg-black/20 flex items-center justify-center overflow-hidden shrink-0">
-                            {p?.image ? (
-                              // Keep <img> to match existing codebase pattern
-                              <img src={p.image} alt={name} className="w-full h-full object-cover" />
-                            ) : (
-                              <FaTags className="text-xl text-gray-500" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-white font-semibold truncate">{name}</div>
-                            <div className="text-sm text-gray-400 mt-0.5">
-                              {formatPrice(unit)}
-                              <span className="text-gray-600"> · </span>
-                              <span className="text-gray-300">{lang === 'es' ? 'Subtotal' : 'Subtotal'}: </span>
-                              <span className="text-white font-semibold">{formatPrice(line)}</span>
+                  return (
+                    <Card
+                      key={it.productId}
+                      hover={false}
+                      className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden"
+                    >
+                      <div className="p-5 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-14 h-14 rounded-2xl border border-white/10 bg-black/20 flex items-center justify-center overflow-hidden shrink-0">
+                              {p?.image ? (
+                                <img src={p.image} alt={name} className="w-full h-full object-cover" />
+                              ) : (
+                                <FaTags className="text-xl text-gray-500" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-white font-semibold truncate">{name}</div>
+                              <div className="text-sm text-gray-400 mt-0.5">
+                                <span className="text-gray-400">
+                                  {lang === 'es' ? 'Precio' : 'Price'}: {formatPrice(unit)}
+                                </span>
+                                <span className="text-gray-600"> · </span>
+                                <span className="text-gray-300">{lang === 'es' ? 'Subtotal' : 'Subtotal'}: </span>
+                                <span className="text-white font-semibold">{formatPrice(line)}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={savingCart || checkingOut || checkingOutStripe || it.quantity <= 1}
-                            onClick={() => setQty(it.productId, it.quantity - 1)}
-                            className="!px-3"
-                          >
-                            <FaMinus />
-                            <span className="sr-only">-</span>
-                          </Button>
+                          <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
+                            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 p-2">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                disabled={savingCart || checkingOut || checkingOutStripe || it.quantity <= 1}
+                                onClick={() => setQty(it.productId, it.quantity - 1)}
+                                className="!px-3"
+                              >
+                                <FaMinus />
+                                <span className="sr-only">-</span>
+                              </Button>
 
-                          <Input
-                            type="number"
-                            min={1}
-                            max={99}
-                            value={it.quantity}
-                            disabled={savingCart || checkingOut || checkingOutStripe}
-                            onChange={(e) => setQty(it.productId, Number(e.target.value))}
-                            className="w-20 text-center"
-                          />
+                              <Input
+                                type="number"
+                                min={1}
+                                max={99}
+                                value={it.quantity}
+                                disabled={savingCart || checkingOut || checkingOutStripe}
+                                onChange={(e) => setQty(it.productId, Number(e.target.value))}
+                                className="w-20 text-center !px-2 !py-1.5"
+                              />
 
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={savingCart || checkingOut || checkingOutStripe || it.quantity >= 99}
-                            onClick={() => setQty(it.productId, it.quantity + 1)}
-                            className="!px-3"
-                          >
-                            <FaPlus />
-                            <span className="sr-only">+</span>
-                          </Button>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                disabled={savingCart || checkingOut || checkingOutStripe || it.quantity >= 99}
+                                onClick={() => setQty(it.productId, it.quantity + 1)}
+                                className="!px-3"
+                              >
+                                <FaPlus />
+                                <span className="sr-only">+</span>
+                              </Button>
+                            </div>
 
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            disabled={savingCart || checkingOut || checkingOutStripe}
-                            onClick={() => removeFromCart(it.productId)}
-                          >
-                            <FaTrash />
-                            <span>{lang === 'es' ? 'Quitar' : 'Remove'}</span>
-                          </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              disabled={savingCart || checkingOut || checkingOutStripe}
+                              onClick={() => removeFromCart(it.productId)}
+                              className="whitespace-nowrap"
+                            >
+                              <FaTrash />
+                              <span>{lang === 'es' ? 'Quitar' : 'Remove'}</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </Card>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Summary / Checkout */}
@@ -447,24 +483,17 @@ export default function CartPage() {
               <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-white font-semibold">{lang === 'es' ? 'Resumen' : 'Summary'}</div>
-                    <div className="text-sm text-gray-400 mt-1">{lang === 'es' ? 'Pago y verificación.' : 'Payment and verification.'}</div>
+                    <div className="text-white font-bold text-xl">{lang === 'es' ? 'Resumen' : 'Summary'}</div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      {lang === 'es' ? 'Verifica tu cuenta y completa el pago.' : 'Verify your account and complete checkout.'}
+                    </div>
                   </div>
                   <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-xs text-gray-400 mb-2">{minecraftLabel}</div>
-                  <Input
-                    value={minecraftUsername}
-                    onChange={(e) => {
-                      setMinecraftUsername(e.target.value);
-                      setMinecraftUuid('');
-                    }}
-                    placeholder={minecraftPlaceholder}
-                  />
-
-                  <div className="mt-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs text-gray-400">{minecraftLabel}</div>
                     <Badge variant={minecraftUuid ? 'success' : 'warning'}>
                       {minecraftUuid
                         ? lang === 'es'
@@ -474,8 +503,24 @@ export default function CartPage() {
                           ? 'Sin verificar'
                           : 'Not verified'}
                     </Badge>
+                  </div>
 
-                    <Button variant="secondary" disabled={checkingMinecraft} onClick={verifyMinecraft} className="whitespace-nowrap">
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    <Input
+                      value={minecraftUsername}
+                      onChange={(e) => {
+                        setMinecraftUsername(e.target.value);
+                        setMinecraftUuid('');
+                      }}
+                      placeholder={minecraftPlaceholder}
+                    />
+
+                    <Button
+                      variant="secondary"
+                      disabled={checkingMinecraft}
+                      onClick={verifyMinecraft}
+                      className="w-full whitespace-nowrap"
+                    >
                       <span>{verifyLabel}</span>
                     </Button>
                   </div>
@@ -483,9 +528,11 @@ export default function CartPage() {
                   {!minecraftUuid ? <div className="mt-2 text-xs text-yellow-400/90">{needMinecraftLabel}</div> : null}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <div className="text-gray-400">{lang === 'es' ? 'Total' : 'Total'}</div>
-                  <div className="text-white font-semibold">{formatPrice(totalPrice)}</div>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-gray-400">{lang === 'es' ? 'Total' : 'Total'}</div>
+                    <div className="text-white font-bold text-lg">{formatPrice(totalPrice)}</div>
+                  </div>
                 </div>
 
                 <div className="mt-4 space-y-2">

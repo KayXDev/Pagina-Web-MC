@@ -15,6 +15,28 @@ export default function HomePage() {
   const [staffForm, setStaffForm] = useState({ username: '', discord: '', about: '' });
   const [sendingStaff, setSendingStaff] = useState(false);
 
+  const serverHost = process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || '999wrld.vps.boxtoplay.com';
+  const serverPort = Number(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_PORT || 25565);
+  const serverAddress = `${serverHost}:${Number.isFinite(serverPort) ? serverPort : 25565}`;
+
+  const handlePlayNow = async () => {
+    try {
+      await navigator.clipboard.writeText(serverAddress);
+    } catch {
+      // ignore (clipboard permissions)
+    }
+
+    // Best-effort deep link (not supported on all devices/browsers)
+    const javaUrl = `minecraft://connect?server=${encodeURIComponent(serverHost)}&port=${
+      Number.isFinite(serverPort) ? serverPort : 25565
+    }`;
+
+    window.location.href = javaUrl;
+
+    // Silent fallback: IP is already copied. Optionally inform the user.
+    toast.info(`IP copiada: ${serverAddress}`);
+  };
+
   const [staffOpen, setStaffOpen] = useState(process.env.NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN === 'true');
   useEffect(() => {
     setLang(getClientLangFromCookie());
@@ -144,7 +166,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
           >
-            <Button size="lg" className="min-w-[200px]">
+            <Button size="lg" className="min-w-[200px]" type="button" onClick={handlePlayNow}>
               <FaPlay />
               <span>{t(lang, 'home.hero.playNow')}</span>
             </Button>
@@ -163,7 +185,8 @@ export default function HomePage() {
             className="max-w-2xl mx-auto"
           >
             <ServerStatusWidget 
-              host={process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || 'play.tuservidor.com'} 
+              host={serverHost}
+              port={Number.isFinite(serverPort) ? serverPort : 25565}
             />
           </motion.div>
         </div>
