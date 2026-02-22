@@ -125,75 +125,75 @@ export default function AdminMaintenancePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
-          <h2 className="text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <FaCog />
-            <span>{t(lang, 'admin.settings.sectionTitle')}</span>
-          </h2>
-          <p className="text-gray-400 mb-4">
-            {t(lang, 'admin.settings.sectionDesc')}
-          </p>
-          <label className="flex items-center space-x-2 cursor-pointer mb-4">
-            <input
-              type="checkbox"
-              className="w-4 h-4"
-              checked={settings.maintenance_mode === 'true'}
-              onChange={(e) => setSettings({ ...settings, maintenance_mode: e.target.checked ? 'true' : 'false' })}
-            />
-            <span className="text-gray-300">{t(lang, 'admin.settings.enableMaintenance')}</span>
-          </label>
-
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            {t(lang, 'admin.settings.messageLabel')}
-          </label>
-          <Textarea
-            rows={4}
-            value={settings.maintenance_message}
-            onChange={(e) => setSettings({ ...settings, maintenance_message: e.target.value })}
-            placeholder={t(lang, 'admin.settings.messagePlaceholder')}
-          />
-
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {t(lang, 'admin.settings.maintenancePathsLabel')}
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MAINTENANCE_ROUTE_OPTIONS.map((opt) => (
-                <label
-                  key={opt.path}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4"
-                    checked={selectedMaintenancePaths.has(opt.path)}
-                    onChange={() => toggleMaintenancePath(opt.path)}
-                  />
-                  <div className="min-w-0">
-                    <div className="text-sm text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
-                    <div className="text-xs text-gray-400 truncate">{opt.path}</div>
-                  </div>
-                </label>
-              ))}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                <FaCog />
+                <span>{t(lang, 'admin.settings.sectionTitle')}</span>
+              </h2>
+              <p className="text-gray-400 mt-2">{t(lang, 'admin.settings.sectionDesc')}</p>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {t(lang, 'admin.settings.maintenancePathsHint')}
-            </p>
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="w-4 h-4"
+                checked={settings.maintenance_mode === 'true'}
+                onChange={(e) => setSettings({ ...settings, maintenance_mode: e.target.checked ? 'true' : 'false' })}
+              />
+              <span className="text-gray-300 text-sm">{t(lang, 'admin.settings.enableMaintenance')}</span>
+            </label>
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {t(lang, 'admin.settings.webhookLabel')}
-            </label>
-            <Input
-              type="text"
-              value={settings.maintenance_discord_webhook}
-              onChange={(e) => setSettings({ ...settings, maintenance_discord_webhook: e.target.value })}
-              placeholder="https://discord.com/api/webhooks/..."
+            <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.settings.messageLabel')}</label>
+            <Textarea
+              rows={4}
+              value={settings.maintenance_message}
+              onChange={(e) => setSettings({ ...settings, maintenance_message: e.target.value })}
+              placeholder={t(lang, 'admin.settings.messagePlaceholder')}
             />
-            <p className="text-xs text-gray-500 mt-2">
-              {t(lang, 'admin.settings.webhookHint')}
-            </p>
           </div>
+        </Card>
+
+        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="text-white font-semibold">{t(lang, 'admin.settings.maintenancePathsLabel')}</div>
+            <div className="text-xs text-gray-400">{selectedMaintenancePaths.size} seleccionadas</div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {MAINTENANCE_ROUTE_OPTIONS.map((opt) => (
+              <label
+                key={opt.path}
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  className="w-4 h-4"
+                  checked={selectedMaintenancePaths.has(opt.path)}
+                  onChange={() => toggleMaintenancePath(opt.path)}
+                />
+                <div className="min-w-0">
+                  <div className="text-sm text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
+                  <div className="text-xs text-gray-400 truncate">{opt.path}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <p className="text-xs text-gray-500 mt-3">{t(lang, 'admin.settings.maintenancePathsHint')}</p>
+        </Card>
+
+        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+          <div className="text-white font-semibold mb-2">{t(lang, 'admin.settings.webhookLabel')}</div>
+          <Input
+            type="text"
+            value={settings.maintenance_discord_webhook}
+            onChange={(e) => setSettings({ ...settings, maintenance_discord_webhook: e.target.value })}
+            placeholder="https://discord.com/api/webhooks/..."
+          />
+          <p className="text-xs text-gray-500 mt-2">{t(lang, 'admin.settings.webhookHint')}</p>
         </Card>
 
         <Button type="submit" className="w-full" size="lg" disabled={saving}>

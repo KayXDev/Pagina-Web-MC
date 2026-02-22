@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaPlus, FaEdit, FaTrash, FaShoppingCart } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaShoppingCart, FaUpload } from 'react-icons/fa';
 import { Card, Button, Input, Textarea, Select, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatPrice } from '@/lib/utils';
@@ -28,12 +28,15 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     category: 'RANK',
     features: [''],
+    image: '',
     deliveryCommandsText: '',
     isActive: true,
     isUnlimited: true,
@@ -121,6 +124,7 @@ export default function AdminProductsPage() {
       price: String(product.price ?? ''),
       category: product.category,
       features: product.features.length > 0 ? product.features : [''],
+      image: String(product.image || ''),
       deliveryCommandsText: Array.isArray(product.deliveryCommands) ? product.deliveryCommands.join('\n') : '',
       isActive: product.isActive,
       isUnlimited: product.isUnlimited,
@@ -153,11 +157,38 @@ export default function AdminProductsPage() {
       price: '',
       category: 'RANK',
       features: [''],
+      image: '',
       deliveryCommandsText: '',
       isActive: true,
       isUnlimited: true,
       stock: 0,
     });
+    setImageFile(null);
+  };
+
+  const uploadProductImageFile = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+
+      const res = await fetch('/api/admin/uploads/product-image', {
+        method: 'POST',
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || (lang === 'es' ? 'Error al subir imagen' : 'Upload error'));
+
+      const url = typeof (data as any).url === 'string' ? (data as any).url : '';
+      if (!url) throw new Error(lang === 'es' ? 'URL inválida' : 'Invalid URL');
+
+      setFormData((prev) => ({ ...prev, image: url }));
+      toast.success(lang === 'es' ? 'Imagen subida' : 'Image uploaded');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : (lang === 'es' ? 'Error al subir imagen' : 'Upload error'));
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const addFeature = () => {
@@ -255,7 +286,65 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                {/* Product images disabled (avoid external storage requirement on Vercel) */}
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {lang === 'es' ? 'Imagen del producto' : 'Product image'}
+                </label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Input
+                      value={(formData as any).image}
+                      onChange={(e) => setFormData({ ...(formData as any), image: e.target.value })}
+                      placeholder={lang === 'es' ? 'URL de la imagen (opcional)' : 'Image URL (optional)'}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      {lang === 'es'
+                        ? 'Puedes pegar una URL o subir un archivo.'
+                        : 'You can paste a URL or upload a file.'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        disabled={uploadingImage}
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={!imageFile || uploadingImage}
+                        onClick={() => imageFile && uploadProductImageFile(imageFile)}
+                        className="whitespace-nowrap"
+                      >
+                        <FaUpload />
+                        <span>{uploadingImage ? (lang === 'es' ? 'Subiendo…' : 'Uploading…') : (lang === 'es' ? 'Subir' : 'Upload')}</span>
+                      </Button>
+                    </div>
+
+                    {(formData as any).image ? (
+                      <div className="mt-3 flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl border border-white/10 bg-white/5 overflow-hidden grid place-items-center">
+                          <img
+                            src={(formData as any).image}
+                            alt="Preview"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setFormData({ ...(formData as any), image: '' })}
+                        >
+                          <FaTrash />
+                          <span>{lang === 'es' ? 'Quitar' : 'Remove'}</span>
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -383,6 +472,11 @@ export default function AdminProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <Card key={product._id}>
+            {product.image ? (
+              <div className="mb-3 h-28 w-full rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+              </div>
+            ) : null}
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-xl font-bold text-white">{product.name}</h3>
               <Badge variant={product.isActive ? 'success' : 'default'}>

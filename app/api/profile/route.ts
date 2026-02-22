@@ -16,6 +16,16 @@ function isAllowedImageUrl(url: string, kind: 'avatar' | 'banner') {
   // Cloudinary (recommended for Vercel deployment)
   if (url.startsWith('https://res.cloudinary.com/')) return true;
 
+  // Vercel Blob public URLs
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' && (u.hostname === 'blob.vercel-storage.com' || u.hostname.endsWith('.blob.vercel-storage.com'))) {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+
   return false;
 }
 

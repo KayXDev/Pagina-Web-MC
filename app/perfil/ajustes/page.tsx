@@ -6,7 +6,7 @@ import { Badge, Card, Input, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
 import { useProfile } from '../_components/profile-context';
-import { FaImage, FaSignOutAlt, FaUpload, FaUserCircle } from 'react-icons/fa';
+import { FaImage, FaSignOutAlt, FaTrash, FaUpload, FaUserCircle } from 'react-icons/fa';
 
 export default function PerfilAjustesPage() {
   const { update } = useSession();
@@ -152,6 +152,22 @@ export default function PerfilAjustesPage() {
     return url;
   };
 
+  const clearAndSave = async (field: 'avatar' | 'banner') => {
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: '' }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error((data as any).error || 'Error al guardar cambios');
+
+    await update({
+      avatar: field === 'avatar' ? '' : undefined,
+      banner: field === 'banner' ? '' : undefined,
+    } as any);
+    await refresh();
+  };
+
   return (
     <div className="space-y-6">
       <Card hover={false}>
@@ -210,6 +226,26 @@ export default function PerfilAjustesPage() {
                     <FaUpload />
                     <span>{uploadingAvatar ? 'Subiendo…' : 'Subir avatar'}</span>
                   </Button>
+
+                  <Button
+                    variant="secondary"
+                    disabled={uploadingAvatar || !details?.avatar}
+                    onClick={async () => {
+                      setUploadingAvatar(true);
+                      try {
+                        await clearAndSave('avatar');
+                        toast.success('Avatar eliminado');
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Error');
+                      } finally {
+                        setUploadingAvatar(false);
+                      }
+                    }}
+                    className="gap-2 mt-2"
+                  >
+                    <FaTrash />
+                    <span>Quitar avatar</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -263,6 +299,26 @@ export default function PerfilAjustesPage() {
                   >
                     <FaUpload />
                     <span>{uploadingBanner ? 'Subiendo…' : 'Subir banner'}</span>
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    disabled={uploadingBanner || !details?.banner}
+                    onClick={async () => {
+                      setUploadingBanner(true);
+                      try {
+                        await clearAndSave('banner');
+                        toast.success('Banner eliminado');
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Error');
+                      } finally {
+                        setUploadingBanner(false);
+                      }
+                    }}
+                    className="gap-2 mt-2"
+                  >
+                    <FaTrash />
+                    <span>Quitar banner</span>
                   </Button>
                 </div>
               </div>

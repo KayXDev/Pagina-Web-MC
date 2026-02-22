@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { FaUsers, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
@@ -26,6 +27,7 @@ export default function AdminUsersPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     username: '',
@@ -110,6 +112,7 @@ export default function AdminUsersPage() {
 
       toast.success(t(lang, 'admin.users.create.success'));
       setCreateForm({ username: '', email: '', password: '', role: 'USER' });
+      setShowCreateModal(false);
       const createdUser = data as User;
       setUsers((prev) => [createdUser, ...prev]);
       fetchUsers();
@@ -246,67 +249,98 @@ export default function AdminUsersPage() {
               <FaSyncAlt />
               <span>{refreshing ? t(lang, 'common.loading') : t(lang, 'admin.dashboard.refresh')}</span>
             </Button>
+
+            {isOwner ? (
+              <Button type="button" onClick={() => setShowCreateModal(true)} className="h-9">
+                <FaUsers />
+                <span>{t(lang, 'admin.users.create.cta')}</span>
+              </Button>
+            ) : null}
           </div>
         </div>
       </Card>
 
-      {/* Create user (OWNER) */}
-      {isOwner ? (
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-white font-semibold">{t(lang, 'admin.users.create.title')}</div>
-              <div className="text-xs text-gray-400">{t(lang, 'admin.users.create.subtitle')}</div>
+      {/* Create user (OWNER) Modal */}
+      {isOwner && showCreateModal ? (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
+          >
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <div className="text-white text-xl font-bold">{t(lang, 'admin.users.create.title')}</div>
+                <div className="text-xs text-gray-400">{t(lang, 'admin.users.create.subtitle')}</div>
+              </div>
+              <Badge variant="info">OWNER</Badge>
             </div>
-            <Badge variant="info">OWNER</Badge>
-          </div>
 
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-3 items-end">
-            <div className="lg:col-span-3">
-              <label className="block text-xs font-medium text-gray-400 mb-2">{t(lang, 'admin.users.create.usernamePlaceholder')}</label>
-              <Input
-                type="text"
-                placeholder={t(lang, 'admin.users.create.usernamePlaceholder')}
-                value={createForm.username}
-                onChange={(e) => setCreateForm((p) => ({ ...p, username: e.target.value }))}
-              />
-            </div>
-            <div className="lg:col-span-4">
-              <label className="block text-xs font-medium text-gray-400 mb-2">{t(lang, 'admin.users.create.emailPlaceholder')}</label>
-              <Input
-                type="email"
-                placeholder={t(lang, 'admin.users.create.emailPlaceholder')}
-                value={createForm.email}
-                onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))}
-              />
-            </div>
-            <div className="lg:col-span-3">
-              <label className="block text-xs font-medium text-gray-400 mb-2">{t(lang, 'admin.users.create.passwordPlaceholder')}</label>
-              <Input
-                type="password"
-                placeholder={t(lang, 'admin.users.create.passwordPlaceholder')}
-                value={createForm.password}
-                onChange={(e) => setCreateForm((p) => ({ ...p, password: e.target.value }))}
-              />
-            </div>
-            <div className="lg:col-span-2">
-              <label className="block text-xs font-medium text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</label>
-              <Select value={createForm.role} onChange={(e) => setCreateForm((p) => ({ ...p, role: e.target.value }))}>
-                <option value="USER">USER</option>
-                <option value="STAFF">STAFF</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="OWNER">OWNER</option>
-              </Select>
-            </div>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-2">
+                  {t(lang, 'admin.users.create.usernamePlaceholder')}
+                </label>
+                <Input
+                  type="text"
+                  placeholder={t(lang, 'admin.users.create.usernamePlaceholder')}
+                  value={createForm.username}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, username: e.target.value }))}
+                />
+              </div>
 
-          <div className="mt-4 flex justify-end">
-            <Button onClick={createUser} disabled={creating} className="min-w-[160px] justify-center">
-              <FaUsers />
-              <span>{creating ? t(lang, 'admin.users.create.creating') : t(lang, 'admin.users.create.cta')}</span>
-            </Button>
-          </div>
-        </Card>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-2">
+                  {t(lang, 'admin.users.create.emailPlaceholder')}
+                </label>
+                <Input
+                  type="email"
+                  placeholder={t(lang, 'admin.users.create.emailPlaceholder')}
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-2">
+                  {t(lang, 'admin.users.create.passwordPlaceholder')}
+                </label>
+                <Input
+                  type="password"
+                  placeholder={t(lang, 'admin.users.create.passwordPlaceholder')}
+                  value={createForm.password}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, password: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</label>
+                <Select value={createForm.role} onChange={(e) => setCreateForm((p) => ({ ...p, role: e.target.value }))}>
+                  <option value="USER">USER</option>
+                  <option value="STAFF">STAFF</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="OWNER">OWNER</option>
+                </Select>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <Button onClick={createUser} disabled={creating} className="flex-1 justify-center">
+                <FaUsers />
+                <span>{creating ? t(lang, 'admin.users.create.creating') : t(lang, 'admin.users.create.cta')}</span>
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={creating}
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 justify-center"
+              >
+                <span>{t(lang, 'common.cancel')}</span>
+              </Button>
+            </div>
+          </motion.div>
+        </div>
       ) : null}
 
       {/* Search */}
