@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaShoppingCart } from 'react-icons/fa';
-import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
+import { Card, Button, Input, Textarea, Select, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatPrice } from '@/lib/utils';
 import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
@@ -163,14 +163,6 @@ export default function AdminProductsPage() {
       stock: 0,
     });
   };
-
-  const CATEGORY_OPTIONS: Array<{ value: string; labelKey: string }> = [
-    { value: 'RANK', labelKey: 'admin.products.category.ranks' },
-    { value: 'BUNDLES', labelKey: 'admin.products.category.bundles' },
-    { value: 'CURRENCY', labelKey: 'admin.products.category.currency' },
-    { value: 'KEYS', labelKey: 'admin.products.category.keys' },
-    { value: 'SPECIAL', labelKey: 'admin.products.category.special' },
-  ];
 
   const uploadProductImage = async (file: File) => {
     setUploadingImage(true);
@@ -339,25 +331,17 @@ export default function AdminProductsPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.category')}
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {CATEGORY_OPTIONS.map((opt) => {
-                      const active = formData.category === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, category: opt.value })}
-                          className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors text-left ${
-                            active
-                              ? 'border-minecraft-grass bg-minecraft-grass/15 text-white'
-                              : 'border-white/10 bg-white/5 text-gray-200 hover:bg-white/10'
-                          }`}
-                        >
-                          {t(lang, opt.labelKey)}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="!rounded-lg"
+                  >
+                    <option value="RANK">{t(lang, 'admin.products.category.ranks')}</option>
+                    <option value="BUNDLES">{t(lang, 'admin.products.category.bundles')}</option>
+                    <option value="CURRENCY">{t(lang, 'admin.products.category.currency')}</option>
+                    <option value="KEYS">{t(lang, 'admin.products.category.keys')}</option>
+                    <option value="SPECIAL">{t(lang, 'admin.products.category.special')}</option>
+                  </Select>
                 </div>
 
                 <div>
