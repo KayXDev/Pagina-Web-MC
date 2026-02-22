@@ -54,7 +54,8 @@ Web completa para un servidor de Minecraft con estilo **comunidad / red social**
 | UI | TailwindCSS + Framer Motion |
 | Auth | NextAuth (JWT) |
 | DB | MongoDB Atlas + Mongoose |
-| Uploads (prod) | Cloudinary (recomendado) |
+| Uploads (prod) | Vercel Blob (recomendado en Vercel) |
+| IA (chatbot) | Groq (API compatible estilo OpenAI) |
 
 ## ✅ Requisitos
 
@@ -128,7 +129,10 @@ La referencia completa está en `.env.example`. Tabla rápida:
 | `MINECRAFT_SERVER_IP` | ➖ | IP/host para status |
 | `MINECRAFT_SERVER_PORT` | ➖ | Puerto para status |
 | `NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN` | ➖ | Abre/cierra postulaciones |
-| `CLOUDINARY_URL` (o 3 vars) | ➖ | Uploads en producción |
+| `BLOB_READ_WRITE_TOKEN` | ➖ | Uploads en Vercel Blob (producción) |
+| `GROQ_API_KEY` | ➖ | API key del chatbot (Groq) |
+| `GROQ_MODEL` | ➖ | Modelo del chatbot (ej: `llama-3.1-8b-instant`) |
+| `CLOUDINARY_URL` (o 3 vars) | ➖ | Uploads alternativos (opcional) |
 
 Variables públicas (cliente):
 
@@ -160,9 +164,21 @@ Otros scripts útiles:
 ## 🖼️ Uploads (local vs producción)
 
 - **Local/Dev**: se escriben archivos en `public/uploads/...`.
-- **Producción (Vercel)**: el filesystem es efímero → usa Cloudinary.
+- **Producción (Vercel)**: el filesystem es efímero → usa **Vercel Blob** (necesita `BLOB_READ_WRITE_TOKEN`).
 
-Cloudinary (elige una opción):
+El helper soporta varios providers en este orden (según configuración):
+
+- Cloudinary (si está configurado)
+- Vercel Blob (si hay token)
+- Filesystem local (solo dev)
+
+Vercel Blob (producción en Vercel):
+
+```env
+BLOB_READ_WRITE_TOKEN=
+```
+
+Cloudinary (opcional, elige una opción):
 
 **Opción A (1 variable):**
 
@@ -187,7 +203,18 @@ Checklist:
 1) Configura variables de entorno en tu provider (igual que `.env`).
 2) MongoDB Atlas: revisa usuarios/credenciales y **Network Access** (IP allowlist).
 3) Ajusta `NEXTAUTH_URL` al dominio real.
-4) Si hay uploads: configura Cloudinary.
+4) Si hay uploads en Vercel: configura `BLOB_READ_WRITE_TOKEN` (Vercel Blob). (Cloudinary es opcional.)
+
+## 🤖 Chatbot (IA + agente humano)
+
+- Endpoint IA: `/api/chat` (Groq)
+- Derivación a humano: el widget puede abrir un **ticket** y continuar la conversación con admins/staff.
+- Admin inbox: `/admin/tickets`
+- Idioma: el chatbot responde en **es/en** (según el idioma del usuario y/o el mensaje).
+
+## 📄 License
+
+Este proyecto se publica bajo **AGPL-3.0**. Ver [LICENSE](LICENSE).
 
 ## 🧯 Troubleshooting
 

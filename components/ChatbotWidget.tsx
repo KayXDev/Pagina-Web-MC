@@ -5,6 +5,7 @@ import { Card, Button, Input } from '@/components/ui';
 import { FaComments, FaTimes } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
 
 type ChatMsg = { role: 'user' | 'assistant'; content: string };
 
@@ -23,6 +24,8 @@ export default function ChatbotWidget() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const [lang, setLang] = useState<Lang>('es');
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState('');
@@ -32,7 +35,7 @@ export default function ChatbotWidget() {
   const [ticketSyncing, setTicketSyncing] = useState(false);
   const [handoffConfirm, setHandoffConfirm] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', content: 'Hola, ¿en qué puedo ayudarte?' },
+    { role: 'assistant', content: t('es', 'chatbot.greet') },
   ]);
 
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +46,12 @@ export default function ChatbotWidget() {
     () => messages.map((m) => ({ role: m.role, content: m.content })),
     [messages]
   );
+
+  useEffect(() => {
+    const clientLang = getClientLangFromCookie();
+    setLang(clientLang);
+    setMessages([{ role: 'assistant', content: t(clientLang, 'chatbot.greet') }]);
+  }, []);
 
   const transcript = useMemo(() => {
     const lines = messages
@@ -79,7 +88,7 @@ export default function ChatbotWidget() {
 
   const createTicketAndSwitch = async () => {
     if (status !== 'authenticated') {
-      pushAssistant('Para hablar con un agente humano, primero tienes que iniciar sesión.');
+      pushAssistant(t(lang, 'chatbot.handoffNeedsLogin'));
       return;
     }
 
@@ -111,11 +120,9 @@ export default function ChatbotWidget() {
 
       setTicketId(id);
       setMode('AGENT');
-      pushAssistant(
-        'Listo. Te he derivado a un agente humano. Escribe aquí y un admin/staff te responderá en cuanto pueda.'
-      );
+      pushAssistant(t(lang, 'chatbot.handoffDone'));
     } catch (e: any) {
-      pushAssistant(String(e?.message || 'No se pudo abrir el ticket de soporte.'));
+      pushAssistant(String(e?.message || t(lang, 'chatbot.handoffError')));
     } finally {
       setLoading(false);
     }
@@ -169,7 +176,7 @@ export default function ChatbotWidget() {
     // If the user explicitly asks for a human agent, offer handoff.
     if (mode === 'AI' && wantsHuman(trimmed)) {
       setHandoffConfirm(true);
-      pushAssistant('Entiendo. ¿Quieres que te derive a un agente humano del staff para seguir por aquí?');
+      pushAssistant(t(lang, 'chatbot.handoffAsk'));
       return;
     }
 
@@ -177,9 +184,9 @@ export default function ChatbotWidget() {
 
     try {
       if (mode === 'AGENT') {
-        if (!ticketId) throw new Error('No hay ticket activo');
+        if (!ticketId) throw new Error(t(lang, 'chatbot.noActiveTicket'));
         if (status !== 'authenticated') {
-          throw new Error('Necesitas iniciar sesión para hablar con un agente.');
+          throw new Error(t(lang, 'chatbot.requireLoginAgent'));
         }
 
         const res = await fetch(`/api/tickets/${ticketId}/replies`, {
@@ -196,7 +203,7 @@ export default function ChatbotWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...apiPayloadMessages, nextUserMsg] }),
+        body: JSON.stringify({ lang, messages: [...apiPayloadMessages, nextUserMsg] }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -211,7 +218,7 @@ export default function ChatbotWidget() {
       const errText = String(e?.message || 'Error del chatbot');
       const offer =
         mode === 'AI'
-          ? 'Si lo prefieres, puedo derivarte a un agente humano. ¿Quieres hablar con alguien del staff?'
+          ? t(lang, 'chatbot.offerHumanOnError')
           : '';
 
       setMessages((prev) => {
@@ -259,12 +266,12 @@ export default function ChatbotWidget() {
                 <div className="text-white font-semibold leading-5 truncate">Asistente</div>
                 <div className="text-xs text-gray-400 leading-4">
                     {loading
-                      ? 'Escribiendo…'
+                    ? t(lang, 'chatbot.typing')
                       : mode === 'AGENT'
                         ? ticketSyncing
-                          ? 'Conectando con un agente…'
-                          : 'Agente humano'
-                        : 'Soporte automático'}
+                        ? t(lang, 'chatbot.agentConnecting')
+                        : t(lang, 'chatbot.subtitleAgent')
+                      : t(lang, 'chatbot.subtitleAi')}
                 </div>
               </div>
             </div>
@@ -276,7 +283,7 @@ export default function ChatbotWidget() {
               onClick={() => setOpen(false)}
             >
               <FaTimes />
-              <span className="sr-only">Cerrar</span>
+              <span className="sr-only">{t(lang, 'chatbot.closeAria')}</span>
             </Button>
           </div>
 
@@ -288,11 +295,11 @@ export default function ChatbotWidget() {
                   size="sm"
                   onClick={() => {
                     setHandoffConfirm(true);
-                    pushAssistant('¿Quieres que te derive a un agente humano del staff?');
+                    pushAssistant(t(lang, 'chatbot.handoffAsk'));
                   }}
                   disabled={loading}
                 >
-                  Hablar con un agente
+                  {t(lang, 'chatbot.talkToAgent')}
                 </Button>
                 <Button
                   type="button"
@@ -300,11 +307,11 @@ export default function ChatbotWidget() {
                   size="sm"
                   onClick={() => {
                     setHandoffConfirm(true);
-                    pushAssistant('Vale. Si lo prefieres, puedo derivarte a un agente humano. ¿Quieres que lo haga?');
+                    pushAssistant(t(lang, 'chatbot.handoffAskAlt'));
                   }}
                   disabled={loading}
                 >
-                  No me ayudó
+                  {t(lang, 'chatbot.notHelped')}
                 </Button>
               </div>
             ) : null}
@@ -313,14 +320,14 @@ export default function ChatbotWidget() {
               <div className="mb-2 rounded-xl border border-white/10 bg-black/20 p-3">
                 <div className="text-sm text-gray-200">
                   {status === 'authenticated'
-                    ? '¿Derivamos tu conversación a un admin/staff para que te responda?'
-                    : 'Para hablar con un agente humano necesitas iniciar sesión.'}
+                    ? t(lang, 'chatbot.handoffConfirmAuthed')
+                    : t(lang, 'chatbot.handoffConfirmUnauthed')}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {status === 'authenticated' ? (
                     <>
                       <Button type="button" size="sm" onClick={createTicketAndSwitch} disabled={loading}>
-                        Sí, hablar con un agente
+                        {t(lang, 'chatbot.handoffYes')}
                       </Button>
                       <Button
                         type="button"
@@ -329,16 +336,16 @@ export default function ChatbotWidget() {
                         onClick={() => setHandoffConfirm(false)}
                         disabled={loading}
                       >
-                        Seguir con la IA
+                        {t(lang, 'chatbot.handoffStayAi')}
                       </Button>
                     </>
                   ) : (
                     <>
                       <Button type="button" size="sm" onClick={goLoginForAgent}>
-                        Iniciar sesión
+                        {t(lang, 'user.login')}
                       </Button>
                       <Button type="button" variant="secondary" size="sm" onClick={() => setHandoffConfirm(false)}>
-                        Cancelar
+                        {t(lang, 'common.cancel')}
                       </Button>
                     </>
                   )}
@@ -377,7 +384,11 @@ export default function ChatbotWidget() {
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={mode === 'AGENT' ? 'Escribe para el agente…' : 'Escribe tu mensaje…'}
+              placeholder={
+                mode === 'AGENT'
+                  ? t(lang, 'chatbot.inputPlaceholderAgent')
+                  : t(lang, 'chatbot.inputPlaceholderAi')
+              }
               disabled={loading}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -387,13 +398,16 @@ export default function ChatbotWidget() {
               }}
             />
             <Button onClick={send} disabled={loading || !trimmed}>
-              Enviar
+              {t(lang, 'common.send')}
             </Button>
           </div>
 
           {mode === 'AGENT' && ticketId ? (
             <div className="mt-2 text-xs text-gray-400">
-              Ticket: <a className="underline hover:text-gray-300" href={`/soporte/${ticketId}`}>/soporte/{ticketId}</a>
+              {t(lang, 'chatbot.ticketLabel')}{': '}
+              <a className="underline hover:text-gray-300" href={`/soporte/${ticketId}`}>
+                /soporte/{ticketId}
+              </a>
             </div>
           ) : null}
         </Card>
@@ -402,7 +416,7 @@ export default function ChatbotWidget() {
           type="button"
           onClick={() => setOpen(true)}
           className="h-12 w-12 rounded-full bg-white/10 border border-white/10 text-white grid place-items-center hover:bg-white/15"
-          aria-label="Abrir chat"
+          aria-label={t(lang, 'chatbot.openAria')}
         >
           <FaComments />
         </button>

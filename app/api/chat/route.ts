@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 const chatBodySchema = z
   .object({
+    lang: z.enum(['es', 'en']).optional(),
     message: z.string().min(1).max(2000).optional(),
     messages: z
       .array(
@@ -35,12 +36,17 @@ export async function POST(request: Request) {
 
     const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
+    const preferredLang = body.lang === 'en' ? 'en' : 'es';
+
     const systemPrompt =
-      'Eres un asistente de soporte para un servidor/comunidad de Minecraft. Responde en español, con tono profesional, claro y orientado a pasos. ' +
-      'Primero identifica el problema y pide 1-2 datos si faltan (por ejemplo: usuario, plataforma Java/Bedrock, versión, IP, error exacto). ' +
-      'Luego propone una solución en pasos cortos y verificables. ' +
-      'Si el problema requiere acciones internas (moderación, pagos, acceso a cuenta) o no puedes resolverlo con seguridad, dilo y sugiere hablar con un agente humano del staff/admin. ' +
-      'Nunca pidas ni aceptes contraseñas, tokens, claves API o datos sensibles. Si te los piden, rechaza y explica por qué.';
+      'You are a support assistant for a Minecraft server/community website. ' +
+      'CRITICAL: Reply in the same language as the user message. If the user writes in English, reply in English. If the user writes in Spanish, reply in Spanish. ' +
+      `If unsure, default to the website language: ${preferredLang === 'en' ? 'English' : 'Spanish'}. ` +
+      'Use a professional, clear tone and step-by-step troubleshooting. ' +
+      'First identify the issue and ask 1-2 key clarifying questions if needed (e.g., username, Java/Bedrock, version, server IP, exact error). ' +
+      'Then provide short, verifiable steps. ' +
+      'If the issue requires internal actions (moderation, billing, account access) or you cannot safely resolve it, say so and suggest talking to a human staff/admin agent. ' +
+      'Never ask for or accept passwords, tokens, API keys, or other sensitive data; if requested, refuse and explain why.';
 
     const upstreamMessages = Array.isArray(body.messages)
       ? body.messages
