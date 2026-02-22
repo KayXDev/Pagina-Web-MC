@@ -83,6 +83,7 @@ export async function PATCH(request: Request) {
     const allowedKeys = new Set([
       'maintenance_mode',
       'maintenance_message',
+      'maintenance_paths',
       'maintenance_discord_webhook',
       'staff_applications_open',
     ]);

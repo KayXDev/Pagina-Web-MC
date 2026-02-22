@@ -791,6 +791,10 @@ const DICT = {
         enableMaintenance: 'Activar modo mantenimiento',
         messageLabel: 'Mensaje de mantenimiento',
         messagePlaceholder: 'Escribe un mensaje para tus usuarios (ej: estamos actualizando la web...)',
+        maintenancePathsLabel: 'Páginas en mantenimiento (rutas)',
+        maintenancePathsPlaceholder: '/tienda\n/carrito\n/noticias',
+        maintenancePathsHint:
+          'Una ruta por línea. Coincide por prefijo (ej: /noticias afecta /noticias/...). Usa / para toda la web.',
         webhookLabel: 'Webhook de Discord (opcional)',
         webhookHint: 'Se usa para avisar automáticamente cuando actives/desactives el mantenimiento.',
         saveButton: 'Guardar mantenimiento',
@@ -810,6 +814,10 @@ const DICT = {
       back: 'Back',
       save: 'Save',
       cancel: 'Cancel',
+        maintenancePathsLabel: 'Pages in maintenance (paths)',
+        maintenancePathsPlaceholder: '/shop\n/cart\n/news',
+        maintenancePathsHint:
+          'One path per line. Prefix match (e.g. /news affects /news/...). Use / to apply to the whole site.',
       delete: 'Delete',
       edit: 'Edit',
       create: 'Create',

@@ -7,7 +7,7 @@ export async function GET() {
     await dbConnect();
 
     const rows = await Settings.find(
-      { key: { $in: ['maintenance_mode', 'maintenance_message'] } },
+      { key: { $in: ['maintenance_mode', 'maintenance_message', 'maintenance_paths'] } },
       { key: 1, value: 1 }
     ).lean();
 
@@ -17,7 +17,13 @@ export async function GET() {
     const enabled = map.get('maintenance_mode') === 'true';
     const message = map.get('maintenance_message') || 'Estamos en mantenimiento. Vuelve más tarde.';
 
-    return NextResponse.json({ enabled, message });
+    const rawPaths = map.get('maintenance_paths') || '';
+    const paths = rawPaths
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    return NextResponse.json({ enabled, message, paths });
   } catch (error) {
     // En caso de error de DB, por seguridad NO bloqueamos
     return NextResponse.json({ enabled: false, message: '' });

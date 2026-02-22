@@ -5,6 +5,7 @@ import { getToken } from 'next-auth/jwt';
 let maintenanceCache:
   | {
       enabled: boolean;
+      paths: string[];
       ts: number;
     }
   | null = null;
@@ -15,13 +16,38 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const pathname = request.nextUrl.pathname;
 
+  const matchesMaintenancePath = (paths: string[], currentPath: string) => {
+    const cur = (currentPath || '').trim();
+    if (!cur.startsWith('/')) return false;
+
+    for (const raw of paths) {
+      const p0 = String(raw || '').trim();
+      if (!p0) continue;
+
+      // support "*" and "/*" suffix as prefix match
+      const isWildcard = p0.endsWith('*');
+      const base = (isWildcard ? p0.slice(0, -1) : p0).replace(/\/+$/, '') || '/';
+
+      if (base === '/') return true;
+      if (cur === base) return true;
+      if (cur.startsWith(base + '/')) return true;
+
+      // if user wrote "/foo/" match "/foo" too
+      if (cur === base + '/') return true;
+    }
+
+    return false;
+  };
+
   // Modo mantenimiento (dinámico desde Settings)
   try {
     const now = Date.now();
     let enabled: boolean | null = null;
+    let paths: string[] = [];
 
     if (maintenanceCache && now - maintenanceCache.ts < MAINTENANCE_CACHE_MS) {
       enabled = maintenanceCache.enabled;
+      paths = maintenanceCache.paths;
     } else {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 600);
@@ -34,7 +60,8 @@ export async function middleware(request: NextRequest) {
       clearTimeout(timeoutId);
       const maintenance = await res.json();
       enabled = Boolean(maintenance?.enabled);
-      maintenanceCache = { enabled, ts: now };
+      paths = Array.isArray(maintenance?.paths) ? maintenance.paths.map((p: any) => String(p)) : [];
+      maintenanceCache = { enabled, paths, ts: now };
     }
 
     if (enabled) {
@@ -46,7 +73,10 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith('/admin');
 
       if (!isStaff && !allowList) {
-        return NextResponse.redirect(new URL('/mantenimiento', request.url));
+        // If no paths are configured, keep legacy behaviour (maintenance applies to all pages)
+        if (!paths.length || matchesMaintenancePath(paths, pathname)) {
+          return NextResponse.redirect(new URL('/mantenimiento', request.url));
+        }
       }
     } else {
       // Si no está en mantenimiento, evitamos que se quede en /mantenimiento

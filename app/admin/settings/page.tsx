@@ -13,6 +13,7 @@ export default function AdminMaintenancePage() {
   const [settings, setSettings] = useState({
     maintenance_mode: 'false',
     maintenance_message: 'Estamos en mantenimiento. Vuelve más tarde.',
+    maintenance_paths: '',
     maintenance_discord_webhook: '',
   });
 
@@ -115,6 +116,21 @@ export default function AdminMaintenancePage() {
             onChange={(e) => setSettings({ ...settings, maintenance_message: e.target.value })}
             placeholder={t(lang, 'admin.settings.messagePlaceholder')}
           />
+
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              {t(lang, 'admin.settings.maintenancePathsLabel')}
+            </label>
+            <Textarea
+              rows={4}
+              value={settings.maintenance_paths}
+              onChange={(e) => setSettings({ ...settings, maintenance_paths: e.target.value })}
+              placeholder={t(lang, 'admin.settings.maintenancePathsPlaceholder')}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              {t(lang, 'admin.settings.maintenancePathsHint')}
+            </p>
+          </div>
 
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-300 mb-2">
