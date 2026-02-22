@@ -35,6 +35,11 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = await request.json();
+
+    // Product images are disabled.
+    if (body && typeof body === 'object' && 'image' in body) {
+      delete (body as any).image;
+    }
     
     const validatedData = productSchema.parse(body);
     
@@ -83,6 +88,11 @@ export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
     const { productId, updates } = await request.json();
+
+    // Product images are disabled.
+    if (updates && typeof updates === 'object' && 'image' in updates) {
+      delete (updates as any).image;
+    }
     
     await dbConnect();
     

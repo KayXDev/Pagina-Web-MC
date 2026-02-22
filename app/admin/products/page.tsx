@@ -28,13 +28,11 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     category: 'RANK',
-    image: '',
     features: [''],
     deliveryCommandsText: '',
     isActive: true,
@@ -122,7 +120,6 @@ export default function AdminProductsPage() {
       description: product.description,
       price: String(product.price ?? ''),
       category: product.category,
-      image: String(product.image || ''),
       features: product.features.length > 0 ? product.features : [''],
       deliveryCommandsText: Array.isArray(product.deliveryCommands) ? product.deliveryCommands.join('\n') : '',
       isActive: product.isActive,
@@ -155,35 +152,12 @@ export default function AdminProductsPage() {
       description: '',
       price: '',
       category: 'RANK',
-      image: '',
       features: [''],
       deliveryCommandsText: '',
       isActive: true,
       isUnlimited: true,
       stock: 0,
     });
-  };
-
-  const uploadProductImage = async (file: File) => {
-    setUploadingImage(true);
-    try {
-      const form = new FormData();
-      form.append('file', file);
-      const res = await fetch('/api/admin/uploads/product-image', {
-        method: 'POST',
-        body: form,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any).error || 'Upload failed');
-      const url = String((data as any).url || '').trim();
-      if (!url) throw new Error('Invalid URL');
-      setFormData((prev) => ({ ...prev, image: url }));
-      toast.success(lang === 'es' ? 'Imagen subida' : 'Image uploaded');
-    } catch (err: any) {
-      toast.error(err?.message || (lang === 'es' ? 'Error al subir imagen' : 'Error uploading image'));
-    } finally {
-      setUploadingImage(false);
-    }
   };
 
   const addFeature = () => {
@@ -281,49 +255,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t(lang, 'admin.products.form.image')}
-                </label>
-
-                {formData.image ? (
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-20 h-20 rounded-2xl border border-white/10 bg-black/30 overflow-hidden shrink-0">
-                        <img src={formData.image} alt="Product" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs text-gray-400 break-all">{formData.image}</div>
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={uploadingImage}
-                            onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
-                          >
-                            <span>{t(lang, 'admin.products.form.removeImage')}</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/gif"
-                      disabled={uploadingImage}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadProductImage(f);
-                        e.currentTarget.value = '';
-                      }}
-                      className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-white/10 file:text-gray-100 hover:file:bg-white/15"
-                    />
-                    <div className="mt-2 text-xs text-gray-500">
-                      {t(lang, 'admin.products.form.imageHint')}
-                    </div>
-                  </div>
-                )}
+                {/* Product images disabled (avoid external storage requirement on Vercel) */}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -451,11 +383,6 @@ export default function AdminProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <Card key={product._id}>
-            {product.image ? (
-              <div className="mb-4 w-full aspect-[16/9] rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-              </div>
-            ) : null}
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-xl font-bold text-white">{product.name}</h3>
               <Badge variant={product.isActive ? 'success' : 'default'}>
