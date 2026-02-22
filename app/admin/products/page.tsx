@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaShoppingCart } from 'react-icons/fa';
-import { Card, Button, Input, Textarea, Select, Badge } from '@/components/ui';
+import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatPrice } from '@/lib/utils';
 import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
@@ -15,6 +15,7 @@ interface Product {
   price: number;
   category: string;
   features: string[];
+  image?: string;
   deliveryCommands?: string[];
   isActive: boolean;
   isUnlimited: boolean;
@@ -27,11 +28,13 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     category: 'RANK',
+    image: '',
     features: [''],
     deliveryCommandsText: '',
     isActive: true,
@@ -119,6 +122,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: String(product.price ?? ''),
       category: product.category,
+      image: String(product.image || ''),
       features: product.features.length > 0 ? product.features : [''],
       deliveryCommandsText: Array.isArray(product.deliveryCommands) ? product.deliveryCommands.join('\n') : '',
       isActive: product.isActive,
@@ -151,12 +155,43 @@ export default function AdminProductsPage() {
       description: '',
       price: '',
       category: 'RANK',
+      image: '',
       features: [''],
       deliveryCommandsText: '',
       isActive: true,
       isUnlimited: true,
       stock: 0,
     });
+  };
+
+  const CATEGORY_OPTIONS: Array<{ value: string; labelKey: string }> = [
+    { value: 'RANK', labelKey: 'admin.products.category.ranks' },
+    { value: 'BUNDLES', labelKey: 'admin.products.category.bundles' },
+    { value: 'CURRENCY', labelKey: 'admin.products.category.currency' },
+    { value: 'KEYS', labelKey: 'admin.products.category.keys' },
+    { value: 'SPECIAL', labelKey: 'admin.products.category.special' },
+  ];
+
+  const uploadProductImage = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/admin/uploads/product-image', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Upload failed');
+      const url = String((data as any).url || '').trim();
+      if (!url) throw new Error('Invalid URL');
+      setFormData((prev) => ({ ...prev, image: url }));
+      toast.success(lang === 'es' ? 'Imagen subida' : 'Image uploaded');
+    } catch (err: any) {
+      toast.error(err?.message || (lang === 'es' ? 'Error al subir imagen' : 'Error uploading image'));
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const addFeature = () => {
@@ -203,7 +238,7 @@ export default function AdminProductsPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8"
+            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
           >
             <h2 className="text-2xl font-bold text-white mb-6">
               {editingProduct
@@ -253,21 +288,76 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {t(lang, 'admin.products.form.image')}
+                </label>
+
+                {formData.image ? (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-20 h-20 rounded-2xl border border-white/10 bg-black/30 overflow-hidden shrink-0">
+                        <img src={formData.image} alt="Product" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-gray-400 break-all">{formData.image}</div>
+                        <div className="mt-3 flex gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={uploadingImage}
+                            onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                          >
+                            <span>{t(lang, 'admin.products.form.removeImage')}</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      disabled={uploadingImage}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadProductImage(f);
+                        e.currentTarget.value = '';
+                      }}
+                      className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-white/10 file:text-gray-100 hover:file:bg-white/15"
+                    />
+                    <div className="mt-2 text-xs text-gray-500">
+                      {t(lang, 'admin.products.form.imageHint')}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.category')}
                   </label>
-                  <Select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  >
-                    <option value="RANK">{t(lang, 'admin.products.category.ranks')}</option>
-                    <option value="ITEMS">{t(lang, 'admin.products.category.items')}</option>
-                    <option value="KEYS">{t(lang, 'admin.products.category.keys')}</option>
-                    <option value="BUNDLES">{t(lang, 'admin.products.category.bundles')}</option>
-                    <option value="OTHER">{t(lang, 'admin.products.category.other')}</option>
-                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CATEGORY_OPTIONS.map((opt) => {
+                      const active = formData.category === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, category: opt.value })}
+                          className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors text-left ${
+                            active
+                              ? 'border-minecraft-grass bg-minecraft-grass/15 text-white'
+                              : 'border-white/10 bg-white/5 text-gray-200 hover:bg-white/10'
+                          }`}
+                        >
+                          {t(lang, opt.labelKey)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
@@ -377,6 +467,11 @@ export default function AdminProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <Card key={product._id}>
+            {product.image ? (
+              <div className="mb-4 w-full aspect-[16/9] rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+            ) : null}
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-xl font-bold text-white">{product.name}</h3>
               <Badge variant={product.isActive ? 'success' : 'default'}>
