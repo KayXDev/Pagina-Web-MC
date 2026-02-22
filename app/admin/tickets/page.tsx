@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { FaTicketAlt, FaTimes } from 'react-icons/fa';
-import { Card, Badge, Button, Select, Textarea } from '@/components/ui';
+import { FaTicketAlt, FaTimes, FaSearch, FaSyncAlt } from 'react-icons/fa';
+import { Card, Badge, Button, Select, Textarea, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatDateTime } from '@/lib/utils';
 import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
@@ -41,11 +41,13 @@ export default function AdminTicketsPage() {
   const [lang, setLang] = useState<Lang>('es');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [ticketDetailsLoading, setTicketDetailsLoading] = useState(false);
   const [ticketReplies, setTicketReplies] = useState<TicketReply[]>([]);
   const [replyText, setReplyText] = useState('');
   const [activeStatus, setActiveStatus] = useState<'IN_PROGRESS' | 'OPEN' | 'CLOSED'>('IN_PROGRESS');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -53,17 +55,19 @@ export default function AdminTicketsPage() {
   const liveFetchRef = useRef(false);
 
   useEffect(() => {
-    setLang(getClientLangFromCookie());
+    const clientLang = getClientLangFromCookie();
+    setLang(clientLang);
+    fetchTickets(clientLang);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
+  const fetchTickets = async (langOverride?: Lang, opts?: { silent?: boolean }) => {
+    const useLang = langOverride || lang;
+    if (!opts?.silent) setLoading(true);
+    setRefreshing(true);
     try {
       const response = await fetch('/api/admin/tickets');
-      if (!response.ok) throw new Error(t(lang, 'admin.tickets.loadError'));
+      if (!response.ok) throw new Error(t(useLang, 'admin.tickets.loadError'));
       const data = await response.json();
       setTickets(data);
 
@@ -74,9 +78,10 @@ export default function AdminTicketsPage() {
       const hasClosed = list.some((t) => t.status === 'CLOSED');
       setActiveStatus(hasInProgress ? 'IN_PROGRESS' : hasOpen ? 'OPEN' : hasClosed ? 'CLOSED' : 'OPEN');
     } catch (error) {
-      toast.error(t(lang, 'admin.tickets.loadError'));
+      toast.error(t(useLang, 'admin.tickets.loadError'));
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -91,7 +96,7 @@ export default function AdminTicketsPage() {
       if (!response.ok) throw new Error(t(lang, 'admin.tickets.updateError'));
 
       toast.success(t(lang, 'admin.tickets.updateSuccess'));
-      fetchTickets();
+      fetchTickets(undefined, { silent: true });
       if (selectedTicket?._id === ticketId) {
         setSelectedTicket({ ...selectedTicket, ...updates });
       }
@@ -204,7 +209,7 @@ export default function AdminTicketsPage() {
       }
       setReplyText('');
       await fetchTicketDetails(selectedTicket._id);
-      await fetchTickets();
+      await fetchTickets(undefined, { silent: true });
     } catch (error: any) {
       toast.error(error.message || t(lang, 'admin.tickets.replyError'));
     }
@@ -240,12 +245,31 @@ export default function AdminTicketsPage() {
   const openTickets = tickets.filter((t) => t.status === 'OPEN');
   const closedTickets = tickets.filter((t) => t.status === 'CLOSED');
 
-  const filteredTickets =
+  const statusTickets =
     activeStatus === 'IN_PROGRESS'
       ? inProgressTickets
       : activeStatus === 'OPEN'
         ? openTickets
         : closedTickets;
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredTickets = normalizedSearch
+    ? statusTickets.filter((ticket) => {
+        const blob = [
+          ticket.subject,
+          ticket.username,
+          ticket.email,
+          ticket.category,
+          ticket.message,
+          ticket.status,
+          ticket.priority,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return blob.includes(normalizedSearch);
+      })
+    : statusTickets;
 
   const emptyText =
     activeStatus === 'IN_PROGRESS'
@@ -257,6 +281,36 @@ export default function AdminTicketsPage() {
   const openDetails = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setReplyText('');
+  };
+
+  const TabButton = ({
+    status,
+    label,
+    count,
+  }: {
+    status: 'IN_PROGRESS' | 'OPEN' | 'CLOSED';
+    label: string;
+    count: number;
+  }) => {
+    const active = activeStatus === status;
+    return (
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active}
+        onClick={() => setActiveStatus(status)}
+        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/40 ${
+          active
+            ? 'bg-white/10 border-white/10 text-white'
+            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+        }`}
+      >
+        <span className="font-medium">{label}</span>
+        <span className="px-2 py-0.5 text-xs rounded-full bg-black/20 border border-white/10 text-gray-200">
+          {count}
+        </span>
+      </button>
+    );
   };
 
   const closeDetails = () => {
@@ -272,134 +326,168 @@ export default function AdminTicketsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card hover={false} className="border-gray-800">
+      <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <FaTicketAlt className="text-minecraft-grass" />
-              <h1 className="text-3xl font-bold text-white">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
+              <span className="h-10 w-10 rounded-xl grid place-items-center bg-minecraft-grass/10 text-minecraft-grass">
+                <FaTicketAlt />
+              </span>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-bold text-white truncate">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
+                <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.tickets.headerDesc')}</p>
+              </div>
             </div>
-            <p className="text-gray-400">{t(lang, 'admin.tickets.headerDesc')}</p>
           </div>
+
           <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-            <Badge variant="info">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
               {t(lang, 'admin.tickets.total')}: {tickets.length}
-            </Badge>
-            <Badge variant="warning">
+            </span>
+            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
               {t(lang, 'admin.tickets.inProgressCount')}: {inProgressTickets.length}
-            </Badge>
-            <Badge variant="success">
+            </span>
+            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
               {t(lang, 'admin.tickets.openCount')}: {openTickets.length}
-            </Badge>
-            <Badge variant="default">
+            </span>
+            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
               {t(lang, 'admin.tickets.closedCount')}: {closedTickets.length}
-            </Badge>
+            </span>
           </div>
         </div>
       </Card>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={activeStatus === 'IN_PROGRESS' ? 'success' : 'secondary'}
-          onClick={() => setActiveStatus('IN_PROGRESS')}
-        >
-          <span>{t(lang, 'admin.tickets.inProgress')}</span>
-          <Badge variant="warning">{inProgressTickets.length}</Badge>
-        </Button>
-        <Button
-          variant={activeStatus === 'OPEN' ? 'success' : 'secondary'}
-          onClick={() => setActiveStatus('OPEN')}
-        >
-          <span>{t(lang, 'admin.tickets.open')}</span>
-          <Badge variant="success">{openTickets.length}</Badge>
-        </Button>
-        <Button
-          variant={activeStatus === 'CLOSED' ? 'success' : 'secondary'}
-          onClick={() => setActiveStatus('CLOSED')}
-        >
-          <span>{t(lang, 'admin.tickets.closed')}</span>
-          <Badge variant="default">{closedTickets.length}</Badge>
-        </Button>
-      </div>
-
-      {/* List + Chat panel */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        <div className={selectedTicket ? 'xl:col-span-3' : 'xl:col-span-5'}>
-          {loading ? (
-            <Card className="shimmer h-40" hover={false} />
-          ) : filteredTickets.length === 0 ? (
-            <Card hover={false} className="border-gray-800">
-              <div className="text-center py-16 text-gray-400">{emptyText}</div>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
-              {filteredTickets.map((ticket) => (
-                <button
-                  key={ticket._id}
-                  type="button"
-                  onClick={() => openDetails(ticket)}
-                  className="text-left"
-                >
-                  <Card
-                    hover={false}
-                    className={`border-gray-800 transition-colors hover:border-gray-700 ${
-                      selectedTicket?._id === ticket._id ? 'border-minecraft-grass' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-white font-semibold truncate">{ticket.subject}</div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
-                          {ticket.username} • {ticket.category}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        {getStatusBadge(ticket.status)}
-                        {getPriorityBadge(ticket.priority)}
-                      </div>
-                    </div>
-
-                    <div className="mt-3 text-xs text-gray-500">
-                      {t(lang, 'admin.tickets.lastActivity')}: {formatDateTime(ticket.updatedAt || ticket.createdAt)}
-                    </div>
-                  </Card>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {selectedTicket ? (
-          <div className="xl:col-span-2">
-            <Card hover={false} className="border-gray-800">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold text-white truncate">{selectedTicket.subject}</h2>
-                  <div className="text-sm text-gray-400 mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                    <span>{selectedTicket.username}</span>
-                    <span>•</span>
-                    <span>{selectedTicket.email}</span>
-                    <span>•</span>
-                    <span>{t(lang, 'admin.tickets.created')}: {formatDateTime(selectedTicket.createdAt)}</span>
-                    <span>•</span>
-                    <span>{t(lang, 'admin.tickets.updated')}: {formatDateTime(selectedTicket.updatedAt || selectedTicket.createdAt)}</span>
-                  </div>
+      {/* Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+        {/* Inbox */}
+        <section className={selectedTicket ? 'xl:col-span-5' : 'xl:col-span-12'} aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
+          <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10 bg-gray-950/40">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-white font-semibold">{t(lang, 'admin.tickets.ticketsLabel')}</div>
+                <div className="text-xs text-gray-500">
+                  {loading ? t(lang, 'common.loading') : `${filteredTickets.length} / ${statusTickets.length} ${t(lang, 'admin.tickets.total')}`}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {getStatusBadge(selectedTicket.status)}
-                  {getPriorityBadge(selectedTicket.priority)}
-                  <Button variant="secondary" size="sm" onClick={closeDetails}>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
+                <TabButton status="IN_PROGRESS" label={t(lang, 'admin.tickets.inProgress')} count={inProgressTickets.length} />
+                <TabButton status="OPEN" label={t(lang, 'admin.tickets.open')} count={openTickets.length} />
+                <TabButton status="CLOSED" label={t(lang, 'admin.tickets.closed')} count={closedTickets.length} />
+              </div>
+
+              <div className="mt-3 flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+                <div className="relative w-full md:max-w-md">
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={t(lang, 'admin.tickets.searchPlaceholder')}
+                    className="pl-10"
+                    aria-label={t(lang, 'admin.tickets.search')}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fetchTickets(undefined, { silent: true })}
+                  disabled={refreshing}
+                  className="w-full md:w-auto justify-center"
+                >
+                  <FaSyncAlt />
+                  <span>{refreshing ? t(lang, 'common.loading') : t(lang, 'admin.dashboard.refresh')}</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="max-h-[72vh] overflow-y-auto">
+              {loading ? (
+                <div className="p-4">
+                  <Card className="shimmer h-24" hover={false} />
+                </div>
+              ) : filteredTickets.length === 0 ? (
+                <div className="text-center py-16 text-gray-400 px-6">
+                  {normalizedSearch ? t(lang, 'admin.tickets.noResults') : emptyText}
+                </div>
+              ) : (
+                <div className="divide-y divide-white/10">
+                  {filteredTickets.map((ticket) => {
+                    const active = selectedTicket?._id === ticket._id;
+                    return (
+                      <button
+                        key={ticket._id}
+                        type="button"
+                        onClick={() => openDetails(ticket)}
+                        className={`w-full text-left px-4 py-3 transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/30 ${
+                          active ? 'bg-white/10' : 'hover:bg-white/5'
+                        }`}
+                        aria-current={active ? 'true' : undefined}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-white font-semibold truncate">{ticket.subject}</div>
+                            <div className="text-xs text-gray-400 mt-1 truncate">
+                              {ticket.username} • {ticket.category}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              {t(lang, 'admin.tickets.lastActivity')}: {formatDateTime(ticket.updatedAt || ticket.createdAt)}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            {getStatusBadge(ticket.status)}
+                            {getPriorityBadge(ticket.priority)}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </Card>
+        </section>
+
+        {/* Details */}
+        {selectedTicket ? (
+          <section className="xl:col-span-7" aria-label={t(lang, 'admin.tickets.chat')}>
+            <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
+              <div className="px-4 py-3 border-b border-white/10 bg-gray-950/40 sticky top-[56px] xl:top-0 z-10">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg md:text-xl font-bold text-white truncate">{selectedTicket.subject}</h2>
+                      {getStatusBadge(selectedTicket.status)}
+                      {getPriorityBadge(selectedTicket.priority)}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                      <span className="truncate">{selectedTicket.username}</span>
+                      <span>•</span>
+                      <span className="truncate">{selectedTicket.email}</span>
+                      <span>•</span>
+                      <span>
+                        {t(lang, 'admin.tickets.created')}: {formatDateTime(selectedTicket.createdAt)}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        {t(lang, 'admin.tickets.updated')}: {formatDateTime(selectedTicket.updatedAt || selectedTicket.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button variant="secondary" size="sm" onClick={closeDetails} className="shrink-0">
                     <FaTimes />
                     <span>{t(lang, 'common.close')}</span>
                   </Button>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.tickets.statusLabel')}</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {t(lang, 'admin.tickets.statusLabel')}
+                    </label>
                     <Select
                       value={selectedTicket.status}
                       onChange={(e) => updateTicket(selectedTicket._id, { status: e.target.value })}
@@ -411,7 +499,9 @@ export default function AdminTicketsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.tickets.priorityLabel')}</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {t(lang, 'admin.tickets.priorityLabel')}
+                    </label>
                     <Select
                       value={selectedTicket.priority}
                       onChange={(e) => updateTicket(selectedTicket._id, { priority: e.target.value })}
@@ -435,26 +525,27 @@ export default function AdminTicketsPage() {
                 </div>
 
                 <div>
-                  <div className="text-white font-semibold mb-2">{t(lang, 'admin.tickets.message')}</div>
-                  <div className="text-gray-300 whitespace-pre-wrap bg-black/30 border border-gray-800 p-4 rounded-md">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="text-white font-semibold">{t(lang, 'admin.tickets.message')}</div>
+                    <span className="text-xs text-gray-500">{t(lang, 'admin.tickets.category')}: {selectedTicket.category}</span>
+                  </div>
+                  <div className="text-gray-200 whitespace-pre-wrap bg-black/20 border border-white/10 p-4 rounded-lg">
                     {selectedTicket.message}
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 gap-3">
                     <div className="text-white font-semibold">{t(lang, 'admin.tickets.chat')}</div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
                       {participantsLoading ? (
-                        <span className="text-xs text-gray-500">{t(lang, 'common.loading')}</span>
+                        <span>{t(lang, 'common.loading')}</span>
                       ) : (
-                        <span className="text-xs text-gray-500">
+                        <span>
                           {t(lang, 'admin.tickets.participantsTitle')}: {participants.length}
                         </span>
                       )}
-                      {ticketDetailsLoading ? (
-                        <span className="text-xs text-gray-500">{t(lang, 'common.loading')}</span>
-                      ) : null}
+                      {ticketDetailsLoading ? <span>{t(lang, 'common.loading')}</span> : null}
                     </div>
                   </div>
 
@@ -478,16 +569,16 @@ export default function AdminTicketsPage() {
                     {ticketReplies.map((r) => (
                       <div key={r._id} className={`flex ${r.isStaff ? 'justify-start' : 'justify-end'}`}>
                         <div
-                          className={`max-w-[85%] rounded-md p-3 border ${
+                          className={`max-w-[88%] rounded-lg p-3 border ${
                             r.isStaff
-                              ? 'bg-gray-900/60 border-gray-700'
-                              : 'bg-minecraft-grass/20 border-minecraft-grass/30'
+                              ? 'bg-gray-900/40 border-white/10'
+                              : 'bg-minecraft-grass/15 border-minecraft-grass/30'
                           }`}
                         >
-                          <div className="text-xs text-gray-300 mb-1">
+                          <div className="text-[11px] text-gray-300 mb-1">
                             {r.isStaff ? t(lang, 'admin.tickets.staff') : selectedTicket.username} • {formatDateTime(r.createdAt)}
                           </div>
-                          <div className="text-white whitespace-pre-wrap">{r.message}</div>
+                          <div className="text-white whitespace-pre-wrap leading-relaxed">{r.message}</div>
                         </div>
                       </div>
                     ))}
@@ -517,7 +608,7 @@ export default function AdminTicketsPage() {
                 </div>
               </div>
             </Card>
-          </div>
+          </section>
         ) : null}
       </div>
     </div>

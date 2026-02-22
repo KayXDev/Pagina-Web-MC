@@ -14,6 +14,9 @@ export type ProfileDetails = {
   avatar?: string;
   banner?: string;
   verified?: boolean;
+  minecraftUsername?: string;
+  minecraftUuid?: string;
+  minecraftLinkedAt?: string | null;
   isBanned: boolean;
   bannedReason?: string;
   createdAt?: string;

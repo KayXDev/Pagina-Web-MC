@@ -170,17 +170,27 @@ export default function AdminBlogPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">{t(lang, 'admin.blog.title')}</h1>
-          <p className="text-gray-400">{t(lang, 'admin.blog.subtitle')}</p>
+    <div className="space-y-6">
+      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+              <FaNewspaper />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+                {t(lang, 'admin.blog.title')}
+              </h1>
+              <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.blog.subtitle')}</p>
+            </div>
+          </div>
+
+          <Button onClick={() => setShowForm(true)} className="w-full md:w-auto">
+            <FaPlus />
+            <span>{t(lang, 'admin.blog.new')}</span>
+          </Button>
         </div>
-        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
-          <FaPlus />
-          <span>{t(lang, 'admin.blog.new')}</span>
-        </Button>
-      </div>
+      </Card>
 
       {/* Form Modal */}
       {showForm && (
@@ -188,7 +198,7 @@ export default function AdminBlogPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-lg p-8 max-w-4xl w-full my-8"
+            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-4xl w-full my-8"
           >
             <h2 className="text-2xl font-bold text-white mb-6">
               {editingPost
@@ -244,7 +254,7 @@ export default function AdminBlogPage() {
                 </div>
 
                 {formData.image?.trim() && (
-                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-md flex items-center justify-center overflow-hidden border border-gray-800">
+                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-xl flex items-center justify-center overflow-hidden border border-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={formData.image}

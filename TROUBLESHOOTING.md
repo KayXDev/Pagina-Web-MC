@@ -57,8 +57,8 @@ npm run init-db
 ```
 
 Esto creará el usuario admin con:
-- **Email**: ahernandezk08@gmail.com
-- **Password**: Loltroll98
+- **Email**: el de `ADMIN_EMAIL`
+- **Password**: el de `ADMIN_PASSWORD`
 
 #### 4. Verifica la Consola del Navegador
 
@@ -109,8 +109,8 @@ npm install memory-pager sparse-bitfield
 
 1. Ve a: http://localhost:3000/auth/login
 2. Ingresa:
-   - Email: `ahernandezk08@gmail.com`
-   - Password: `Loltroll98`
+   - Email: el de `ADMIN_EMAIL`
+   - Password: el de `ADMIN_PASSWORD`
 3. Click en "Iniciar Sesión"
 
 **Resultado Esperado**: Redirección a la página principal con tu usuario en la navbar
@@ -127,7 +127,7 @@ Si tienes MongoDB Compass instalado:
 1. Conecta con tu MONGODB_URI
 2. Ve a la base de datos
 3. Busca la colección `users`
-4. Debe existir un usuario con email `ahernandezk08@gmail.com`
+4. Debe existir un usuario con el email configurado en `ADMIN_EMAIL`
 
 ### Crear Usuario Manualmente
 

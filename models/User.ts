@@ -12,6 +12,9 @@ export interface IUser {
   avatar?: string;
   banner?: string;
   verified?: boolean;
+  minecraftUsername?: string;
+  minecraftUuid?: string;
+  minecraftLinkedAt?: Date;
   isBanned: boolean;
   bannedReason?: string;
   createdAt: Date;
@@ -69,6 +72,19 @@ const UserSchema = new Schema<IUser>(
     verified: {
       type: Boolean,
       default: false,
+    },
+    minecraftUsername: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    minecraftUuid: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    minecraftLinkedAt: {
+      type: Date,
     },
     isBanned: {
       type: Boolean,
@@ -137,6 +153,34 @@ if (models.User) {
         verified: {
           type: Boolean,
           default: false,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('minecraftUsername')) {
+      models.User.schema.add({
+        minecraftUsername: {
+          type: String,
+          default: '',
+          trim: true,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('minecraftUuid')) {
+      models.User.schema.add({
+        minecraftUuid: {
+          type: String,
+          default: '',
+          trim: true,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('minecraftLinkedAt')) {
+      models.User.schema.add({
+        minecraftLinkedAt: {
+          type: Date,
         },
       });
     }

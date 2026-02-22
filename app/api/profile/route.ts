@@ -25,7 +25,7 @@ export async function GET() {
     await dbConnect();
 
     const user = await User.findById(currentUser.id).select(
-      '_id username email role tags avatar banner verified isBanned bannedReason createdAt updatedAt lastLogin'
+      '_id username email role tags avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
     );
 
     if (!user) {
@@ -47,6 +47,9 @@ export async function GET() {
       avatar: user.avatar || '',
       banner: (user as any).banner || '',
       verified: Boolean((user as any).verified),
+      minecraftUsername: String((user as any).minecraftUsername || ''),
+      minecraftUuid: String((user as any).minecraftUuid || ''),
+      minecraftLinkedAt: (user as any).minecraftLinkedAt || null,
       isBanned: Boolean((user as any).isBanned),
       bannedReason: (user as any).bannedReason || '',
       createdAt: user.createdAt,

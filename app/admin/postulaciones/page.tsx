@@ -154,11 +154,20 @@ export default function AdminPostulacionesPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">{t(lang, 'admin.applications.title')}</h1>
-        <p className="text-gray-400">{t(lang, 'admin.applications.subtitle')}</p>
-      </div>
+    <div className="space-y-6">
+      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <FaClipboardList />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              {t(lang, 'admin.applications.title')}
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.applications.subtitle')}</p>
+          </div>
+        </div>
+      </Card>
 
       {/* Detail Modal */}
       {selected && (
@@ -170,7 +179,7 @@ export default function AdminPostulacionesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-lg p-6 md:p-8 max-w-3xl w-full my-8 border border-gray-800"
+            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-3xl w-full my-8"
           >
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -189,21 +198,21 @@ export default function AdminPostulacionesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <Card hover={false} className="border-gray-800">
+              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.user')}</div>
                 <div className="text-gray-200 font-semibold">{selected.username}</div>
               </Card>
-              <Card hover={false} className="border-gray-800">
+              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.discord')}</div>
                 <div className="text-gray-200 font-semibold">{selected.discord}</div>
               </Card>
-              <Card hover={false} className="border-gray-800 md:col-span-2">
+              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl md:col-span-2">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.idIfAny')}</div>
                 <div className="text-gray-200 font-semibold break-all">{selected.userId || '—'}</div>
               </Card>
             </div>
 
-            <Card hover={false} className="border-gray-800">
+            <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
               <div className="text-sm font-semibold text-white mb-3">{t(lang, 'admin.applications.motivation')}</div>
               <div className="whitespace-pre-wrap text-gray-200 leading-relaxed">{selected.about}</div>
             </Card>
@@ -229,7 +238,7 @@ export default function AdminPostulacionesPage() {
 
             {selected.status === 'ACCEPTED' && (
               <div className="mt-6">
-                <Card hover={false} className="border-gray-800">
+                <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
                   <div className="flex items-center justify-between gap-3 mb-4">
                     <div className="text-sm font-semibold text-white">{t(lang, 'admin.applications.chatTitle')}</div>
                     {selected.ticketId ? <Badge variant="info">{selected.ticketId}</Badge> : <Badge variant="default">—</Badge>}
@@ -251,7 +260,7 @@ export default function AdminPostulacionesPage() {
         </div>
       )}
 
-      <Card hover={false} className="mb-6">
+      <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FaClipboardList className="text-minecraft-diamond" />
@@ -288,7 +297,7 @@ export default function AdminPostulacionesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(idx * 0.03, 0.3) }}
             >
-              <Card hover={false} className="border-gray-800">
+              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">

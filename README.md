@@ -1,4 +1,4 @@
-# ⛏️ 999 Wrld Network 
+# ⛏️ 999 Wrld Network
 
 Web completa para un servidor de Minecraft con estilo **comunidad / red social**: Home con estado del servidor, noticias, foro, perfiles, tienda, soporte con tickets y un **panel de administración**.
 

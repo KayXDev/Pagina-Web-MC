@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaKey } from 'react-icons/fa';
-import PageHeader from '@/components/PageHeader';
 import { Card, Button, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
@@ -105,24 +104,32 @@ export default function AdminPermisosPage() {
   };
 
   return (
-    <div>
-      <PageHeader
-        title={t(lang, 'admin.permissions.title')}
-        description={t(lang, 'admin.permissions.subtitle')}
-        icon={<FaKey className="text-5xl text-minecraft-diamond" />}
-      />
+    <div className="space-y-6">
+      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <FaKey />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              {t(lang, 'admin.permissions.title')}
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.permissions.subtitle')}</p>
+          </div>
+        </div>
+      </Card>
 
       {loading ? (
-        <Card hover={false} className="text-center text-gray-400 py-10">
+        <Card hover={false} className="text-center text-gray-400 py-10 border-white/10 bg-gray-950/25 rounded-2xl">
           {t(lang, 'admin.permissions.loading')}
         </Card>
       ) : users.length === 0 ? (
-        <Card hover={false} className="text-center text-gray-400 py-10">
+        <Card hover={false} className="text-center text-gray-400 py-10 border-white/10 bg-gray-950/25 rounded-2xl">
           {t(lang, 'admin.permissions.empty')}
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card hover={false} className="border-gray-800 lg:col-span-1">
+          <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl lg:col-span-1">
             <div className="text-white font-semibold mb-4">{t(lang, 'admin.permissions.admins')}</div>
             <div className="space-y-2">
               {users.map((u) => (
@@ -153,7 +160,7 @@ export default function AdminPermisosPage() {
           </Card>
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-2">
-            <Card hover={false} className="border-gray-800">
+            <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
               {!selected ? (
                 <div className="text-gray-400">{t(lang, 'admin.permissions.selectAdmin')}</div>
               ) : (
@@ -195,7 +202,7 @@ export default function AdminPermisosPage() {
                           return (
                             <label
                               key={key}
-                              className="flex items-center gap-3 px-4 py-3 rounded-md border border-white/10 bg-black/20"
+                              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 bg-white/5"
                             >
                               <input
                                 type="checkbox"

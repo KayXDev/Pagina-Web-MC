@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import { Card, Input, Button } from '@/components/ui';
+import { Badge, Card, Input, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
 import { useProfile } from '../_components/profile-context';
@@ -26,6 +26,11 @@ export default function PerfilAjustesPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
+  const [minecraftUsernameInput, setMinecraftUsernameInput] = useState('');
+  const [minecraftResolved, setMinecraftResolved] = useState<null | { username: string; uuid: string }>(null);
+  const [checkingMinecraft, setCheckingMinecraft] = useState(false);
+  const [savingMinecraft, setSavingMinecraft] = useState(false);
+
   useEffect(() => {
     setLang(getClientLangFromCookie());
   }, []);
@@ -34,7 +39,87 @@ export default function PerfilAjustesPage() {
     if (session?.user?.name) setUsername(session.user.name);
   }, [session?.user?.name]);
 
+  useEffect(() => {
+    const linkedUsername = String((details as any)?.minecraftUsername || '');
+    const linkedUuid = String((details as any)?.minecraftUuid || '');
+    if (linkedUsername) setMinecraftUsernameInput(linkedUsername);
+    if (linkedUsername && linkedUuid) setMinecraftResolved({ username: linkedUsername, uuid: linkedUuid });
+  }, [details]);
+
   if (status !== 'authenticated' || !session) return null;
+
+  const uuidForCrafatar = (uuid: string) => String(uuid || '').replace(/-/g, '');
+
+  const checkMinecraft = async () => {
+    const username = minecraftUsernameInput.trim();
+    if (!username) {
+      toast.error(t(lang, 'shop.minecraftNeedUsername'));
+      return;
+    }
+
+    setCheckingMinecraft(true);
+    try {
+      const res = await fetch(`/api/minecraft/resolve?username=${encodeURIComponent(username)}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+      const resolved = {
+        username: String((data as any).username || username),
+        uuid: String((data as any).uuid || ''),
+      };
+      if (!resolved.uuid) throw new Error('UUID inválido');
+      setMinecraftResolved(resolved);
+      toast.success(t(lang, 'shop.minecraftVerified'));
+    } catch (err: any) {
+      setMinecraftResolved(null);
+      toast.error(err?.message || 'Error');
+    } finally {
+      setCheckingMinecraft(false);
+    }
+  };
+
+  const linkMinecraft = async () => {
+    const username = (minecraftResolved?.username || minecraftUsernameInput).trim();
+    if (!username) return;
+    setSavingMinecraft(true);
+    try {
+      const res = await fetch('/api/profile/minecraft', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+      setMinecraftUsernameInput(String((data as any).minecraftUsername || username));
+      const uuid = String((data as any).minecraftUuid || '');
+      if (uuid) setMinecraftResolved({ username: String((data as any).minecraftUsername || username), uuid });
+      await refresh();
+      toast.success(t(lang, 'shop.minecraftSaved'));
+    } catch (err: any) {
+      toast.error(err?.message || 'Error');
+    } finally {
+      setSavingMinecraft(false);
+    }
+  };
+
+  const unlinkMinecraft = async () => {
+    setSavingMinecraft(true);
+    try {
+      const res = await fetch('/api/profile/minecraft', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ unlink: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+      setMinecraftResolved(null);
+      await refresh();
+      toast.success(t(lang, 'shop.minecraftUnlinked'));
+    } catch (err: any) {
+      toast.error(err?.message || 'Error');
+    } finally {
+      setSavingMinecraft(false);
+    }
+  };
 
   const uploadAndSave = async (opts: {
     file: File;
@@ -181,6 +266,97 @@ export default function PerfilAjustesPage() {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card
+        hover={false}
+        className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden"
+      >
+        <div className="px-6 py-5 border-b border-white/10 bg-gray-950/30">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-white font-semibold">{t(lang, 'shop.minecraftTitle')}</div>
+              <div className="text-sm text-gray-400 mt-1">{t(lang, 'shop.minecraftDesc')}</div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {minecraftResolved?.uuid ? (
+                <Badge variant="success">{t(lang, 'shop.minecraftVerified')}</Badge>
+              ) : (
+                <Badge variant="warning">{t(lang, 'shop.minecraftNeedUsername')}</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div className="md:col-span-3">
+              <div className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5">
+                <div className="w-14 h-14 rounded-xl border border-white/10 bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                  {minecraftResolved?.uuid ? (
+                    <img
+                      src={`https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=96&overlay=true`}
+                      alt={minecraftResolved.username}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/96`;
+                      }}
+                    />
+                  ) : (
+                    <FaUserCircle className="text-3xl text-gray-500" />
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <div className="text-xs text-gray-400">{t(lang, 'shop.minecraftLabel')}</div>
+                  <div className="text-white font-semibold truncate">
+                    {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-6">
+              <div className="text-xs text-gray-400 mb-1">{t(lang, 'shop.minecraftLabel')}</div>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={minecraftUsernameInput}
+                  onChange={(e) => setMinecraftUsernameInput(e.target.value)}
+                  placeholder={t(lang, 'shop.minecraftPlaceholder')}
+                  disabled={savingMinecraft || loadingDetails}
+                />
+                <Button
+                  variant="secondary"
+                  disabled={checkingMinecraft || savingMinecraft}
+                  onClick={checkMinecraft}
+                  className="whitespace-nowrap"
+                >
+                  {t(lang, 'shop.minecraftCheck')}
+                </Button>
+              </div>
+            </div>
+
+            <div className="md:col-span-3 flex flex-col sm:flex-row md:flex-col gap-2 md:items-stretch">
+              <Button
+                variant="secondary"
+                disabled={savingMinecraft || !minecraftResolved?.uuid}
+                onClick={linkMinecraft}
+                className="w-full justify-center"
+              >
+                {t(lang, 'shop.minecraftSave')}
+              </Button>
+              <Button
+                variant="danger"
+                disabled={savingMinecraft}
+                onClick={unlinkMinecraft}
+                className="w-full justify-center"
+              >
+                {t(lang, 'shop.minecraftUnlink')}
+              </Button>
             </div>
           </div>
         </div>

@@ -8,16 +8,12 @@ npm install
 
 ## Paso 2: Configurar MongoDB
 
-Tu archivo `.env` ya tiene la conexión configurada:
-
-```env
-MONGODB_URI=mongodb+srv://ahernandezk08:Loltroll98@cluster0.ekuwz.mongodb.net/?appName=Cluster0
-```
+Configura tu conexión en `.env` (ver `.env.example`).
 
 ## Paso 3: Inicializar Base de Datos
 
 Ejecuta este comando para crear:
-- ✅ Usuario administrador (Email: ahernandezk08@gmail.com, Password: Loltroll98)  
+- ✅ Usuario administrador (según `ADMIN_EMAIL` / `ADMIN_PASSWORD` en `.env`)
 - ✅ 10 productos en la tienda
 - ✅ 5 noticias de ejemplo
 - ✅ Configuraciones iniciales
@@ -36,8 +32,10 @@ Luego ve a: http://localhost:3000
 
 ## 🔐 Login
 
-- **Email**: ahernandezk08@gmail.com
-- **Password**: Loltroll98
+Usa el usuario creado por `npm run init-db`:
+
+- **Email**: el de `ADMIN_EMAIL`
+- **Password**: el de `ADMIN_PASSWORD`
 
 ## 📊 Ver Base de Datos
 
@@ -46,7 +44,7 @@ Usa **MongoDB Compass** (cliente visual oficial para MongoDB):
 1. Descarga: https://www.mongodb.com/try/download/compass
 2. Conecta con tu URI:
    ```
-   mongodb+srv://ahernandezk08:Loltroll98@cluster0.ekuwz.mongodb.net/?appName=Cluster0
+   (tu MONGODB_URI de .env)
    ```
 3. Explora las colecciones: users, products, blogposts, etc.
 

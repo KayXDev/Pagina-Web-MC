@@ -41,10 +41,12 @@ export default function TicketChatView({
   ticketId,
   backHref,
   callbackUrl,
+  embedded = false,
 }: {
   ticketId: string;
   backHref: string;
   callbackUrl: string;
+  embedded?: boolean;
 }) {
   const { status } = useSession();
   const router = useRouter();
@@ -221,21 +223,52 @@ export default function TicketChatView({
   }
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-      <PageHeader
-        title={t(lang, 'support.ticketChat')}
-        description={t(lang, 'support.ticketChatHelp')}
-        icon={<FaTicketAlt className="text-5xl text-minecraft-grass" />}
-      />
+    <div className={embedded ? 'space-y-6' : 'min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto'}>
+      {embedded ? (
+        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+                <FaTicketAlt />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+                  {t(lang, 'support.ticketChat')}
+                </h1>
+                <p className="text-gray-400 text-sm md:text-base">{t(lang, 'support.ticketChatHelp')}</p>
+              </div>
+            </div>
 
-      <div className="mb-6">
-        <Link href={backHref} className="inline-flex items-center gap-2 text-gray-300 hover:text-white">
-          <FaArrowLeft />
-          <span>{t(lang, 'common.back')}</span>
-        </Link>
-      </div>
+            <Link
+              href={backHref}
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md border border-white/10 bg-white/5 text-gray-200 hover:text-white hover:bg-white/10"
+            >
+              <FaArrowLeft />
+              <span>{t(lang, 'common.back')}</span>
+            </Link>
+          </div>
+        </Card>
+      ) : (
+        <>
+          <PageHeader
+            title={t(lang, 'support.ticketChat')}
+            description={t(lang, 'support.ticketChatHelp')}
+            icon={<FaTicketAlt className="text-5xl text-minecraft-grass" />}
+          />
 
-      <Card hover={false} className="border-gray-800">
+          <div className="mb-6">
+            <Link href={backHref} className="inline-flex items-center gap-2 text-gray-300 hover:text-white">
+              <FaArrowLeft />
+              <span>{t(lang, 'common.back')}</span>
+            </Link>
+          </div>
+        </>
+      )}
+
+      <Card
+        hover={false}
+        className={embedded ? 'border-white/10 bg-gray-950/25 rounded-2xl' : 'border-gray-800'}
+      >
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">

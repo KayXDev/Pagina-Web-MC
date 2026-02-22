@@ -9,6 +9,7 @@ export default function AdminPostulacionesChatPage({ params }: { params: { id: s
       ticketId={ticketId}
       backHref="/admin/postulaciones"
       callbackUrl={`/admin/postulaciones/chat/${ticketId}`}
+      embedded
     />
   );
 }

@@ -72,17 +72,26 @@ export default function AdminMaintenancePage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">{t(lang, 'admin.settings.title')}</h1>
-        <p className="text-gray-400">{t(lang, 'admin.settings.subtitle')}</p>
-      </div>
+    <div className="space-y-6">
+      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <FaCog />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              {t(lang, 'admin.settings.title')}
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.settings.subtitle')}</p>
+          </div>
+        </div>
+      </Card>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-            <FaCog className="mr-2" />
-            {t(lang, 'admin.settings.sectionTitle')}
+        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <FaCog />
+            <span>{t(lang, 'admin.settings.sectionTitle')}</span>
           </h2>
           <p className="text-gray-400 mb-4">
             {t(lang, 'admin.settings.sectionDesc')}

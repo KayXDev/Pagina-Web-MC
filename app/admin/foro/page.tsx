@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 
-import { Button, Input } from '@/components/ui';
+import { Button, Card, Input } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
 
 type ForumAdminPost = {
@@ -83,15 +83,19 @@ export default function AdminForoPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">{t(lang, 'admin.forum.title')}</h1>
-          <p className="text-gray-400">{t(lang, 'admin.forum.subtitle')}</p>
+      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              {t(lang, 'admin.forum.title')}
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.forum.subtitle')}</p>
+          </div>
+          <Button onClick={load} disabled={loading} className="w-full md:w-auto">
+            {loading ? t(lang, 'admin.forum.loading') : t(lang, 'admin.forum.reload')}
+          </Button>
         </div>
-        <Button onClick={load} disabled={loading}>
-          {loading ? t(lang, 'admin.forum.loading') : t(lang, 'admin.forum.reload')}
-        </Button>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div className="md:col-span-8">
@@ -112,7 +116,7 @@ export default function AdminForoPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-gray-950/40 overflow-hidden">
+      <div className="rounded-2xl border border-white/10 bg-gray-950/25 overflow-hidden">
         <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs text-gray-400 border-b border-white/10">
           <div className="col-span-5">{t(lang, 'admin.forum.thPost')}</div>
           <div className="col-span-2">{t(lang, 'admin.forum.thAuthor')}</div>

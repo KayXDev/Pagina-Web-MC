@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
@@ -12,6 +13,7 @@ import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [lang, setLang] = useState<Lang>('es');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,10 +29,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
+    const callbackUrl = searchParams?.get('callbackUrl') || '/';
+
     try {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        callbackUrl,
         redirect: false,
       });
 
@@ -38,7 +43,7 @@ export default function LoginPage() {
         toast.error(result.error);
       } else {
         toast.success(t(lang, 'auth.login.success'));
-        router.push('/');
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch (error) {

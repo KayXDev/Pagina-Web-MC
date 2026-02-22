@@ -27,8 +27,8 @@ const resetPassword = async () => {
   const User = mongoose.models.User || mongoose.model('User', UserSchema);
   
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'ahernandezk08@gmail.com';
-    const newPassword = process.env.ADMIN_PASSWORD || 'Loltroll98';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@tuservidor.com';
+    const newPassword = process.env.ADMIN_PASSWORD || 'changeme123';
     
     console.log(`\n🔍 Buscando usuario: ${adminEmail}`);
     

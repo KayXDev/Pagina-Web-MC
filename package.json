@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-with-cloudflared.js",
-    "dev:local": "next dev -H 127.0.0.1 -p 3000",
-    "dev:lan": "next dev -H 0.0.0.0 -p 3000",
-    "dev:share": "npm run dev",
+    "dev": "next dev -H 127.0.0.1 -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -15,7 +12,6 @@
   "dependencies": {
     "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
-    "cloudflared": "^0.7.1",
     "cloudinary": "^2.9.0",
     "date-fns": "^2.30.0",
     "dotenv": "^17.3.1",
