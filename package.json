@@ -10,6 +10,7 @@
     "init-db": "node scripts/init-db.js"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.0",
     "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "brew": "^0.0.8",
