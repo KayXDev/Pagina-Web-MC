@@ -13,8 +13,18 @@ export async function GET(request: Request) {
 
     const lockedBy = String(request.headers.get('x-delivery-client') || 'server').slice(0, 80);
 
+    const lockTtlMsRaw = Number(process.env.DELIVERY_LOCK_TTL_MS || 5 * 60 * 1000);
+    const lockTtlMs = Number.isFinite(lockTtlMsRaw) && lockTtlMsRaw > 0 ? lockTtlMsRaw : 5 * 60 * 1000;
+    const staleBefore = new Date(Date.now() - lockTtlMs);
+
     const delivery = await ShopDelivery.findOneAndUpdate(
-      { status: 'PENDING' },
+      {
+        $or: [
+          { status: 'PENDING' },
+          // Reclaim stuck deliveries if a worker died mid-processing.
+          { status: 'PROCESSING', lockedAt: { $lt: staleBefore } },
+        ],
+      },
       {
         $set: {
           status: 'PROCESSING',

@@ -277,6 +277,25 @@ export default function CartPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any).error || 'Error');
 
+      if ((data as any).free) {
+        // Clear cart (both guest + authenticated)
+        try {
+          localStorage.setItem('shop.cart.items', JSON.stringify([]));
+          window.dispatchEvent(new Event('shop-cart-updated'));
+        } catch {
+          // ignore
+        }
+        await fetch('/api/shop/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [] }),
+        }).catch(() => null);
+
+        setCartItems([]);
+        toast.success(lang === 'es' ? 'Pedido confirmado (0€)' : 'Order confirmed (€0)');
+        return;
+      }
+
       const approvalUrl = String((data as any).approvalUrl || '').trim();
       if (!approvalUrl) throw new Error(lang === 'es' ? 'No se pudo iniciar el pago' : 'Failed to start payment');
 
@@ -306,6 +325,25 @@ export default function CartPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any).error || 'Error');
+
+      if ((data as any).free) {
+        // Clear cart (both guest + authenticated)
+        try {
+          localStorage.setItem('shop.cart.items', JSON.stringify([]));
+          window.dispatchEvent(new Event('shop-cart-updated'));
+        } catch {
+          // ignore
+        }
+        await fetch('/api/shop/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: [] }),
+        }).catch(() => null);
+
+        setCartItems([]);
+        toast.success(lang === 'es' ? 'Pedido confirmado (0€)' : 'Order confirmed (€0)');
+        return;
+      }
 
       const url = String((data as any).url || '').trim();
       if (!url) throw new Error(lang === 'es' ? 'No se pudo iniciar el pago' : 'Failed to start payment');

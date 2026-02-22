@@ -6,6 +6,7 @@ import ShopOrder from '@/models/ShopOrder';
 import { resolveMinecraftAccount } from '@/lib/minecraftAccount';
 import { getCurrentUser } from '@/lib/session';
 import { paypalCreateOrder } from '@/lib/paypal';
+import { ensureDeliveryForOrder } from '@/lib/deliveries';
 
 const schema = z.object({
   minecraftUsername: z.string().min(1),
@@ -94,8 +95,39 @@ export async function POST(request: Request) {
     });
 
     const totalPrice = orderItems.reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
-    if (!Number.isFinite(totalPrice) || totalPrice <= 0) {
+    if (!Number.isFinite(totalPrice) || totalPrice < 0) {
       return NextResponse.json({ error: 'Total inválido' }, { status: 400 });
+    }
+
+    // If the order is free, bypass PayPal and enqueue delivery immediately.
+    if (totalPrice === 0) {
+      const first = orderItems[0];
+      const user = await getCurrentUser().catch(() => null);
+
+      const headers = new Headers(request.headers);
+      const ip = headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '';
+      const userAgent = headers.get('user-agent') || '';
+
+      const order = await ShopOrder.create({
+        userId: user?.id || '',
+        minecraftUsername: resolved.username,
+        minecraftUuid: resolved.uuid,
+        productId: first?.productId || '',
+        productName: first?.productName || '',
+        productPrice: first?.unitPrice || 0,
+        items: orderItems,
+        totalPrice,
+        currency: String(process.env.SHOP_CURRENCY || 'EUR').toUpperCase(),
+        status: 'PAID',
+        provider: 'MANUAL',
+        paidAt: new Date(),
+        ip,
+        userAgent,
+      });
+
+      await ensureDeliveryForOrder(String(order._id));
+
+      return NextResponse.json({ free: true, orderId: String(order._id), status: 'PAID' });
     }
 
     const first = orderItems[0];
@@ -136,6 +168,11 @@ export async function POST(request: Request) {
       cancelUrl,
     });
 
+    const approvalUrl = String((created as any).approvalUrl || '').trim();
+    if (!approvalUrl) {
+      return NextResponse.json({ error: 'No se pudo iniciar el pago con PayPal' }, { status: 500 });
+    }
+
     await ShopOrder.updateOne(
       { _id: order._id },
       {
@@ -149,7 +186,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       orderId: String(order._id),
       paypalOrderId: created.paypalOrderId,
-      approvalUrl: created.approvalUrl,
+      approvalUrl,
     });
   } catch (error: any) {
     console.error('PayPal create order error:', error);
