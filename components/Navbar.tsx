@@ -25,7 +25,8 @@ import {
   FaSignInAlt, 
   FaBars, 
   FaTimes,
-  FaCog
+  FaCog,
+  FaTrash
 } from 'react-icons/fa';
 
 const Navbar = () => {
@@ -113,6 +114,15 @@ const Navbar = () => {
     }
   };
 
+  const writeLocalCart = (items: CartItem[]) => {
+    try {
+      localStorage.setItem(localCartKey, JSON.stringify(items));
+      window.dispatchEvent(new Event('shop-cart-updated'));
+    } catch {
+      // ignore
+    }
+  };
+
   const loadCart = async () => {
     setCartLoading(true);
     try {
@@ -129,6 +139,31 @@ const Navbar = () => {
     } finally {
       setCartLoading(false);
     }
+  };
+
+  const persistCart = async (items: CartItem[]) => {
+    const normalized = normalizeCart(items);
+    setCartItems(normalized);
+
+    if (session?.user) {
+      try {
+        await fetch('/api/shop/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: normalized }),
+        });
+        window.dispatchEvent(new Event('shop-cart-updated'));
+      } catch {
+        // ignore
+      }
+    } else {
+      writeLocalCart(normalized);
+    }
+  };
+
+  const removeFromCart = async (productId: string) => {
+    const next = cartItems.filter((it) => String(it.productId) !== String(productId));
+    await persistCart(next);
   };
 
   const loadProductsIfNeeded = async () => {
@@ -631,7 +666,17 @@ const Navbar = () => {
                                     <div className="text-sm font-semibold text-white truncate">{name}</div>
                                     <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
                                   </div>
-                                  <div className="text-sm text-gray-200 shrink-0">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="text-sm text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                    <button
+                                      type="button"
+                                      className="p-2 rounded-md text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                                      aria-label={lang === 'es' ? 'Quitar' : 'Remove'}
+                                      onClick={() => removeFromCart(it.productId)}
+                                    >
+                                      <FaTrash size={14} />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -813,7 +858,17 @@ const Navbar = () => {
                                   <div className="text-sm font-semibold text-white truncate">{name}</div>
                                   <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
                                 </div>
-                                <div className="text-sm text-gray-200 shrink-0">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <div className="text-sm text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                  <button
+                                    type="button"
+                                    className="p-2 rounded-md text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                                    aria-label={lang === 'es' ? 'Quitar' : 'Remove'}
+                                    onClick={() => removeFromCart(it.productId)}
+                                  >
+                                    <FaTrash size={14} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );

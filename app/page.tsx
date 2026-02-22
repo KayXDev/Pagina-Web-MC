@@ -26,15 +26,31 @@ export default function HomePage() {
       // ignore (clipboard permissions)
     }
 
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const isSafari = /^((?!chrome|chromium|android).)*safari/i.test(ua);
+
+    // Safari tends to show “invalid address” for unknown URI schemes.
+    if (isSafari) {
+      toast.info(
+        lang === 'es'
+          ? `IP copiada: ${serverAddress}. Pégala en Multijugador > Añadir servidor.`
+          : `IP copied: ${serverAddress}. Paste it in Multiplayer > Add server.`
+      );
+      return;
+    }
+
     // Best-effort deep link (not supported on all devices/browsers)
     const javaUrl = `minecraft://connect?server=${encodeURIComponent(serverHost)}&port=${
       Number.isFinite(serverPort) ? serverPort : 25565
     }`;
 
-    window.location.href = javaUrl;
+    toast.info(
+      lang === 'es'
+        ? `IP copiada: ${serverAddress}. Intentando abrir Minecraft…`
+        : `IP copied: ${serverAddress}. Trying to open Minecraft…`
+    );
 
-    // Silent fallback: IP is already copied. Optionally inform the user.
-    toast.info(`IP copiada: ${serverAddress}`);
+    window.location.href = javaUrl;
   };
 
   const [staffOpen, setStaffOpen] = useState(process.env.NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN === 'true');
