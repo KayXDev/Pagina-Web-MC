@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { formatPrice } from '@/lib/utils';
 import { 
   FaHome, 
   FaShoppingCart, 
@@ -41,6 +42,16 @@ const Navbar = () => {
   const [notifItems, setNotifItems] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement | null>(null);
 
+  type CartItem = { productId: string; quantity: number };
+  type Product = { _id: string; name: string; price: number; image?: string };
+
+  const [cartOpenDesktop, setCartOpenDesktop] = useState(false);
+  const [cartOpenMobile, setCartOpenMobile] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartProducts, setCartProducts] = useState<Product[]>([]);
+  const cartRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     setLang(getClientLangFromCookie());
   }, []);
@@ -52,20 +63,109 @@ const Navbar = () => {
   useEffect(() => {
     setNotifOpenDesktop(false);
     setNotifOpenMobile(false);
+    setCartOpenDesktop(false);
+    setCartOpenMobile(false);
     setIsOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
-      if (!notifOpenDesktop) return;
-      const el = notifRef.current;
-      if (!el) return;
-      if (e.target instanceof Node && !el.contains(e.target)) setNotifOpenDesktop(false);
+      if (notifOpenDesktop) {
+        const el = notifRef.current;
+        if (el && e.target instanceof Node && !el.contains(e.target)) setNotifOpenDesktop(false);
+      }
+      if (cartOpenDesktop) {
+        const el = cartRef.current;
+        if (el && e.target instanceof Node && !el.contains(e.target)) setCartOpenDesktop(false);
+      }
     };
 
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [notifOpenDesktop]);
+  }, [notifOpenDesktop, cartOpenDesktop]);
+
+  const localCartKey = 'shop.cart.items';
+
+  const normalizeCart = (items: CartItem[]): CartItem[] => {
+    const map = new Map<string, number>();
+    for (const it of items) {
+      const id = String(it.productId || '').trim();
+      const qty = Math.floor(Number(it.quantity || 0));
+      if (!id || !Number.isFinite(qty) || qty <= 0) continue;
+      map.set(id, Math.min(99, (map.get(id) || 0) + qty));
+    }
+    return Array.from(map.entries()).map(([productId, quantity]) => ({ productId, quantity }));
+  };
+
+  const readLocalCart = (): CartItem[] => {
+    try {
+      const raw = localStorage.getItem(localCartKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return normalizeCart(
+        parsed
+          .map((it: any) => ({ productId: String(it?.productId || ''), quantity: Number(it?.quantity || 0) }))
+          .filter((it: CartItem) => Boolean(it.productId) && Number.isFinite(it.quantity) && it.quantity > 0)
+      );
+    } catch {
+      return [];
+    }
+  };
+
+  const loadCart = async () => {
+    setCartLoading(true);
+    try {
+      if (session?.user) {
+        const res = await fetch('/api/shop/cart', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        const serverItems = res.ok && Array.isArray((data as any).items) ? ((data as any).items as CartItem[]) : [];
+        setCartItems(normalizeCart(serverItems || []));
+      } else {
+        setCartItems(readLocalCart());
+      }
+    } catch {
+      setCartItems([]);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const loadProductsIfNeeded = async () => {
+    if (cartProducts.length) return;
+    try {
+      const res = await fetch('/api/products', { cache: 'no-store' });
+      const data = await res.json().catch(() => ([]));
+      setCartProducts(Array.isArray(data) ? data : []);
+    } catch {
+      setCartProducts([]);
+    }
+  };
+
+  useEffect(() => {
+    loadCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user, pathname]);
+
+  useEffect(() => {
+    const onCartUpdated = () => loadCart();
+    window.addEventListener('shop-cart-updated', onCartUpdated);
+    return () => window.removeEventListener('shop-cart-updated', onCartUpdated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user]);
+
+  const cartTotalQty = useMemo(() => cartItems.reduce((sum, it) => sum + Number(it.quantity || 0), 0), [cartItems]);
+
+  const cartProductById = useMemo(() => {
+    return new Map<string, Product>(cartProducts.map((p) => [String(p._id), p]));
+  }, [cartProducts]);
+
+  const cartTotalPrice = useMemo(() => {
+    return cartItems.reduce((sum, it) => {
+      const p = cartProductById.get(String(it.productId));
+      return sum + Number(p?.price || 0) * Number(it.quantity || 0);
+    }, 0);
+  }, [cartItems, cartProductById]);
 
   const fetchNotifications = async () => {
     if (!session?.user) {
@@ -477,6 +577,86 @@ const Navbar = () => {
             </div>
 
             <div className="flex items-center gap-1 ml-3 pl-3 border-l border-white/10">
+              <div className="relative" ref={cartRef}>
+                <button
+                  onClick={() => {
+                    const next = !cartOpenDesktop;
+                    setCartOpenDesktop(next);
+                    setCartOpenMobile(false);
+                    setNotifOpenDesktop(false);
+                    setNotifOpenMobile(false);
+                    if (next) {
+                      loadCart();
+                      loadProductsIfNeeded();
+                    }
+                  }}
+                  className="relative p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  aria-label={lang === 'es' ? 'Carrito' : 'Cart'}
+                >
+                  <FaShoppingCart />
+                  {cartTotalQty > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-minecraft-grass text-white text-[10px] font-bold">
+                      {cartTotalQty > 99 ? '99+' : cartTotalQty}
+                    </span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {cartOpenDesktop && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-lg border border-white/10 bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                        <div className="text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                        <div className="text-xs text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
+                      </div>
+
+                      {cartLoading ? (
+                        <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'common.loading')}</div>
+                      ) : cartItems.length === 0 ? (
+                        <div className="px-4 py-6 text-sm text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                      ) : (
+                        <div className="max-h-[60vh] overflow-auto divide-y divide-white/10">
+                          {cartItems.slice(0, 6).map((it) => {
+                            const p = cartProductById.get(String(it.productId));
+                            const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
+                            const line = Number(p?.price || 0) * Number(it.quantity || 0);
+                            return (
+                              <div key={it.productId} className="px-4 py-3 hover:bg-white/5">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-white truncate">{name}</div>
+                                    <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
+                                  </div>
+                                  <div className="text-sm text-gray-200 shrink-0">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3">
+                        <div className="text-sm text-gray-300">
+                          {lang === 'es' ? 'Total' : 'Total'}:{' '}
+                          <span className="text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                        </div>
+                        <Link
+                          href="/carrito"
+                          className="px-3 py-2 rounded-md text-sm font-medium bg-minecraft-grass text-white hover:bg-minecraft-grass/80 transition-all duration-200"
+                          onClick={() => setCartOpenDesktop(false)}
+                        >
+                          {lang === 'es' ? 'Ver carrito' : 'View cart'}
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {session?.user && (
                 <div className="relative" ref={notifRef}>
                   <button
@@ -579,6 +759,85 @@ const Navbar = () => {
 
           {/* Mobile controls */}
           <div className="md:hidden flex items-center gap-1 ml-auto">
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const next = !cartOpenMobile;
+                  setCartOpenMobile(next);
+                  setCartOpenDesktop(false);
+                  setNotifOpenDesktop(false);
+                  setNotifOpenMobile(false);
+                  if (next) {
+                    loadCart();
+                    loadProductsIfNeeded();
+                  }
+                }}
+                className="relative p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10"
+                aria-label={lang === 'es' ? 'Carrito' : 'Cart'}
+              >
+                <FaShoppingCart size={20} />
+                {cartTotalQty > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-minecraft-grass text-white text-[10px] font-bold">
+                    {cartTotalQty > 99 ? '99+' : cartTotalQty}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {cartOpenMobile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 mt-2 w-[92vw] max-w-[420px] rounded-lg border border-white/10 bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                      <div className="text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                      <div className="text-xs text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
+                    </div>
+
+                    {cartLoading ? (
+                      <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'common.loading')}</div>
+                    ) : cartItems.length === 0 ? (
+                      <div className="px-4 py-6 text-sm text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                    ) : (
+                      <div className="max-h-[50vh] overflow-auto divide-y divide-white/10">
+                        {cartItems.slice(0, 5).map((it) => {
+                          const p = cartProductById.get(String(it.productId));
+                          const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
+                          const line = Number(p?.price || 0) * Number(it.quantity || 0);
+                          return (
+                            <div key={it.productId} className="px-4 py-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-white truncate">{name}</div>
+                                  <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
+                                </div>
+                                <div className="text-sm text-gray-200 shrink-0">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3">
+                      <div className="text-sm text-gray-300">
+                        {lang === 'es' ? 'Total' : 'Total'}:{' '}
+                        <span className="text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                      </div>
+                      <Link
+                        href="/carrito"
+                        className="px-3 py-2 rounded-md text-sm font-medium bg-minecraft-grass text-white hover:bg-minecraft-grass/80 transition-all duration-200"
+                        onClick={() => setCartOpenMobile(false)}
+                      >
+                        {lang === 'es' ? 'Ver carrito' : 'View cart'}
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <ThemeToggle />
             <LanguageSwitcher />
             <button

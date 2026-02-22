@@ -1,7 +1,7 @@
 import mongoose, { Schema, models } from 'mongoose';
 
 export type ShopOrderStatus = 'PENDING' | 'PAID' | 'DELIVERED' | 'CANCELED';
-export type ShopOrderProvider = 'MANUAL' | 'PAYPAL';
+export type ShopOrderProvider = 'MANUAL' | 'PAYPAL' | 'STRIPE';
 
 export interface IShopOrderItem {
   productId: string;
@@ -34,6 +34,12 @@ export interface IShopOrder {
   paypalPayerId?: string;
   paypalPayerEmail?: string;
   paypalStatus?: string;
+
+  // Stripe metadata (only when provider === 'STRIPE')
+  stripeCheckoutSessionId?: string;
+  stripePaymentIntentId?: string;
+  stripeStatus?: string;
+  stripePaymentStatus?: string;
   paidAt?: Date;
   ip?: string;
   userAgent?: string;
@@ -64,13 +70,18 @@ const ShopOrderSchema = new Schema<IShopOrder>(
     totalPrice: { type: Number, default: 0 },
     currency: { type: String, default: 'EUR' },
     status: { type: String, enum: ['PENDING', 'PAID', 'DELIVERED', 'CANCELED'], default: 'PENDING' },
-    provider: { type: String, enum: ['MANUAL', 'PAYPAL'], default: 'MANUAL' },
+    provider: { type: String, enum: ['MANUAL', 'PAYPAL', 'STRIPE'], default: 'MANUAL' },
 
     paypalOrderId: { type: String, default: '' },
     paypalCaptureId: { type: String, default: '' },
     paypalPayerId: { type: String, default: '' },
     paypalPayerEmail: { type: String, default: '' },
     paypalStatus: { type: String, default: '' },
+
+    stripeCheckoutSessionId: { type: String, default: '' },
+    stripePaymentIntentId: { type: String, default: '' },
+    stripeStatus: { type: String, default: '' },
+    stripePaymentStatus: { type: String, default: '' },
     paidAt: { type: Date },
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },
@@ -83,6 +94,8 @@ ShopOrderSchema.index({ status: 1, createdAt: -1 });
 ShopOrderSchema.index({ minecraftUuid: 1, createdAt: -1 });
 ShopOrderSchema.index({ userId: 1, createdAt: -1 });
 ShopOrderSchema.index({ paypalOrderId: 1, createdAt: -1 });
+ShopOrderSchema.index({ stripeCheckoutSessionId: 1, createdAt: -1 });
+ShopOrderSchema.index({ stripePaymentIntentId: 1, createdAt: -1 });
 
 const ShopOrder = models.ShopOrder || mongoose.model<IShopOrder>('ShopOrder', ShopOrderSchema);
 

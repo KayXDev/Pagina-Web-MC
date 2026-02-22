@@ -15,6 +15,7 @@ interface Product {
   price: number;
   category: string;
   features: string[];
+  deliveryCommands?: string[];
   isActive: boolean;
   isUnlimited: boolean;
   stock?: number;
@@ -29,9 +30,10 @@ export default function AdminProductsPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 0,
+    price: '',
     category: 'RANK',
     features: [''],
+    deliveryCommandsText: '',
     isActive: true,
     isUnlimited: true,
     stock: 0,
@@ -62,11 +64,31 @@ export default function AdminProductsPage() {
     e.preventDefault();
 
     try {
+      const rawPrice = String((formData as any).price ?? '').trim();
+      const normalizedPriceText = rawPrice.replace(',', '.');
+      const priceValue = Number(normalizedPriceText);
+      if (!Number.isFinite(priceValue) || priceValue < 0) {
+        toast.error(lang === 'es' ? 'Precio inválido' : 'Invalid price');
+        return;
+      }
+
       const url = editingProduct ? '/api/admin/products' : '/api/admin/products';
       const method = editingProduct ? 'PATCH' : 'POST';
+
+      const deliveryCommands = String((formData as any).deliveryCommandsText || '')
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      const payload = {
+        ...formData,
+        price: priceValue,
+        deliveryCommands,
+      };
+
       const body = editingProduct
-        ? { productId: editingProduct._id, updates: formData }
-        : formData;
+        ? { productId: editingProduct._id, updates: payload }
+        : payload;
 
       const response = await fetch(url, {
         method,
@@ -95,9 +117,10 @@ export default function AdminProductsPage() {
     setFormData({
       name: product.name,
       description: product.description,
-      price: product.price,
+      price: String(product.price ?? ''),
       category: product.category,
       features: product.features.length > 0 ? product.features : [''],
+      deliveryCommandsText: Array.isArray(product.deliveryCommands) ? product.deliveryCommands.join('\n') : '',
       isActive: product.isActive,
       isUnlimited: product.isUnlimited,
       stock: product.stock || 0,
@@ -126,9 +149,10 @@ export default function AdminProductsPage() {
     setFormData({
       name: '',
       description: '',
-      price: 0,
+      price: '',
       category: 'RANK',
       features: [''],
+      deliveryCommandsText: '',
       isActive: true,
       isUnlimited: true,
       stock: 0,
@@ -207,8 +231,11 @@ export default function AdminProductsPage() {
                   <Input
                     type="number"
                     step="0.01"
+                    min={0}
+                    inputMode="decimal"
+                    placeholder="0.50"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
                   />
                 </div>
@@ -282,6 +309,22 @@ export default function AdminProductsPage() {
                   <FaPlus />
                   <span>{t(lang, 'admin.products.addFeature')}</span>
                 </Button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {lang === 'es' ? 'Comandos (entrega automática)' : 'Commands (auto delivery)'}
+                </label>
+                <Textarea
+                  value={(formData as any).deliveryCommandsText}
+                  onChange={(e) => setFormData({ ...(formData as any), deliveryCommandsText: e.target.value })}
+                  rows={4}
+                  placeholder={
+                    lang === 'es'
+                      ? '1 comando por línea. Usa {player} (y opcional {qty}).\nEj: lp user {player} parent add vip'
+                      : '1 command per line. Use {player} (and optional {qty}).\nEx: lp user {player} parent add vip'
+                  }
+                />
               </div>
 
               <div className="flex items-center space-x-6">

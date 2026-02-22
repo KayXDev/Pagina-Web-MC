@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from 'react-icons/fa';
+import { FaCreditCard, FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import { Badge, Button, Card, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -30,6 +30,7 @@ export default function CartPage() {
   const [loadingCart, setLoadingCart] = useState(false);
   const [savingCart, setSavingCart] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [checkingOutStripe, setCheckingOutStripe] = useState(false);
 
   const [minecraftUsername, setMinecraftUsername] = useState('');
   const [minecraftUuid, setMinecraftUuid] = useState('');
@@ -39,6 +40,8 @@ export default function CartPage() {
   const emptyLabel = lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.';
   const backToShopLabel = lang === 'es' ? 'Volver a la tienda' : 'Back to shop';
   const checkoutLabel = lang === 'es' ? 'Pagar con PayPal' : 'Pay with PayPal';
+  const stripeCheckoutLabel =
+    lang === 'es' ? 'Pagar con tarjeta / Apple Pay' : 'Pay with card / Apple Pay';
   const minecraftLabel = lang === 'es' ? 'Cuenta Minecraft (Java)' : 'Minecraft account (Java)';
   const minecraftPlaceholder = lang === 'es' ? 'Tu username de Minecraft' : 'Your Minecraft username';
   const verifyLabel = lang === 'es' ? 'Verificar' : 'Verify';
@@ -71,6 +74,7 @@ export default function CartPage() {
   const writeLocalCart = (items: CartItem[]) => {
     try {
       localStorage.setItem(localCartKey, JSON.stringify(items));
+      window.dispatchEvent(new Event('shop-cart-updated'));
     } catch {
       // ignore
     }
@@ -214,6 +218,7 @@ export default function CartPage() {
           body: JSON.stringify({ items: normalized }),
         });
         if (!res.ok) toast.error(cartErrorLabel);
+        window.dispatchEvent(new Event('shop-cart-updated'));
       } catch {
         toast.error(cartErrorLabel);
       } finally {
@@ -284,6 +289,36 @@ export default function CartPage() {
     }
   };
 
+  const checkoutStripeSession = async () => {
+    const username = minecraftUsername.trim();
+    if (!username) {
+      toast.error(needMinecraftLabel);
+      return;
+    }
+    if (!cartItems.length) return;
+
+    setCheckingOutStripe(true);
+    try {
+      const res = await fetch('/api/shop/stripe/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minecraftUsername: username, items: cartItems }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+
+      const url = String((data as any).url || '').trim();
+      if (!url) throw new Error(lang === 'es' ? 'No se pudo iniciar el pago' : 'Failed to start payment');
+
+      toast.info(lang === 'es' ? 'Redirigiendo a Stripe…' : 'Redirecting to Stripe…');
+      window.location.href = url;
+    } catch (err: any) {
+      toast.error(err?.message || 'Error');
+    } finally {
+      setCheckingOutStripe(false);
+    }
+  };
+
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
       <PageHeader
@@ -292,159 +327,197 @@ export default function CartPage() {
         icon={<FaShoppingCart className="text-6xl text-minecraft-gold" />}
       />
 
-      <div className="max-w-4xl mx-auto">
-        <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/10 bg-gray-950/30">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-white font-semibold">{cartTitle}</div>
-                <div className="text-sm text-gray-400 mt-1">
-                  {loadingCart || loadingProducts ? (lang === 'es' ? 'Cargando…' : 'Loading…') : lang === 'es' ? 'Productos y cantidades.' : 'Items and quantities.'}
-                </div>
-              </div>
-              <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
+      <div className="mt-8">
+        {cartItems.length === 0 ? (
+          <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
+            <div className="flex flex-col items-start gap-3">
+              <div className="text-gray-400">{emptyLabel}</div>
+              <Link href="/tienda">
+                <Button variant="secondary">{backToShopLabel}</Button>
+              </Link>
             </div>
-          </div>
-
-          <div className="p-6">
-            {cartItems.length === 0 ? (
-              <div className="flex flex-col items-start gap-3">
-                <div className="text-gray-400">{emptyLabel}</div>
-                <Link href="/tienda">
-                  <Button variant="secondary">{backToShopLabel}</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-                    <div className="flex-1">
-                      <div className="text-xs text-gray-400 mb-1">{minecraftLabel}</div>
-                      <Input
-                        value={minecraftUsername}
-                        onChange={(e) => {
-                          setMinecraftUsername(e.target.value);
-                          setMinecraftUuid('');
-                        }}
-                        placeholder={minecraftPlaceholder}
-                      />
-                      <div className="mt-2 flex items-center gap-2">
-                        <Badge variant={minecraftUuid ? 'success' : 'warning'}>
-                          {minecraftUuid ? (lang === 'es' ? 'Verificado' : 'Verified') : (lang === 'es' ? 'Sin verificar' : 'Not verified')}
-                        </Badge>
-                        {!minecraftUuid ? <div className="text-xs text-yellow-400/90">{needMinecraftLabel}</div> : null}
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Items */}
+            <div className="lg:col-span-8 space-y-4">
+              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/10 bg-gray-950/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-white font-semibold">{cartTitle}</div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        {loadingCart || loadingProducts
+                          ? lang === 'es'
+                            ? 'Cargando…'
+                            : 'Loading…'
+                          : lang === 'es'
+                            ? 'Productos y cantidades.'
+                            : 'Items and quantities.'}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="secondary"
-                        disabled={checkingMinecraft}
-                        onClick={verifyMinecraft}
-                        className="whitespace-nowrap"
-                      >
-                        <span>{verifyLabel}</span>
-                      </Button>
-                      <Link href="/tienda">
-                        <Button variant="secondary" className="whitespace-nowrap">
-                          {backToShopLabel}
-                        </Button>
-                      </Link>
-                    </div>
+                    <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
                   </div>
                 </div>
 
-                {cartItems.map((it) => {
-                  const p = productById.get(String(it.productId));
-                  const name = p?.name || (lang === 'es' ? 'Producto' : 'Product');
-                  const unit = Number(p?.price || 0);
-                  const line = unit * it.quantity;
+                <div className="p-6 space-y-3">
+                  {cartItems.map((it) => {
+                    const p = productById.get(String(it.productId));
+                    const name = p?.name || (lang === 'es' ? 'Producto' : 'Product');
+                    const unit = Number(p?.price || 0);
+                    const line = unit * it.quantity;
 
-                  return (
-                    <div
-                      key={it.productId}
-                      className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-12 h-12 rounded-xl border border-white/10 bg-black/20 flex items-center justify-center overflow-hidden shrink-0">
-                          {p?.image ? (
-                            // Keep <img> to match existing codebase pattern
-                            <img src={p.image} alt={name} className="w-full h-full object-cover" />
-                          ) : (
-                            <FaTags className="text-xl text-gray-500" />
-                          )}
+                    return (
+                      <div
+                        key={it.productId}
+                        className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-12 h-12 rounded-2xl border border-white/10 bg-black/20 flex items-center justify-center overflow-hidden shrink-0">
+                            {p?.image ? (
+                              // Keep <img> to match existing codebase pattern
+                              <img src={p.image} alt={name} className="w-full h-full object-cover" />
+                            ) : (
+                              <FaTags className="text-xl text-gray-500" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-white font-semibold truncate">{name}</div>
+                            <div className="text-sm text-gray-400 mt-0.5">
+                              {formatPrice(unit)}
+                              <span className="text-gray-600"> · </span>
+                              <span className="text-gray-300">{lang === 'es' ? 'Subtotal' : 'Subtotal'}: </span>
+                              <span className="text-white font-semibold">{formatPrice(line)}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <div className="text-white font-semibold truncate">{name}</div>
-                          <div className="text-sm text-gray-400 mt-0.5">{formatPrice(unit)}</div>
+
+                        <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={savingCart || checkingOut || checkingOutStripe || it.quantity <= 1}
+                            onClick={() => setQty(it.productId, it.quantity - 1)}
+                            className="!px-3"
+                          >
+                            <FaMinus />
+                            <span className="sr-only">-</span>
+                          </Button>
+
+                          <Input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={it.quantity}
+                            disabled={savingCart || checkingOut || checkingOutStripe}
+                            onChange={(e) => setQty(it.productId, Number(e.target.value))}
+                            className="w-20 text-center"
+                          />
+
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={savingCart || checkingOut || checkingOutStripe || it.quantity >= 99}
+                            onClick={() => setQty(it.productId, it.quantity + 1)}
+                            className="!px-3"
+                          >
+                            <FaPlus />
+                            <span className="sr-only">+</span>
+                          </Button>
+
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            disabled={savingCart || checkingOut || checkingOutStripe}
+                            onClick={() => removeFromCart(it.productId)}
+                          >
+                            <FaTrash />
+                            <span>{lang === 'es' ? 'Quitar' : 'Remove'}</span>
+                          </Button>
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={savingCart || checkingOut || it.quantity <= 1}
-                          onClick={() => setQty(it.productId, it.quantity - 1)}
-                          className="!px-3"
-                        >
-                          <FaMinus />
-                          <span className="sr-only">-</span>
-                        </Button>
+            {/* Summary / Checkout */}
+            <div className="lg:col-span-4 lg:sticky lg:top-24 self-start space-y-4">
+              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white font-semibold">{lang === 'es' ? 'Resumen' : 'Summary'}</div>
+                    <div className="text-sm text-gray-400 mt-1">{lang === 'es' ? 'Pago y verificación.' : 'Payment and verification.'}</div>
+                  </div>
+                  <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
+                </div>
 
-                        <Input
-                          type="number"
-                          min={1}
-                          max={99}
-                          value={it.quantity}
-                          disabled={savingCart || checkingOut}
-                          onChange={(e) => setQty(it.productId, Number(e.target.value))}
-                          className="w-20 text-center"
-                        />
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-xs text-gray-400 mb-2">{minecraftLabel}</div>
+                  <Input
+                    value={minecraftUsername}
+                    onChange={(e) => {
+                      setMinecraftUsername(e.target.value);
+                      setMinecraftUuid('');
+                    }}
+                    placeholder={minecraftPlaceholder}
+                  />
 
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={savingCart || checkingOut || it.quantity >= 99}
-                          onClick={() => setQty(it.productId, it.quantity + 1)}
-                          className="!px-3"
-                        >
-                          <FaPlus />
-                          <span className="sr-only">+</span>
-                        </Button>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <Badge variant={minecraftUuid ? 'success' : 'warning'}>
+                      {minecraftUuid
+                        ? lang === 'es'
+                          ? 'Verificado'
+                          : 'Verified'
+                        : lang === 'es'
+                          ? 'Sin verificar'
+                          : 'Not verified'}
+                    </Badge>
 
-                        <div className="text-white font-semibold w-32 text-right">{formatPrice(line)}</div>
-
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          disabled={savingCart || checkingOut}
-                          onClick={() => removeFromCart(it.productId)}
-                        >
-                          <FaTrash />
-                          <span>{lang === 'es' ? 'Quitar' : 'Remove'}</span>
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-gray-400">
-                      {lang === 'es' ? 'Total' : 'Total'}:{' '}
-                      <span className="text-white font-semibold">{formatPrice(totalPrice)}</span>
-                    </div>
-                    <Button onClick={checkout} disabled={checkingOut || savingCart} className="whitespace-nowrap">
-                      <FaShoppingCart />
-                      <span>{checkoutLabel}</span>
+                    <Button variant="secondary" disabled={checkingMinecraft} onClick={verifyMinecraft} className="whitespace-nowrap">
+                      <span>{verifyLabel}</span>
                     </Button>
                   </div>
+
+                  {!minecraftUuid ? <div className="mt-2 text-xs text-yellow-400/90">{needMinecraftLabel}</div> : null}
                 </div>
-              </div>
-            )}
+
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <div className="text-gray-400">{lang === 'es' ? 'Total' : 'Total'}</div>
+                  <div className="text-white font-semibold">{formatPrice(totalPrice)}</div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <Button
+                    onClick={checkoutStripeSession}
+                    disabled={checkingOutStripe || savingCart || checkingOut || !minecraftUuid}
+                    className="w-full justify-center whitespace-nowrap"
+                  >
+                    <FaCreditCard />
+                    <span>{stripeCheckoutLabel}</span>
+                  </Button>
+
+                  <Button
+                    onClick={checkout}
+                    variant="secondary"
+                    disabled={checkingOut || savingCart || checkingOutStripe || !minecraftUuid}
+                    className="w-full justify-center whitespace-nowrap"
+                  >
+                    <FaShoppingCart />
+                    <span>{checkoutLabel}</span>
+                  </Button>
+
+                  <Link href="/tienda" className="block">
+                    <Button variant="secondary" className="w-full justify-center">
+                      {backToShopLabel}
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            </div>
           </div>
-        </Card>
+        )}
       </div>
     </div>
   );

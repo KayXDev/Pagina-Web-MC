@@ -26,8 +26,6 @@ const ShopCartSchema = new Schema<IShopCart>(
   { timestamps: true }
 );
 
-ShopCartSchema.index({ userId: 1 }, { unique: true });
-
 const ShopCart = models.ShopCart || mongoose.model<IShopCart>('ShopCart', ShopCartSchema);
 
 export default ShopCart;

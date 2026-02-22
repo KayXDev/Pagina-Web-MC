@@ -30,8 +30,6 @@ export default function TiendaPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  const changeMinecraftLabel = lang === 'es' ? 'Cambiar' : 'Change';
-
   const addToCartLabel = lang === 'es' ? 'Añadir' : 'Add';
   const cartErrorLabel = lang === 'es' ? 'Error al guardar el carrito' : 'Failed to save cart';
 
@@ -44,6 +42,8 @@ export default function TiendaPage() {
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
   const [savingMinecraft, setSavingMinecraft] = useState(false);
   const [shopUnlocked, setShopUnlocked] = useState(false);
+
+  const signOutLabel = lang === 'es' ? 'Salir' : 'Sign out';
 
   type CartItem = { productId: string; quantity: number };
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -92,6 +92,7 @@ export default function TiendaPage() {
   const writeLocalCart = (items: CartItem[]) => {
     try {
       localStorage.setItem(localCartKey, JSON.stringify(items));
+      window.dispatchEvent(new Event('shop-cart-updated'));
     } catch {
       // ignore
     }
@@ -151,6 +152,7 @@ export default function TiendaPage() {
         if (!res.ok) {
           toast.error(cartErrorLabel);
         }
+        window.dispatchEvent(new Event('shop-cart-updated'));
       } catch {
         toast.error(cartErrorLabel);
       } finally {
@@ -258,64 +260,6 @@ export default function TiendaPage() {
     }
   };
 
-  const linkMinecraftToAccount = async () => {
-    if (status !== 'authenticated') return;
-    const username = (minecraftResolved?.username || minecraftUsernameInput).trim();
-    if (!username) return;
-
-    setSavingMinecraft(true);
-    try {
-      const res = await fetch('/api/profile/minecraft', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any).error || 'Error');
-
-      const linked = {
-        username: String((data as any).minecraftUsername || username),
-        uuid: String((data as any).minecraftUuid || ''),
-        source: 'mojang' as MinecraftAccountSource,
-      };
-      setMinecraftUsernameInput(linked.username);
-      if (linked.uuid) setMinecraftResolved(linked);
-      toast.success(t(lang, 'shop.minecraftSaved'));
-      setShopUnlocked(true);
-    } catch (err: any) {
-      toast.error(err?.message || 'Error');
-    } finally {
-      setSavingMinecraft(false);
-    }
-  };
-
-  const unlinkMinecraftFromAccount = async () => {
-    if (status !== 'authenticated') return;
-    setSavingMinecraft(true);
-    try {
-      const res = await fetch('/api/profile/minecraft', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unlink: true }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as any).error || 'Error');
-
-      setMinecraftResolved(null);
-      toast.success(t(lang, 'shop.minecraftUnlinked'));
-      setShopUnlocked(false);
-      try {
-        localStorage.removeItem('shop.minecraft.uuid');
-      } catch {
-        // ignore
-      }
-    } catch (err: any) {
-      toast.error(err?.message || 'Error');
-    } finally {
-      setSavingMinecraft(false);
-    }
-  };
-
   const addToCart = async (productId: string) => {
     const next = normalizeCart([...cartItems, { productId, quantity: 1 }]);
     await persistCart(next);
@@ -371,7 +315,10 @@ export default function TiendaPage() {
                             alt={minecraftResolved.username}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.currentTarget.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/160`;
+                              const img = e.currentTarget;
+                              if (img.dataset.fallback === '1') return;
+                              img.dataset.fallback = '1';
+                              img.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/160`;
                             }}
                           />
                         ) : (
@@ -401,7 +348,13 @@ export default function TiendaPage() {
                       <div className="flex-1">
                         <Input
                           value={minecraftUsernameInput}
-                          onChange={(e) => setMinecraftUsernameInput(e.target.value)}
+                          onChange={(e) => {
+                            const next = e.target.value;
+                            setMinecraftUsernameInput(next);
+                            if (minecraftResolved?.username && minecraftResolved.username !== next.trim()) {
+                              setMinecraftResolved(null);
+                            }
+                          }}
                           placeholder={t(lang, 'shop.minecraftPlaceholder')}
                         />
                       </div>
@@ -413,29 +366,7 @@ export default function TiendaPage() {
                       >
                         {t(lang, 'shop.minecraftCheck')}
                       </Button>
-                      <Button
-                        disabled={!minecraftResolved?.uuid || checkingMinecraft}
-                        onClick={() => setShopUnlocked(Boolean(minecraftResolved?.uuid))}
-                        className="whitespace-nowrap"
-                      >
-                        {t(lang, 'shop.enterShop')}
-                      </Button>
                     </div>
-
-                    {status === 'authenticated' && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Button
-                          variant="secondary"
-                          disabled={savingMinecraft || !minecraftResolved?.uuid}
-                          onClick={linkMinecraftToAccount}
-                        >
-                          {t(lang, 'shop.minecraftSave')}
-                        </Button>
-                        <Button variant="danger" disabled={savingMinecraft} onClick={unlinkMinecraftFromAccount}>
-                          {t(lang, 'shop.minecraftUnlink')}
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -445,53 +376,44 @@ export default function TiendaPage() {
       ) : (
         <>
           {/* Minecraft Account (summary) */}
-          <Card hover={false} className="mb-8 border-white/10 bg-gray-950/25 rounded-2xl px-4 py-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-xl border border-white/10 bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
-                  {minecraftResolved?.uuid ? (
-                    <img
-                      src={`https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=80&overlay=true`}
-                      alt={minecraftResolved.username}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/80`;
-                      }}
-                    />
-                  ) : (
-                    <FaTags className="text-xl text-gray-500" />
-                  )}
-                </div>
-
+          <div className="max-w-5xl mx-auto mb-8">
+            <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl px-4 py-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 w-full">
                 <div className="min-w-0">
                   <div className="text-xs text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
-                  <div className="flex items-center gap-2 min-w-0 mt-0.5">
-                    <div className="text-white font-semibold truncate">
-                      {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
-                    </div>
-                    <Badge variant={minecraftResolved?.uuid ? 'success' : 'warning'}>
-                      {minecraftResolved?.uuid ? t(lang, 'shop.minecraftVerified') : t(lang, 'shop.minecraftNeedUsername')}
-                    </Badge>
+                  <div className="text-white font-semibold truncate mt-0.5">
+                    {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="secondary" onClick={() => setShopUnlocked(false)} className="whitespace-nowrap">
-                  {changeMinecraftLabel}
-                </Button>
-                {status === 'authenticated' ? (
-                  <Button variant="danger" disabled={savingMinecraft} onClick={unlinkMinecraftFromAccount} className="whitespace-nowrap">
-                    {t(lang, 'shop.minecraftUnlink')}
+                {minecraftResolved || minecraftUsernameInput.trim() ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setMinecraftResolved(null);
+                      setMinecraftUsernameInput('');
+                      setShopUnlocked(false);
+                      try {
+                        localStorage.removeItem('shop.minecraft.username');
+                        localStorage.removeItem('shop.minecraft.uuid');
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    className="whitespace-nowrap"
+                  >
+                    <span>{signOutLabel}</span>
                   </Button>
                 ) : null}
               </div>
-            </div>
-          </Card>
+              </div>
+            </Card>
+          </div>
 
           {/* Category Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-12">
-            <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-12">
+            <div className="flex flex-wrap justify-center sm:justify-start gap-3 flex-1">
               {categories.map((category) => (
                 <button
                   key={category.value}
@@ -505,21 +427,6 @@ export default function TiendaPage() {
                   {category.label}
                 </button>
               ))}
-            </div>
-
-            <div className="flex items-center justify-center sm:justify-end">
-              <Link
-                href="/carrito"
-                className="relative inline-flex items-center justify-center h-11 w-11 rounded-xl border border-white/10 bg-gray-950/25 hover:bg-gray-950/35 transition-colors"
-                aria-label={lang === 'es' ? 'Abrir carrito' : 'Open cart'}
-              >
-                <FaShoppingCart className="text-xl text-white" />
-                <span className="absolute -top-2 -right-2">
-                  <Badge variant={cartItems.length ? 'info' : 'default'}>
-                    {cartItems.reduce((sum, it) => sum + (it.quantity || 0), 0)}
-                  </Badge>
-                </span>
-              </Link>
             </div>
           </div>
 

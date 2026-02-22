@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import CookieConsent from '@/components/CookieConsent';
 import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -72,6 +73,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <CookieConsent />
           <ToastContainer
             position="top-right"
             autoClose={3000}

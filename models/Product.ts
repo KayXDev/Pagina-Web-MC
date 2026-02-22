@@ -8,6 +8,7 @@ export interface IProduct {
   category: 'RANK' | 'BUNDLES' | 'CURRENCY' | 'KEYS' | 'SPECIAL';
   image?: string;
   features: string[];
+  deliveryCommands?: string[];
   isActive: boolean;
   stock?: number;
   isUnlimited: boolean;
@@ -46,6 +47,10 @@ const ProductSchema = new Schema<IProduct>(
         type: String,
       },
     ],
+    deliveryCommands: {
+      type: [String],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,

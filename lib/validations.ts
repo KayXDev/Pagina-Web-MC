@@ -32,6 +32,7 @@ export const productSchema = z.object({
   category: z.enum(['RANK', 'BUNDLES', 'CURRENCY', 'KEYS', 'SPECIAL']),
   features: z.array(z.string()),
   image: z.string().optional(),
+  deliveryCommands: z.array(z.string()).optional().default([]),
   stock: z.number().optional(),
   isUnlimited: z.boolean(),
   isActive: z.boolean(),

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { FaUsers, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt } from 'react-icons/fa';
+import { FaUsers, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV } from 'react-icons/fa';
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
@@ -25,6 +25,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     username: '',
@@ -39,6 +40,29 @@ export default function AdminUsersPage() {
     fetchUsers(clientLang);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!openMenuUserId) return;
+
+    const onPointerDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const root = target.closest('[data-user-menu-root]') as HTMLElement | null;
+      const rootId = root?.dataset?.userMenuRoot || null;
+      if (rootId !== openMenuUserId) setOpenMenuUserId(null);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenuUserId(null);
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [openMenuUserId]);
 
   const isOwner = session?.user?.role === 'OWNER';
 
@@ -311,101 +335,88 @@ export default function AdminUsersPage() {
       </Card>
 
       {/* Users list */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden" hover={false}>
-        <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 border-b border-white/10 bg-gray-950/40 text-xs text-gray-400">
-          <div className="col-span-4">{t(lang, 'admin.users.thUser')}</div>
-          <div className="col-span-3">{t(lang, 'admin.users.thEmail')}</div>
-          <div className="col-span-2">{t(lang, 'admin.users.thRole')}</div>
-          <div className="col-span-1">{t(lang, 'admin.users.thStatus')}</div>
-          <div className="col-span-2">{t(lang, 'admin.users.thActions')}</div>
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="border-white/10 bg-gray-950/25 rounded-2xl shimmer h-44" hover={false} />
+          ))}
         </div>
+      ) : filteredUsers.length === 0 ? (
+        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+          <div className="text-center py-12 text-gray-400">{t(lang, 'admin.users.noResults')}</div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredUsers.map((user) => {
+            const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
+            const canEditTags = isOwner;
+            const canToggleVerified = isOwner;
+            const menuOpen = openMenuUserId === user._id;
 
-        {loading ? (
-          <div className="p-4">
-            <Card className="shimmer h-24" hover={false} />
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 px-6">{t(lang, 'admin.users.noResults')}</div>
-        ) : (
-          <div className="divide-y divide-white/10">
-            {filteredUsers.map((user) => {
-              const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
-              const canEditTags = isOwner;
-              const canToggleVerified = isOwner;
+            const statusBadge = user.isBanned ? (
+              <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
+            ) : (
+              <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
+            );
 
-              return (
-                <div key={user._id} className="px-4 py-3 hover:bg-white/5 transition-colors">
-                  {/* Desktop row */}
-                  <div className="hidden md:grid grid-cols-12 gap-3 items-center">
-                    <div className="col-span-4 min-w-0 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white font-semibold shrink-0">
-                        {getInitial(user.username)}
+            return (
+              <Card key={user._id} className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="h-11 w-11 rounded-2xl bg-white/5 border border-white/10 grid place-items-center text-white font-semibold shrink-0">
+                      {getInitial(user.username)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="text-white font-semibold truncate max-w-[220px]">{user.username}</div>
+                        {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
+                        {isProtectedOwner ? <Badge variant="default">LOCKED</Badge> : null}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="text-white font-semibold truncate">{user.username}</div>
-                          {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
+                      <div className="text-xs text-gray-300 break-all mt-1">{user.email}</div>
+                    </div>
+                  </div>
+
+                  <div className="relative" data-user-menu-root={user._id}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="!px-3"
+                      disabled={false}
+                      onClick={() => setOpenMenuUserId((prev) => (prev === user._id ? null : user._id))}
+                    >
+                      <FaEllipsisV />
+                      <span className="sr-only">{t(lang, 'admin.users.thActions')}</span>
+                    </Button>
+
+                    {menuOpen ? (
+                      <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-gray-950/90 backdrop-blur shadow-lg shadow-black/40 overflow-hidden z-20">
+                        <div className="px-3 py-2 text-xs text-gray-400 border-b border-white/10">
+                          {t(lang, 'admin.users.thActions')}
                         </div>
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {getRoleBadge(user.role)}
-                          {isProtectedOwner ? <Badge variant="default">LOCKED</Badge> : null}
-                          {(user.tags || []).slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="default">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {(user.tags || []).length > 2 ? <Badge variant="default">+{(user.tags || []).length - 2}</Badge> : null}
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="col-span-3 min-w-0">
-                      <div className="text-gray-300 truncate">{user.email}</div>
-                    </div>
-
-                    <div className="col-span-2">
-                      <Select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                        disabled={isProtectedOwner}
-                      >
-                        <option value="USER">USER</option>
-                        <option value="STAFF">STAFF</option>
-                        <option value="ADMIN">ADMIN</option>
-                        {isOwner ? <option value="OWNER">OWNER</option> : null}
-                      </Select>
-                    </div>
-
-                    <div className="col-span-1">
-                      {user.isBanned ? (
-                        <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
-                      ) : (
-                        <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
-                      )}
-                    </div>
-
-                    <div className="col-span-2">
-                      <div className="flex flex-wrap gap-2 justify-start">
                         {canToggleVerified ? (
-                          <Button
+                          <button
                             type="button"
-                            variant="secondary"
-                            size="sm"
                             disabled={isProtectedOwner}
-                            onClick={() => handleVerifiedToggle(user._id, Boolean(user.verified))}
+                            className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            onClick={async () => {
+                              setOpenMenuUserId(null);
+                              handleVerifiedToggle(user._id, Boolean(user.verified));
+                            }}
                           >
                             <FaCheckCircle />
                             <span>{user.verified ? t(lang, 'admin.users.unverify') : t(lang, 'admin.users.verify')}</span>
-                          </Button>
+                          </button>
                         ) : null}
 
                         {canEditTags ? (
-                          <Button
+                          <button
                             type="button"
-                            variant="secondary"
-                            size="sm"
                             disabled={isProtectedOwner}
+                            className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             onClick={async () => {
+                              setOpenMenuUserId(null);
                               const current = (user.tags || []).join(',');
                               const input = window.prompt(t(lang, 'admin.users.tagsPrompt'), current);
                               if (input === null) return;
@@ -418,26 +429,28 @@ export default function AdminUsersPage() {
                           >
                             <FaUserShield />
                             <span>{t(lang, 'admin.users.tagsBtn')}</span>
-                          </Button>
+                          </button>
                         ) : null}
 
-                        <Button
+                        <button
                           type="button"
-                          variant={user.isBanned ? 'success' : 'danger'}
-                          size="sm"
                           disabled={isProtectedOwner}
-                          onClick={() => handleBanToggle(user._id, user.isBanned)}
+                          className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          onClick={() => {
+                            setOpenMenuUserId(null);
+                            handleBanToggle(user._id, user.isBanned);
+                          }}
                         >
                           <FaBan />
                           <span>{user.isBanned ? t(lang, 'admin.users.unban') : t(lang, 'admin.users.ban')}</span>
-                        </Button>
+                        </button>
 
-                        <Button
+                        <button
                           type="button"
-                          variant="danger"
-                          size="sm"
                           disabled={isProtectedOwner}
+                          className="w-full px-3 py-2 text-sm text-red-300 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           onClick={async () => {
+                            setOpenMenuUserId(null);
                             const ok = window.confirm(
                               `${t(lang, 'admin.users.deleteConfirmA')} ${user.username}${t(lang, 'admin.users.deleteConfirmB')}`
                             );
@@ -447,125 +460,37 @@ export default function AdminUsersPage() {
                         >
                           <FaTrash />
                           <span>{t(lang, 'admin.users.deleteBtn')}</span>
-                        </Button>
+                        </button>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Mobile row */}
-                  <div className="md:hidden space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white font-semibold shrink-0">
-                        {getInitial(user.username)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="text-white font-semibold truncate">{user.username}</div>
-                          {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
-                          {getRoleBadge(user.role)}
-                          {user.isBanned ? (
-                            <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
-                          ) : (
-                            <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-300 break-all mt-1">{user.email}</div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {(user.tags || []).slice(0, 6).map((tag) => (
-                            <Badge key={tag} variant="default">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {(user.tags || []).length > 6 ? <Badge variant="default">+{(user.tags || []).length - 6}</Badge> : null}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-xs text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</div>
-                      <Select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                        disabled={isProtectedOwner}
-                      >
-                        <option value="USER">USER</option>
-                        <option value="STAFF">STAFF</option>
-                        <option value="ADMIN">ADMIN</option>
-                        {isOwner ? <option value="OWNER">OWNER</option> : null}
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2">
-                      {canToggleVerified ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="w-full justify-center"
-                          disabled={isProtectedOwner}
-                          onClick={() => handleVerifiedToggle(user._id, Boolean(user.verified))}
-                        >
-                          <FaCheckCircle />
-                          <span>{user.verified ? t(lang, 'admin.users.unverify') : t(lang, 'admin.users.verify')}</span>
-                        </Button>
-                      ) : null}
-
-                      {canEditTags ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="w-full justify-center"
-                          disabled={isProtectedOwner}
-                          onClick={async () => {
-                            const current = (user.tags || []).join(',');
-                            const input = window.prompt(t(lang, 'admin.users.tagsPrompt'), current);
-                            if (input === null) return;
-                            const nextTags = input
-                              .split(',')
-                              .map((t) => t.trim())
-                              .filter(Boolean);
-                            await updateUser(user._id, { tags: nextTags });
-                          }}
-                        >
-                          <FaUserShield />
-                          <span>{t(lang, 'admin.users.tagsBtn')}</span>
-                        </Button>
-                      ) : null}
-
-                      <Button
-                        variant={user.isBanned ? 'success' : 'danger'}
-                        size="sm"
-                        className="w-full justify-center"
-                        disabled={isProtectedOwner}
-                        onClick={() => handleBanToggle(user._id, user.isBanned)}
-                      >
-                        <FaBan />
-                        <span>{user.isBanned ? t(lang, 'admin.users.unban') : t(lang, 'admin.users.ban')}</span>
-                      </Button>
-
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="w-full justify-center"
-                        disabled={isProtectedOwner}
-                        onClick={async () => {
-                          const ok = window.confirm(
-                            `${t(lang, 'admin.users.deleteConfirmA')} ${user.username}${t(lang, 'admin.users.deleteConfirmB')}`
-                          );
-                          if (!ok) return;
-                          await deleteUser(user._id);
-                        }}
-                      >
-                        <FaTrash />
-                        <span>{t(lang, 'admin.users.deleteBtn')}</span>
-                      </Button>
-                    </div>
+                    ) : null}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {getRoleBadge(user.role)}
+                  {statusBadge}
+                  {(user.tags || []).slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="default">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {(user.tags || []).length > 3 ? <Badge variant="default">+{(user.tags || []).length - 3}</Badge> : null}
+                </div>
+
+                <div className="mt-4">
+                  <div className="text-xs text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</div>
+                  <Select value={user.role} onChange={(e) => handleRoleChange(user._id, e.target.value)} disabled={isProtectedOwner}>
+                    <option value="USER">USER</option>
+                    <option value="STAFF">STAFF</option>
+                    <option value="ADMIN">ADMIN</option>
+                    {isOwner ? <option value="OWNER">OWNER</option> : null}
+                  </Select>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

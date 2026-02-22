@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import dbConnect from '@/lib/mongodb';
 import ShopOrder from '@/models/ShopOrder';
-import { paypalCaptureOrder } from '@/lib/paypal';
 import { getCurrentUser } from '@/lib/session';
+import { getStripe } from '@/lib/stripe';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
 
 const schema = z.object({
-  orderId: z.string().min(1),
-  paypalOrderId: z.string().min(1),
+  sessionId: z.string().min(1),
+  orderId: z.string().min(1).optional(),
 });
 
 export async function POST(request: Request) {
@@ -21,10 +21,13 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const order = await ShopOrder.findById(parsed.data.orderId);
+    const order = parsed.data.orderId
+      ? await ShopOrder.findById(parsed.data.orderId)
+      : await ShopOrder.findOne({ stripeCheckoutSessionId: parsed.data.sessionId });
+
     if (!order) return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 });
 
-    if (String((order as any).provider) !== 'PAYPAL') {
+    if (String((order as any).provider) !== 'STRIPE') {
       return NextResponse.json({ error: 'Proveedor inválido' }, { status: 400 });
     }
 
@@ -32,9 +35,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, status: 'PAID', orderId: String(order._id) });
     }
 
-    const storedPaypalOrderId = String((order as any).paypalOrderId || '').trim();
-    if (!storedPaypalOrderId || storedPaypalOrderId !== parsed.data.paypalOrderId) {
-      return NextResponse.json({ error: 'Token de PayPal inválido' }, { status: 400 });
+    const storedSessionId = String((order as any).stripeCheckoutSessionId || '').trim();
+    if (!storedSessionId || storedSessionId !== parsed.data.sessionId) {
+      return NextResponse.json({ error: 'Sesión de Stripe inválida' }, { status: 400 });
     }
 
     const user = await getCurrentUser().catch(() => null);
@@ -43,19 +46,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const captured = await paypalCaptureOrder(parsed.data.paypalOrderId);
+    const stripe = getStripe();
+    const session = await stripe.checkout.sessions.retrieve(parsed.data.sessionId, { expand: ['payment_intent'] });
 
-    const captureId = String(captured.captureId || '').trim();
-    const payerId = String(captured.payerId || '').trim();
-    const payerEmail = String(captured.payerEmail || '').trim();
+    const paymentStatus = String((session as any).payment_status || '').toLowerCase();
+    const sessionStatus = String((session as any).status || '');
 
-    const status = String(captured.status || '').toUpperCase();
-    if (status !== 'COMPLETED') {
+    const paymentIntentId =
+      typeof (session as any).payment_intent === 'string'
+        ? String((session as any).payment_intent)
+        : String((session as any).payment_intent?.id || '');
+
+    if (paymentStatus !== 'paid') {
       await ShopOrder.updateOne(
         { _id: order._id },
         {
           $set: {
-            paypalStatus: status,
+            stripeStatus: sessionStatus,
+            stripePaymentStatus: paymentStatus,
+            stripePaymentIntentId: paymentIntentId,
           },
         }
       );
@@ -68,10 +77,9 @@ export async function POST(request: Request) {
         $set: {
           status: 'PAID',
           paidAt: new Date(),
-          paypalStatus: status,
-          paypalCaptureId: captureId,
-          paypalPayerId: payerId,
-          paypalPayerEmail: payerEmail,
+          stripeStatus: sessionStatus,
+          stripePaymentStatus: paymentStatus,
+          stripePaymentIntentId: paymentIntentId,
         },
       }
     );
@@ -81,7 +89,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, status: 'PAID', orderId: String(order._id) });
   } catch (error: any) {
-    console.error('PayPal capture error:', error);
+    console.error('Stripe confirm error:', error);
     return NextResponse.json({ error: error?.message || 'Error al confirmar pago' }, { status: 500 });
   }
 }
