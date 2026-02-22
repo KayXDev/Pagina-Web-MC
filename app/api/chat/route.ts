@@ -22,10 +22,10 @@ const chatBodySchema = z
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
       return NextResponse.json(
-        { error: 'Falta OPENAI_API_KEY en variables de entorno' },
+        { error: 'Falta GROQ_API_KEY en variables de entorno' },
         { status: 500 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const bodyJson = await request.json().catch(() => ({}));
     const body = chatBodySchema.parse(bodyJson);
 
-    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
     const systemPrompt =
       'Eres un asistente de soporte para un servidor/comunidad de Minecraft. Responde en español de forma breve y útil. ' +
@@ -45,10 +45,10 @@ export async function POST(request: Request) {
 
     const messages = [{ role: 'system' as const, content: systemPrompt }, ...upstreamMessages];
 
-    const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    const upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${groqKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
