@@ -6,10 +6,15 @@ function ensureConfigured() {
   if (configured) return;
 
   // Supports either CLOUDINARY_URL or the 3 separate vars.
-  if (
-    process.env.CLOUDINARY_URL ||
-    (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
-  ) {
+  // Note: When using CLOUDINARY_URL, the SDK reads it from the env automatically.
+  // Passing undefined cloud_name/api_key/api_secret can override that, so we avoid it.
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.config({ secure: true });
+    configured = true;
+    return;
+  }
+
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,

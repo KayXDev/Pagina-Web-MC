@@ -53,6 +53,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ url: uploaded.url });
     }
 
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        {
+          error:
+            'En Vercel no se pueden guardar imágenes en el disco del servidor. Configura Cloudinary (CLOUDINARY_URL o CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET) y vuelve a intentar.',
+        },
+        { status: 500 }
+      );
+    }
+
     const dir = path.join(process.cwd(), 'public', 'uploads', 'profile', 'avatar');
     await fs.mkdir(dir, { recursive: true });
 
@@ -62,6 +72,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: `/uploads/profile/avatar/${filename}` });
   } catch (error: any) {
+    console.error('Profile avatar upload failed:', error);
     if (error?.message === 'Unauthorized') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
