@@ -11,7 +11,7 @@ let maintenanceCache:
   | null = null;
 
 const MAINTENANCE_CACHE_MS = 5000;
-const MAINTENANCE_TIMEOUT_MS = 2000;
+const MAINTENANCE_TIMEOUT_MS = 5000;
 const MAINTENANCE_FALLBACK_MAX_AGE_MS = 60_000;
 
 export async function middleware(request: NextRequest) {

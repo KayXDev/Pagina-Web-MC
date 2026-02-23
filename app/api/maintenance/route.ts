@@ -23,9 +23,26 @@ export async function GET() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    return NextResponse.json({ enabled, message, paths });
+    return NextResponse.json(
+      { enabled, message, paths },
+      {
+        headers: {
+          'cache-control': 'no-store, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     // En caso de error de DB, por seguridad NO bloqueamos
-    return NextResponse.json({ enabled: false, message: '' });
+    return NextResponse.json(
+      { enabled: false, message: '' },
+      {
+        headers: {
+          'cache-control': 'no-store, max-age=0',
+        },
+      }
+    );
   }
 }
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
