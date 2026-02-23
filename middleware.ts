@@ -85,10 +85,9 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith('/admin');
 
       if (!allowList) {
-        // If no paths are configured, keep legacy behaviour (maintenance applies to all pages)
-        if (!maintenancePaths.length || matchesMaintenancePath(maintenancePaths, pathname)) {
-          return NextResponse.redirect(new URL('/mantenimiento', request.url));
-        }
+        // Simplified behaviour: maintenance applies to the entire site.
+        // (We keep /admin and /auth accessible so you can disable maintenance.)
+        return NextResponse.redirect(new URL('/mantenimiento', request.url));
       }
     } else {
       // Si no está en mantenimiento, evitamos que se quede en /mantenimiento

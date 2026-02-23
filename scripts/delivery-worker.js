@@ -18,6 +18,15 @@
 const os = require('os');
 const { Rcon } = require('rcon-client');
 
+// Convenience: allow running the worker with a local .env file.
+// This project already depends on dotenv; if it isn't available (minimal setups), we just skip.
+try {
+  // Optionally override the env file path with DELIVERY_ENV_FILE.
+  require('dotenv').config({ path: process.env.DELIVERY_ENV_FILE || '.env' });
+} catch {
+  // ignore
+}
+
 function required(name) {
   const v = String(process.env[name] || '').trim();
   if (!v) throw new Error(`Missing env ${name}`);
