@@ -20,6 +20,7 @@ import {
   FaVoteYea,
   FaComments,
   FaBell,
+  FaShieldAlt,
   FaUser, 
   FaSignOutAlt, 
   FaSignInAlt, 
@@ -277,6 +278,7 @@ const Navbar = () => {
     { name: t(lang, 'nav.rules'), href: '/normas', icon: FaBook },
     { name: t(lang, 'nav.news'), href: '/noticias', icon: FaNewspaper },
     { name: t(lang, 'nav.forum'), href: '/foro', icon: FaComments },
+    { name: t(lang, 'nav.partner'), href: '/partner', icon: FaShieldAlt },
     { name: t(lang, 'nav.support'), href: '/soporte', icon: FaEnvelope },
   ];
 

@@ -27,6 +27,7 @@ const DICT = {
       forum: 'Foro',
       support: 'Soporte',
       notifications: 'Notificaciones',
+      partner: 'Partner',
     },
     user: {
       admin: 'Admin',
@@ -433,6 +434,7 @@ const DICT = {
         tickets: 'Tickets',
         forum: 'Foro',
         blog: 'Noticias',
+        partner: 'Partner',
         applications: 'Postulaciones',
         logs: 'Logs',
         settings: 'Mantenimiento',
@@ -876,6 +878,7 @@ const DICT = {
       forum: 'Forum',
       support: 'Support',
       notifications: 'Notifications',
+      partner: 'Partner',
     },
     user: {
       admin: 'Admin',
@@ -1282,6 +1285,7 @@ const DICT = {
         tickets: 'Tickets',
         forum: 'Forum',
         blog: 'News',
+        partner: 'Partners',
         applications: 'Applications',
         logs: 'Logs',
         settings: 'Maintenance',

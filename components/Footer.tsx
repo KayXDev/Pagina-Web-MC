@@ -48,6 +48,11 @@ const Footer = () => {
                   {t(lang, 'nav.support')}
                 </Link>
               </li>
+              <li>
+                <Link href="/partner" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
+                  {t(lang, 'nav.partner')}
+                </Link>
+              </li>
             </ul>
           </div>
 
