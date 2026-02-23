@@ -72,6 +72,19 @@ export default function PartnerAdminPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
+  const [editAdSaving, setEditAdSaving] = useState(false);
+  const [editAdError, setEditAdError] = useState<string | null>(null);
+  const [editAdForm, setEditAdForm] = useState({
+    ownerUsername: '',
+    serverName: '',
+    address: '',
+    version: '',
+    description: '',
+    website: '',
+    discord: '',
+    banner: '',
+  });
+
   const [bookingsStatus, setBookingsStatus] = useState<AdminBooking['status'] | 'PENDING_OR_ACTIVE'>('PENDING_OR_ACTIVE');
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingsError, setBookingsError] = useState<string | null>(null);
@@ -341,6 +354,73 @@ export default function PartnerAdminPage() {
   useEffect(() => {
     setRejectReason(String(selectedAd?.rejectionReason || ''));
   }, [selectedAd]);
+
+  useEffect(() => {
+    if (!selectedAd) return;
+    setEditAdError(null);
+    setEditAdForm({
+      ownerUsername: String(selectedAd.ownerUsername || ''),
+      serverName: String(selectedAd.serverName || ''),
+      address: String(selectedAd.address || ''),
+      version: String(selectedAd.version || ''),
+      description: String(selectedAd.description || ''),
+      website: String(selectedAd.website || ''),
+      discord: String(selectedAd.discord || ''),
+      banner: String(selectedAd.banner || ''),
+    });
+  }, [selectedAdId]);
+
+  const saveSelectedAd = async () => {
+    if (!selectedAd) return;
+    setEditAdSaving(true);
+    setEditAdError(null);
+    try {
+      const res = await fetch('/api/admin/partner/ads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adId: selectedAd._id,
+          ownerUsername: editAdForm.ownerUsername,
+          serverName: editAdForm.serverName,
+          address: editAdForm.address,
+          version: editAdForm.version,
+          description: editAdForm.description,
+          website: editAdForm.website,
+          discord: editAdForm.discord,
+          banner: editAdForm.banner,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      await loadAds();
+      await loadBookings();
+    } catch (e: any) {
+      setEditAdError(String(e?.message || 'Error'));
+    } finally {
+      setEditAdSaving(false);
+    }
+  };
+
+  const deleteSelectedAd = async () => {
+    if (!selectedAd) return;
+    const ok = window.confirm('¿Eliminar este anuncio? Si está activo, se quitará del ranking.');
+    if (!ok) return;
+
+    setEditAdSaving(true);
+    setEditAdError(null);
+    try {
+      const res = await fetch(`/api/admin/partner/ads?adId=${encodeURIComponent(selectedAd._id)}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      setSelectedAdId('');
+      await loadAds();
+      await loadBookings();
+    } catch (e: any) {
+      setEditAdError(String(e?.message || 'Error'));
+    } finally {
+      setEditAdSaving(false);
+    }
+  };
 
   if (sessionStatus === 'loading') {
     return (
@@ -713,6 +793,60 @@ export default function PartnerAdminPage() {
                         </a>
                       ) : null}
                     </div>
+
+                    {role === 'OWNER' ? (
+                      <div className="mt-6">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">Editar anuncio</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Disponible para OWNER (incluye anuncios activos).</div>
+
+                        {editAdError ? <div className="mt-2 text-sm text-red-600 dark:text-red-300">{editAdError}</div> : null}
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Owner</label>
+                            <Input value={editAdForm.ownerUsername} onChange={(e) => setEditAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
+                            <Input value={editAdForm.serverName} onChange={(e) => setEditAdForm((p) => ({ ...p, serverName: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
+                            <Input value={editAdForm.address} onChange={(e) => setEditAdForm((p) => ({ ...p, address: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
+                            <Input value={editAdForm.version} onChange={(e) => setEditAdForm((p) => ({ ...p, version: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
+                            <Input value={editAdForm.website} onChange={(e) => setEditAdForm((p) => ({ ...p, website: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
+                            <Input value={editAdForm.discord} onChange={(e) => setEditAdForm((p) => ({ ...p, discord: e.target.value }))} />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
+                            <Input value={editAdForm.banner} onChange={(e) => setEditAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
+                            <Textarea value={editAdForm.description} onChange={(e) => setEditAdForm((p) => ({ ...p, description: e.target.value }))} rows={4} maxLength={500} />
+                            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{editAdForm.description.length}/500</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex items-center gap-2">
+                          <Button variant="primary" size="sm" onClick={saveSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
+                            {editAdSaving ? 'Guardando…' : 'Guardar'}
+                          </Button>
+                          <Button variant="secondary" size="sm" onClick={deleteSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
+                            Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
 
                     <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
                       Creado: {formatDateTime(selectedAd.createdAt, dateLocale)} • Actualizado: {formatDateTime(selectedAd.updatedAt, dateLocale)}

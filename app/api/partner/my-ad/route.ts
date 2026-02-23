@@ -89,11 +89,51 @@ export async function PATCH(request: Request) {
     const ad = await PartnerAd.findOne({ userId: user.id }).select('_id status').lean();
     if (!ad) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
-    // If user edits, it goes back to pending review.
-    await PartnerAd.updateOne(
-      { _id: (ad as any)._id, userId: user.id },
-      { $set: { ...parsed.data, status: 'PENDING_REVIEW', rejectionReason: '' } }
+    const currentStatus = String((ad as any).status || 'PENDING_REVIEW');
+    const nextStatus = currentStatus === 'REJECTED' ? 'PENDING_REVIEW' : currentStatus;
+
+    if (nextStatus === 'PENDING_REVIEW') {
+      await PartnerAd.updateOne(
+        { _id: (ad as any)._id, userId: user.id },
+        { $set: { ...parsed.data, status: nextStatus, rejectionReason: '' } }
+      );
+    } else {
+      await PartnerAd.updateOne(
+        { _id: (ad as any)._id, userId: user.id },
+        { $set: { ...parsed.data, status: nextStatus } }
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    const message = String(error?.message || 'Error');
+    const status = message.includes('Unauthorized') ? 401 : message.includes('Forbidden') ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE() {
+  try {
+    const user = await requireAuth();
+    await dbConnect();
+
+    const ad = await PartnerAd.findOne({ userId: user.id }).select('_id').lean();
+    if (!ad) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+
+    const adId = String((ad as any)._id);
+    const now = new Date();
+
+    await PartnerBooking.updateMany(
+      { adId, status: 'PENDING' },
+      { $set: { status: 'CANCELED', slotActiveKey: '' } }
     );
+
+    await PartnerBooking.updateMany(
+      { adId, status: 'ACTIVE' },
+      { $set: { status: 'EXPIRED', endsAt: now, slotActiveKey: '' } }
+    );
+
+    await PartnerAd.deleteOne({ _id: adId, userId: user.id });
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {

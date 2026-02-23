@@ -131,6 +131,18 @@ const patchSchema = z.object({
   reason: z.string().max(300).optional().or(z.literal('')),
 });
 
+const updateSchema = z.object({
+  adId: z.string().min(1),
+  ownerUsername: z.string().min(1).max(60),
+  serverName: z.string().min(3).max(60),
+  address: z.string().min(3).max(80),
+  version: z.string().max(30).optional().or(z.literal('')),
+  description: z.string().min(20).max(500),
+  website: z.string().max(200).optional().or(z.literal('')),
+  discord: z.string().max(200).optional().or(z.literal('')),
+  banner: z.string().max(500).optional().or(z.literal('')),
+});
+
 export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
@@ -212,6 +224,110 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Datos inválidos', details: error.errors }, { status: 400 });
     }
     return NextResponse.json({ error: 'Error' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const owner = await requireOwner();
+    const body = await request.json().catch(() => ({}));
+    const parsed = updateSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+
+    await dbConnect();
+
+    const ad = await PartnerAd.findById(parsed.data.adId).lean();
+    if (!ad) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+
+    await PartnerAd.updateOne(
+      { _id: parsed.data.adId },
+      {
+        $set: {
+          ownerUsername: String(parsed.data.ownerUsername || '').trim(),
+          serverName: String(parsed.data.serverName || '').trim(),
+          address: String(parsed.data.address || '').trim(),
+          version: String(parsed.data.version || '').trim(),
+          description: String(parsed.data.description || '').trim(),
+          website: String(parsed.data.website || '').trim(),
+          discord: String(parsed.data.discord || '').trim(),
+          banner: String(parsed.data.banner || '').trim(),
+        },
+      }
+    );
+
+    await AdminLog.create({
+      adminId: owner.id,
+      adminUsername: owner.name,
+      action: 'UPDATE_PARTNER_AD',
+      targetType: 'PARTNER_AD',
+      targetId: parsed.data.adId,
+      details: JSON.stringify({
+        serverName: parsed.data.serverName,
+        ownerUsername: parsed.data.ownerUsername,
+      }),
+      meta: {
+        path: '/api/admin/partner/ads',
+        method: 'PUT',
+        userAgent: request.headers.get('user-agent') || undefined,
+      },
+      ipAddress: getRequestIp(request) || undefined,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    const message = String(error?.message || 'Error');
+    const status = message.includes('Unauthorized') ? 401 : message.includes('Forbidden') ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const owner = await requireOwner();
+    const { searchParams } = new URL(request.url);
+    const adId = String(searchParams.get('adId') || '').trim();
+    if (!adId) return NextResponse.json({ error: 'adId requerido' }, { status: 400 });
+
+    await dbConnect();
+
+    const ad = await PartnerAd.findById(adId).lean();
+    if (!ad) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+
+    const now = new Date();
+    await PartnerBooking.updateMany(
+      { adId, status: 'PENDING' },
+      { $set: { status: 'CANCELED', slotActiveKey: '' } }
+    );
+    await PartnerBooking.updateMany(
+      { adId, status: 'ACTIVE' },
+      { $set: { status: 'EXPIRED', endsAt: now, slotActiveKey: '' } }
+    );
+
+    await PartnerAd.deleteOne({ _id: adId });
+
+    await AdminLog.create({
+      adminId: owner.id,
+      adminUsername: owner.name,
+      action: 'DELETE_PARTNER_AD',
+      targetType: 'PARTNER_AD',
+      targetId: adId,
+      details: JSON.stringify({
+        serverName: String((ad as any).serverName || ''),
+        ownerUsername: String((ad as any).ownerUsername || ''),
+      }),
+      meta: {
+        path: '/api/admin/partner/ads',
+        method: 'DELETE',
+        userAgent: request.headers.get('user-agent') || undefined,
+      },
+      ipAddress: getRequestIp(request) || undefined,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    const message = String(error?.message || 'Error');
+    const status = message.includes('Unauthorized') ? 401 : message.includes('Forbidden') ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

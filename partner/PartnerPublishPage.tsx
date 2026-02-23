@@ -84,6 +84,8 @@ export default function PartnerPublishPage() {
     banner: '',
   });
 
+  const [bannerUploading, setBannerUploading] = useState(false);
+
   const [days, setDays] = useState<number>(7);
   const normalizedDays = Math.min(PARTNER_MAX_DAYS, Math.max(1, Math.floor(Number(days) || 1)));
 
@@ -242,6 +244,93 @@ export default function PartnerPublishPage() {
       window.location.href = url;
     } catch (e: any) {
       setError(String(e?.message || 'Error'));
+      setCheckoutLoading(false);
+    }
+  };
+
+  const uploadBanner = async (file: File) => {
+    setBannerUploading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/uploads/partner-banner', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      const url = String((data as any)?.url || '').trim();
+      if (!url) throw new Error('Error al subir imagen');
+      setForm((p) => ({ ...p, banner: url }));
+    } catch (e: any) {
+      setError(String(e?.message || 'Error al subir imagen'));
+    } finally {
+      setBannerUploading(false);
+    }
+  };
+
+  const saveAdChanges = async () => {
+    if (!isFormValid) {
+      setError('Completa el formulario (mín. 20 caracteres en descripción).');
+      return;
+    }
+
+    setCheckoutLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await fetch('/api/partner/my-ad', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serverName: form.serverName,
+          address: form.address,
+          version: form.version,
+          description: form.description,
+          website: form.website,
+          discord: form.discord,
+          banner: form.banner,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      setInfo('Cambios guardados.');
+      await loadMine();
+    } catch (e: any) {
+      setError(String(e?.message || 'Error'));
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const deleteAd = async () => {
+    if (!ad) return;
+    const ok = window.confirm('¿Seguro que quieres eliminar tu anuncio? Esto también lo quitará del ranking si está activo.');
+    if (!ok) return;
+
+    setCheckoutLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await fetch('/api/partner/my-ad', { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+
+      setInfo('Anuncio eliminado.');
+      setAd(null);
+      setBookings([]);
+      setForm({
+        serverName: '',
+        address: '',
+        version: '',
+        description: '',
+        website: '',
+        discord: '',
+        banner: '',
+      });
+      await loadSlots();
+    } catch (e: any) {
+      setError(String(e?.message || 'Error'));
+    } finally {
       setCheckoutLoading(false);
     }
   };
@@ -507,8 +596,35 @@ export default function PartnerPublishPage() {
                   <Input value={form.version} onChange={(e) => setForm((p) => ({ ...p, version: e.target.value }))} placeholder="1.20.x" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
-                  <Input value={form.banner} onChange={(e) => setForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
+                  <label className="text-xs text-gray-600 dark:text-gray-400">Banner (archivo, opcional)</label>
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    disabled={checkoutLoading || bannerUploading}
+                    onChange={(e) => {
+                      const file = e.currentTarget.files?.[0];
+                      e.currentTarget.value = '';
+                      if (!file) return;
+                      void uploadBanner(file);
+                    }}
+                  />
+                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    {bannerUploading ? <span>Subiendo…</span> : null}
+                    {!bannerUploading && form.banner ? (
+                      <>
+                        <a href={form.banner} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">Ver</a>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, banner: '' }))}
+                          disabled={checkoutLoading}
+                        >
+                          Quitar
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
@@ -543,6 +659,28 @@ export default function PartnerPublishPage() {
                   Al pagar, se envía a revisión. Al aprobarse, tu slot se activa y apareces en la lista.
                 </div>
                 <div className="flex items-center gap-2">
+                  {ad ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      onClick={saveAdChanges}
+                      disabled={checkoutLoading || bannerUploading || !isFormValid}
+                    >
+                      Guardar cambios
+                    </Button>
+                  ) : null}
+                  {ad ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      onClick={deleteAd}
+                      disabled={checkoutLoading || bannerUploading || Boolean(pendingBooking)}
+                    >
+                      Eliminar
+                    </Button>
+                  ) : null}
                   <Button
                     variant="primary"
                     size="sm"
