@@ -56,9 +56,49 @@ function bookingBadge(status: AdminBooking['status']) {
   return <Badge variant="default">CANCELADO</Badge>;
 }
 
+function Modal({
+  open,
+  title,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <button
+        type="button"
+        aria-label="Cerrar"
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+      <div className="absolute inset-0 overflow-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/95">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <div className="text-gray-900 dark:text-white font-bold truncate">{title}</div>
+              </div>
+              <Button variant="secondary" size="sm" onClick={onClose}>Cerrar</Button>
+            </div>
+            {children}
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PartnerAdminPage() {
   const { data: session, status: sessionStatus } = useSession();
   const role = session?.user?.role;
+
+  const [tab, setTab] = useState<'ADS' | 'BOOKINGS' | 'PRICING' | 'OWNER'>('ADS');
 
   const [lang, setLang] = useState<Lang>('es');
   useEffect(() => setLang(getClientLangFromCookie()), []);
@@ -96,6 +136,10 @@ export default function PartnerAdminPage() {
   const [pricing, setPricing] = useState<PartnerPricingConfig | null>(null);
   const [pricingOpen, setPricingOpen] = useState(false);
   const [pricingDay, setPricingDay] = useState<number>(7);
+
+  const [overridesOpen, setOverridesOpen] = useState(false);
+  const [systemAdOpen, setSystemAdOpen] = useState(false);
+  const [editAdOpen, setEditAdOpen] = useState(false);
 
   const [overridesLoading, setOverridesLoading] = useState(false);
   const [overridesSaving, setOverridesSaving] = useState(false);
@@ -164,6 +208,7 @@ export default function PartnerAdminPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       await loadOverrides();
+      setOverridesOpen(false);
     } catch (e: any) {
       setOverridesError(String(e?.message || 'Error'));
     } finally {
@@ -184,6 +229,7 @@ export default function PartnerAdminPage() {
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       setSystemAdForm((p) => ({ ...p, serverName: '', address: '', version: '', description: '', website: '', discord: '', banner: '' }));
       await loadApprovedAds();
+      setSystemAdOpen(false);
     } catch (e: any) {
       setSystemAdError(String(e?.message || 'Error'));
     } finally {
@@ -244,6 +290,7 @@ export default function PartnerAdminPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       await loadPricing();
+      setPricingOpen(false);
     } catch (e: any) {
       setPricingError(String(e?.message || 'Error'));
     } finally {
@@ -394,6 +441,7 @@ export default function PartnerAdminPage() {
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       await loadAds();
       await loadBookings();
+      setEditAdOpen(false);
     } catch (e: any) {
       setEditAdError(String(e?.message || 'Error'));
     } finally {
@@ -415,6 +463,7 @@ export default function PartnerAdminPage() {
       setSelectedAdId('');
       await loadAds();
       await loadBookings();
+      setEditAdOpen(false);
     } catch (e: any) {
       setEditAdError(String(e?.message || 'Error'));
     } finally {
@@ -459,227 +508,52 @@ export default function PartnerAdminPage() {
         </div>
       </div>
 
-      <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 mb-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div>
-            <div className="text-gray-900 dark:text-white font-bold">Precios de Partner</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Controla precios fijos por slot y duración</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPricingOpen((v) => !v)}
-              disabled={pricingLoading}
-            >
-              {pricingOpen ? 'Ocultar' : 'Editar'}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={loadPricing} disabled={pricingLoading || pricingSaving}>Recargar</Button>
-          </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          Pendientes: <span className="font-semibold">{stats.pending}</span> • Aprobados: <span className="font-semibold">{stats.approved}</span> • Rechazados: <span className="font-semibold">{stats.rejected}</span>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {([
+            { k: 'ADS' as const, label: 'Anuncios' },
+            { k: 'BOOKINGS' as const, label: 'Reservas' },
+            { k: 'PRICING' as const, label: 'Precios' },
+            ...(canOverrideSlots ? [{ k: 'OWNER' as const, label: 'Owner' }] : []),
+          ] as const).map((t) => {
+            const active = tab === t.k;
+            return (
+              <button
+                key={t.k}
+                type="button"
+                onClick={() => setTab(t.k)}
+                className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                  active
+                    ? 'border-minecraft-grass/30 bg-minecraft-grass/10 text-gray-900 dark:text-white'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-        {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}
-
-        {!pricing ? (
-          <div className="text-sm text-gray-600 dark:text-gray-400">{pricingLoading ? 'Cargando…' : 'No hay configuración.'}</div>
-        ) : !pricingOpen ? (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-semibold">Precios fijos por días</span> (1–{PARTNER_MAX_DAYS})
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Día {pricingDay}: Slot #1 {Number(pricing.slotTotalsEur?.[0]?.[pricingDay - 1] || 0)}€ • Slot #10 {Number(pricing.slotTotalsEur?.[9]?.[pricingDay - 1] || 0)}€
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-end gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setPricingOpen(false)} disabled={pricingSaving}>Cancelar</Button>
-              <Button variant="primary" size="sm" onClick={savePricing} disabled={!pricing || pricingLoading || pricingSaving}>
-                {pricingSaving ? 'Guardando…' : 'Guardar cambios'}
-              </Button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-              <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Día</label>
-                <Select value={String(pricingDay)} onChange={(e) => setPricingDay(Number(e.target.value || 1))}>
-                  {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
-                    <option key={d} value={String(d)}>{d} día{d === 1 ? '' : 's'}</option>
-                  ))}
-                </Select>
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Editas el precio total de ese día para cada slot (EUR).
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
-                const slotIdx = slot - 1;
-                const dayIdx = Math.min(PARTNER_MAX_DAYS, Math.max(1, pricingDay)) - 1;
-                const v = Number(pricing.slotTotalsEur?.[slotIdx]?.[dayIdx] ?? 0);
-                return (
-                  <div key={slot}>
-                    <label className="text-xs text-gray-600 dark:text-gray-400">Slot #{slot}</label>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      value={String(Number.isFinite(v) ? v : 0)}
-                      onChange={(e) => {
-                        const nextRaw = e.target.value;
-                        const cleaned = nextRaw.trim();
-                        const nextNum = cleaned === '' ? 0 : Number(cleaned.replace(',', '.'));
-                        const next = Number.isFinite(nextNum) ? Math.max(0, Math.round(nextNum * 100) / 100) : 0;
-                        setPricing((p) => {
-                          if (!p) return p;
-                          const totals = Array.isArray(p.slotTotalsEur) ? p.slotTotalsEur.map((r) => (Array.isArray(r) ? [...r] : [])) : [];
-                          while (totals.length < PARTNER_SLOTS) totals.push(Array(PARTNER_MAX_DAYS).fill(0));
-                          for (let si = 0; si < PARTNER_SLOTS; si++) {
-                            while (totals[si].length < PARTNER_MAX_DAYS) totals[si].push(0);
-                          }
-                          totals[slotIdx][dayIdx] = next;
-                          return { ...p, slotTotalsEur: totals };
-                        });
-                      }}
-                      disabled={pricingSaving}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {canOverrideSlots ? (
-        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 mb-4">
+      {tab === 'ADS' ? (
+        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <div className="text-gray-900 dark:text-white font-bold">Asignación manual de slots</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Solo OWNER • Prioridad sobre reservas activas</div>
+              <div className="text-gray-900 dark:text-white font-bold">Anuncios</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Aprobar / rechazar solicitudes</div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={loadOverrides} disabled={overridesLoading || overridesSaving}>Recargar</Button>
-              <Button variant="primary" size="sm" onClick={saveOverrides} disabled={overridesLoading || overridesSaving}>
-                {overridesSaving ? 'Guardando…' : 'Guardar'}
-              </Button>
-            </div>
-          </div>
-
-          {overridesError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{overridesError}</div> : null}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
-              const idx = slot - 1;
-              const value = String(slotOverrides[idx] || '');
-              return (
-                <div key={slot}>
-                  <label className="text-xs text-gray-600 dark:text-gray-400">Slot #{slot}</label>
-                  <Select
-                    value={value}
-                    onChange={(e) => {
-                      const nextId = String(e.target.value || '').trim();
-                      setSlotOverrides((prev) => {
-                        const copy = [...prev];
-                        copy[idx] = nextId;
-                        return copy;
-                      });
-                    }}
-                    disabled={overridesLoading || overridesSaving}
-                  >
-                    <option value="">— Automático (reserva activa) —</option>
-                    {approvedAds.map((a) => (
-                      <option key={a._id} value={a._id}>
-                        {a.serverName} — {a.ownerUsername}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      ) : null}
-
-      {canOverrideSlots ? (
-        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 mb-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-4">
-            <div>
-              <div className="text-gray-900 dark:text-white font-bold">Crear anuncio (OWNER)</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Crea un anuncio interno para asignarlo a cualquier slot</div>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={createSystemAd}
-              disabled={systemAdCreating || !systemAdForm.serverName.trim() || !systemAdForm.address.trim() || systemAdForm.description.trim().length < 20}
-            >
-              {systemAdCreating ? 'Creando…' : 'Crear'}
-            </Button>
-          </div>
-
-          {systemAdError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{systemAdError}</div> : null}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Autor (ownerUsername)</label>
-              <Input value={systemAdForm.ownerUsername} onChange={(e) => setSystemAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
-              <Input value={systemAdForm.version} onChange={(e) => setSystemAdForm((p) => ({ ...p, version: e.target.value }))} placeholder="1.20.x" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
-              <Input value={systemAdForm.serverName} onChange={(e) => setSystemAdForm((p) => ({ ...p, serverName: e.target.value }))} placeholder="Mi servidor" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
-              <Input value={systemAdForm.address} onChange={(e) => setSystemAdForm((p) => ({ ...p, address: e.target.value }))} placeholder="play.ejemplo.com" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
-              <Input value={systemAdForm.banner} onChange={(e) => setSystemAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
-              <Input value={systemAdForm.website} onChange={(e) => setSystemAdForm((p) => ({ ...p, website: e.target.value }))} placeholder="https://..." />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
-              <Input value={systemAdForm.discord} onChange={(e) => setSystemAdForm((p) => ({ ...p, discord: e.target.value }))} placeholder="https://discord.gg/..." />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
-              <Textarea
-                value={systemAdForm.description}
-                onChange={(e) => setSystemAdForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Cuenta qué ofrece tu servidor, modalidad, comunidad..."
-                rows={4}
-                minLength={20}
-                maxLength={500}
-              />
-              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{systemAdForm.description.length}/500</div>
-            </div>
-          </div>
-        </Card>
-      ) : null}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div>
-              <div className="text-gray-900 dark:text-white font-bold">Anuncios</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Pendientes: {stats.pending} • Aprobados: {stats.approved} • Rechazados: {stats.rejected}</div>
-            </div>
-            <div className="w-44">
-              <Select value={adsStatus} onChange={(e) => setAdsStatus(e.target.value as any)}>
-                <option value="PENDING_REVIEW">Pendientes</option>
-                <option value="APPROVED">Aprobados</option>
-                <option value="REJECTED">Rechazados</option>
-              </Select>
+              <div className="w-44">
+                <Select value={adsStatus} onChange={(e) => setAdsStatus(e.target.value as any)}>
+                  <option value="PENDING_REVIEW">Pendientes</option>
+                  <option value="APPROVED">Aprobados</option>
+                  <option value="REJECTED">Rechazados</option>
+                </Select>
+              </div>
+              <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>Recargar</Button>
             </div>
           </div>
 
@@ -733,6 +607,7 @@ export default function PartnerAdminPage() {
                         <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">Owner: {selectedAd.ownerUsername}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">UserId: {selectedAd.userId}</div>
                       </div>
+
                       <div className="flex flex-col gap-2">
                         <Button
                           variant="primary"
@@ -750,6 +625,11 @@ export default function PartnerAdminPage() {
                         >
                           Rechazar
                         </Button>
+                        {role === 'OWNER' ? (
+                          <Button variant="secondary" size="sm" onClick={() => setEditAdOpen(true)} disabled={!selectedAd}>
+                            Editar…
+                          </Button>
+                        ) : null}
                       </div>
                     </div>
 
@@ -794,60 +674,6 @@ export default function PartnerAdminPage() {
                       ) : null}
                     </div>
 
-                    {role === 'OWNER' ? (
-                      <div className="mt-6">
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white">Editar anuncio</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Disponible para OWNER (incluye anuncios activos).</div>
-
-                        {editAdError ? <div className="mt-2 text-sm text-red-600 dark:text-red-300">{editAdError}</div> : null}
-
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Owner</label>
-                            <Input value={editAdForm.ownerUsername} onChange={(e) => setEditAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
-                            <Input value={editAdForm.serverName} onChange={(e) => setEditAdForm((p) => ({ ...p, serverName: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
-                            <Input value={editAdForm.address} onChange={(e) => setEditAdForm((p) => ({ ...p, address: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
-                            <Input value={editAdForm.version} onChange={(e) => setEditAdForm((p) => ({ ...p, version: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
-                            <Input value={editAdForm.website} onChange={(e) => setEditAdForm((p) => ({ ...p, website: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
-                            <Input value={editAdForm.discord} onChange={(e) => setEditAdForm((p) => ({ ...p, discord: e.target.value }))} />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
-                            <Input value={editAdForm.banner} onChange={(e) => setEditAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
-                            <Textarea value={editAdForm.description} onChange={(e) => setEditAdForm((p) => ({ ...p, description: e.target.value }))} rows={4} maxLength={500} />
-                            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{editAdForm.description.length}/500</div>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 flex items-center gap-2">
-                          <Button variant="primary" size="sm" onClick={saveSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
-                            {editAdSaving ? 'Guardando…' : 'Guardar'}
-                          </Button>
-                          <Button variant="secondary" size="sm" onClick={deleteSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
-                            Eliminar
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-
                     <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
                       Creado: {formatDateTime(selectedAd.createdAt, dateLocale)} • Actualizado: {formatDateTime(selectedAd.updatedAt, dateLocale)}
                     </div>
@@ -857,21 +683,26 @@ export default function PartnerAdminPage() {
             </div>
           )}
         </Card>
+      ) : null}
 
+      {tab === 'BOOKINGS' ? (
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
               <div className="text-gray-900 dark:text-white font-bold">Reservas</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">PENDIENTE / ACTIVO por defecto</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Historial y estado de pagos</div>
             </div>
-            <div className="w-44">
-              <Select value={bookingsStatus} onChange={(e) => setBookingsStatus(e.target.value as any)}>
-                <option value="PENDING_OR_ACTIVE">Pendientes + Activas</option>
-                <option value="PENDING">Pendientes</option>
-                <option value="ACTIVE">Activas</option>
-                <option value="EXPIRED">Expiradas</option>
-                <option value="CANCELED">Canceladas</option>
-              </Select>
+            <div className="flex items-center gap-2">
+              <div className="w-44">
+                <Select value={bookingsStatus} onChange={(e) => setBookingsStatus(e.target.value as any)}>
+                  <option value="PENDING_OR_ACTIVE">Pendientes + Activas</option>
+                  <option value="PENDING">Pendientes</option>
+                  <option value="ACTIVE">Activas</option>
+                  <option value="EXPIRED">Expiradas</option>
+                  <option value="CANCELED">Canceladas</option>
+                </Select>
+              </div>
+              <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>Recargar</Button>
             </div>
           </div>
 
@@ -913,7 +744,300 @@ export default function PartnerAdminPage() {
             </div>
           )}
         </Card>
-      </div>
+      ) : null}
+
+      {tab === 'PRICING' ? (
+        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div>
+              <div className="text-gray-900 dark:text-white font-bold">Precios de Partner</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Precios fijos por slot y duración</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="sm" onClick={loadPricing} disabled={pricingLoading || pricingSaving}>Recargar</Button>
+              <Button variant="primary" size="sm" onClick={() => setPricingOpen(true)} disabled={pricingLoading || !pricing}>Editar…</Button>
+            </div>
+          </div>
+
+          {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}
+
+          {!pricing ? (
+            <div className="text-sm text-gray-600 dark:text-gray-400">{pricingLoading ? 'Cargando…' : 'No hay configuración.'}</div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold">Precios fijos por días</span> (1–{PARTNER_MAX_DAYS})
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Vista previa rápida</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-28">
+                  <Select value={String(pricingDay)} onChange={(e) => setPricingDay(Number(e.target.value || 1))}>
+                    {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={String(d)}>{d}d</option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Slot #1 {Number(pricing.slotTotalsEur?.[0]?.[pricingDay - 1] || 0)}€ • Slot #10 {Number(pricing.slotTotalsEur?.[9]?.[pricingDay - 1] || 0)}€
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+      ) : null}
+
+      {tab === 'OWNER' && canOverrideSlots ? (
+        <div className="space-y-4">
+          <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-gray-900 dark:text-white font-bold">Asignación manual de slots</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Solo OWNER • Prioridad sobre reservas activas</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={loadOverrides} disabled={overridesLoading || overridesSaving}>Recargar</Button>
+                <Button variant="primary" size="sm" onClick={() => setOverridesOpen(true)} disabled={overridesLoading}>Editar…</Button>
+              </div>
+            </div>
+
+            {overridesError ? <div className="mt-3 text-sm text-red-600 dark:text-red-300">{overridesError}</div> : null}
+          </Card>
+
+          <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-gray-900 dark:text-white font-bold">Crear anuncio interno</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Solo OWNER • Para asignación manual</div>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => setSystemAdOpen(true)}>Crear…</Button>
+            </div>
+
+            {systemAdError ? <div className="mt-3 text-sm text-red-600 dark:text-red-300">{systemAdError}</div> : null}
+          </Card>
+        </div>
+      ) : null}
+
+      <Modal open={pricingOpen} title="Editar precios" onClose={() => setPricingOpen(false)}>
+        {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}
+
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <label className="text-xs text-gray-600 dark:text-gray-400">Día</label>
+              <Select value={String(pricingDay)} onChange={(e) => setPricingDay(Number(e.target.value || 1))}>
+                {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={String(d)}>{d} día{d === 1 ? '' : 's'}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setPricingOpen(false)} disabled={pricingSaving}>Cancelar</Button>
+              <Button variant="primary" size="sm" onClick={savePricing} disabled={!pricing || pricingLoading || pricingSaving}>
+                {pricingSaving ? 'Guardando…' : 'Guardar'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Editas el precio total de ese día para cada slot (EUR).
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
+              const slotIdx = slot - 1;
+              const dayIdx = Math.min(PARTNER_MAX_DAYS, Math.max(1, pricingDay)) - 1;
+              const v = Number(pricing?.slotTotalsEur?.[slotIdx]?.[dayIdx] ?? 0);
+              return (
+                <div key={slot}>
+                  <label className="text-xs text-gray-600 dark:text-gray-400">Slot #{slot}</label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    value={String(Number.isFinite(v) ? v : 0)}
+                    onChange={(e) => {
+                      const nextRaw = e.target.value;
+                      const cleaned = nextRaw.trim();
+                      const nextNum = cleaned === '' ? 0 : Number(cleaned.replace(',', '.'));
+                      const next = Number.isFinite(nextNum) ? Math.max(0, Math.round(nextNum * 100) / 100) : 0;
+                      setPricing((p) => {
+                        if (!p) return p;
+                        const totals = Array.isArray(p.slotTotalsEur) ? p.slotTotalsEur.map((r) => (Array.isArray(r) ? [...r] : [])) : [];
+                        while (totals.length < PARTNER_SLOTS) totals.push(Array(PARTNER_MAX_DAYS).fill(0));
+                        for (let si = 0; si < PARTNER_SLOTS; si++) {
+                          while (totals[si].length < PARTNER_MAX_DAYS) totals[si].push(0);
+                        }
+                        totals[slotIdx][dayIdx] = next;
+                        return { ...p, slotTotalsEur: totals };
+                      });
+                    }}
+                    disabled={pricingSaving}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={overridesOpen} title="Asignación manual de slots" onClose={() => setOverridesOpen(false)}>
+        {overridesError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{overridesError}</div> : null}
+
+        <div className="flex items-center justify-end gap-2 mb-4">
+          <Button variant="secondary" size="sm" onClick={() => setOverridesOpen(false)} disabled={overridesSaving}>Cancelar</Button>
+          <Button variant="primary" size="sm" onClick={saveOverrides} disabled={overridesLoading || overridesSaving}>
+            {overridesSaving ? 'Guardando…' : 'Guardar'}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
+            const idx = slot - 1;
+            const value = String(slotOverrides[idx] || '');
+            return (
+              <div key={slot}>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Slot #{slot}</label>
+                <Select
+                  value={value}
+                  onChange={(e) => {
+                    const nextId = String(e.target.value || '').trim();
+                    setSlotOverrides((prev) => {
+                      const copy = [...prev];
+                      copy[idx] = nextId;
+                      return copy;
+                    });
+                  }}
+                  disabled={overridesLoading || overridesSaving}
+                >
+                  <option value="">— Automático (reserva activa) —</option>
+                  {approvedAds.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {a.serverName} — {a.ownerUsername}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            );
+          })}
+        </div>
+      </Modal>
+
+      <Modal open={systemAdOpen} title="Crear anuncio (OWNER)" onClose={() => setSystemAdOpen(false)}>
+        {systemAdError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{systemAdError}</div> : null}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Autor (ownerUsername)</label>
+            <Input value={systemAdForm.ownerUsername} onChange={(e) => setSystemAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
+            <Input value={systemAdForm.version} onChange={(e) => setSystemAdForm((p) => ({ ...p, version: e.target.value }))} placeholder="1.20.x" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
+            <Input value={systemAdForm.serverName} onChange={(e) => setSystemAdForm((p) => ({ ...p, serverName: e.target.value }))} placeholder="Mi servidor" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
+            <Input value={systemAdForm.address} onChange={(e) => setSystemAdForm((p) => ({ ...p, address: e.target.value }))} placeholder="play.ejemplo.com" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
+            <Input value={systemAdForm.banner} onChange={(e) => setSystemAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
+            <Input value={systemAdForm.website} onChange={(e) => setSystemAdForm((p) => ({ ...p, website: e.target.value }))} placeholder="https://..." />
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
+            <Input value={systemAdForm.discord} onChange={(e) => setSystemAdForm((p) => ({ ...p, discord: e.target.value }))} placeholder="https://discord.gg/..." />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
+            <Textarea
+              value={systemAdForm.description}
+              onChange={(e) => setSystemAdForm((p) => ({ ...p, description: e.target.value }))}
+              placeholder="Cuenta qué ofrece tu servidor, modalidad, comunidad..."
+              rows={4}
+              minLength={20}
+              maxLength={500}
+            />
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{systemAdForm.description.length}/500</div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setSystemAdOpen(false)} disabled={systemAdCreating}>Cancelar</Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={createSystemAd}
+            disabled={systemAdCreating || !systemAdForm.serverName.trim() || !systemAdForm.address.trim() || systemAdForm.description.trim().length < 20}
+          >
+            {systemAdCreating ? 'Creando…' : 'Crear'}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={editAdOpen} title="Editar anuncio" onClose={() => setEditAdOpen(false)}>
+        {!selectedAd ? (
+          <div className="text-sm text-gray-600 dark:text-gray-400">Selecciona un anuncio para editar.</div>
+        ) : (
+          <>
+            {editAdError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{editAdError}</div> : null}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Owner</label>
+                <Input value={editAdForm.ownerUsername} onChange={(e) => setEditAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
+                <Input value={editAdForm.serverName} onChange={(e) => setEditAdForm((p) => ({ ...p, serverName: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
+                <Input value={editAdForm.address} onChange={(e) => setEditAdForm((p) => ({ ...p, address: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
+                <Input value={editAdForm.version} onChange={(e) => setEditAdForm((p) => ({ ...p, version: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
+                <Input value={editAdForm.website} onChange={(e) => setEditAdForm((p) => ({ ...p, website: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
+                <Input value={editAdForm.discord} onChange={(e) => setEditAdForm((p) => ({ ...p, discord: e.target.value }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
+                <Input value={editAdForm.banner} onChange={(e) => setEditAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
+                <Textarea value={editAdForm.description} onChange={(e) => setEditAdForm((p) => ({ ...p, description: e.target.value }))} rows={4} maxLength={500} />
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{editAdForm.description.length}/500</div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setEditAdOpen(false)} disabled={editAdSaving}>Cancelar</Button>
+              <Button variant="secondary" size="sm" onClick={deleteSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
+                Eliminar
+              </Button>
+              <Button variant="primary" size="sm" onClick={saveSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
+                {editAdSaving ? 'Guardando…' : 'Guardar'}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </main>
   );
 }
