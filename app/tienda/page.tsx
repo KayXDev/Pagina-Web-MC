@@ -88,10 +88,8 @@ export default function TiendaPage() {
         const pathname = window.location.pathname;
 
         if (enabled) {
-          if (!paths.length || matchesMaintenancePath(paths, pathname)) {
-            if (pathname !== '/mantenimiento') {
-              window.location.href = '/mantenimiento';
-            }
+          if (matchesMaintenancePath(paths, pathname) && pathname !== '/mantenimiento') {
+            window.location.href = '/mantenimiento';
           }
         }
       } catch {
