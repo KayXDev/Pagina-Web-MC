@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Button, Input, Textarea } from '@/components/ui';
-import { FaCog } from 'react-icons/fa';
+import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
+import { FaCheck, FaCog, FaPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
 
@@ -10,6 +10,7 @@ export default function AdminMaintenancePage() {
   const [lang, setLang] = useState<Lang>('es');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customPath, setCustomPath] = useState('');
   const [settings, setSettings] = useState({
     maintenance_mode: 'false',
     maintenance_message: 'Estamos en mantenimiento. Vuelve más tarde.',
@@ -50,6 +51,27 @@ export default function AdminMaintenancePage() {
     if (next.has(path)) next.delete(path);
     else next.add(path);
     setSettings({ ...settings, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) });
+  };
+
+  const setMaintenanceEnabled = (enabled: boolean) => {
+    setSettings((prev) => ({ ...prev, maintenance_mode: enabled ? 'true' : 'false' }));
+  };
+
+  const addCustomPath = () => {
+    const raw = String(customPath || '').trim();
+    if (!raw) return;
+
+    const normalized = raw.startsWith('/') ? raw : `/${raw}`;
+    const looksOk = normalized === '/' || normalized.startsWith('/');
+    if (!looksOk) {
+      toast.error(lang === 'es' ? 'Ruta inválida' : 'Invalid path');
+      return;
+    }
+
+    const next = new Set(selectedMaintenancePaths);
+    next.add(normalized);
+    setSettings((prev) => ({ ...prev, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) }));
+    setCustomPath('');
   };
 
   useEffect(() => {
@@ -134,15 +156,31 @@ export default function AdminMaintenancePage() {
               <p className="text-gray-400 mt-2">{t(lang, 'admin.settings.sectionDesc')}</p>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                className="w-4 h-4"
-                checked={settings.maintenance_mode === 'true'}
-                onChange={(e) => setSettings({ ...settings, maintenance_mode: e.target.checked ? 'true' : 'false' })}
-              />
-              <span className="text-gray-300 text-sm">{t(lang, 'admin.settings.enableMaintenance')}</span>
-            </label>
+            <div className="flex items-center gap-3">
+              <Badge variant={settings.maintenance_mode === 'true' ? 'warning' : 'default'}>
+                {settings.maintenance_mode === 'true' ? (lang === 'es' ? 'ACTIVO' : 'ACTIVE') : (lang === 'es' ? 'INACTIVO' : 'INACTIVE')}
+              </Badge>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={settings.maintenance_mode === 'true'}
+                onClick={() => setMaintenanceEnabled(!(settings.maintenance_mode === 'true'))}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full border transition-colors ${
+                  settings.maintenance_mode === 'true'
+                    ? 'bg-minecraft-grass/80 border-minecraft-grass/40'
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white/90 transition-transform ${
+                    settings.maintenance_mode === 'true' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+
+              <span className="text-gray-300 text-sm select-none">{t(lang, 'admin.settings.enableMaintenance')}</span>
+            </div>
           </div>
 
           <div className="mt-6">
@@ -159,27 +197,91 @@ export default function AdminMaintenancePage() {
         <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="text-white font-semibold">{t(lang, 'admin.settings.maintenancePathsLabel')}</div>
-            <div className="text-xs text-gray-400">{selectedMaintenancePaths.size} seleccionadas</div>
+            <div className="flex items-center gap-3">
+              <div className="text-xs text-gray-400">
+                {selectedMaintenancePaths.size} {lang === 'es' ? 'seleccionadas' : 'selected'}
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    maintenance_paths: stringifyMaintenancePaths(MAINTENANCE_ROUTE_OPTIONS.map((o) => o.path)),
+                  }))
+                }
+              >
+                {lang === 'es' ? 'Seleccionar todo' : 'Select all'}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setSettings((prev) => ({ ...prev, maintenance_paths: '' }))}
+              >
+                {lang === 'es' ? 'Limpiar' : 'Clear'}
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {MAINTENANCE_ROUTE_OPTIONS.map((opt) => (
-              <label
+              <button
                 key={opt.path}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 cursor-pointer"
+                type="button"
+                onClick={() => toggleMaintenancePath(opt.path)}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
+                  selectedMaintenancePaths.has(opt.path)
+                    ? 'border-minecraft-grass/40 bg-minecraft-grass/10'
+                    : 'border-white/10 bg-white/5 hover:bg-white/10'
+                }`}
               >
-                <input
-                  type="checkbox"
-                  className="w-4 h-4"
-                  checked={selectedMaintenancePaths.has(opt.path)}
-                  onChange={() => toggleMaintenancePath(opt.path)}
-                />
+                <div
+                  className={`h-8 w-8 rounded-lg border grid place-items-center ${
+                    selectedMaintenancePaths.has(opt.path)
+                      ? 'border-minecraft-grass/40 bg-minecraft-grass/15 text-minecraft-grass'
+                      : 'border-white/10 bg-white/5 text-gray-300'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {selectedMaintenancePaths.has(opt.path) ? <FaCheck /> : <span className="text-xs">•</span>}
+                </div>
                 <div className="min-w-0">
                   <div className="text-sm text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
                   <div className="text-xs text-gray-400 truncate">{opt.path}</div>
                 </div>
-              </label>
+              </button>
             ))}
+          </div>
+
+          <div className="mt-5">
+            <div className="text-sm font-medium text-gray-300 mb-2">
+              {lang === 'es' ? 'Añadir ruta personalizada' : 'Add custom path'}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={customPath}
+                onChange={(e) => setCustomPath(e.target.value)}
+                placeholder={lang === 'es' ? '/mi-seccion o /mi-seccion/*' : '/my-section or /my-section/*'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomPath();
+                  }
+                }}
+              />
+              <Button type="button" variant="secondary" onClick={addCustomPath}>
+                <FaPlus />
+                <span>{lang === 'es' ? 'Añadir' : 'Add'}</span>
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {lang === 'es'
+                ? 'Tip: puedes usar * al final para aplicar por prefijo (ej: /foro/*).'
+                : 'Tip: you can use * at the end for prefix matching (e.g. /forum/*).'}
+            </p>
           </div>
 
           <p className="text-xs text-gray-500 mt-3">{t(lang, 'admin.settings.maintenancePathsHint')}</p>
