@@ -48,7 +48,7 @@ export default function ThemeToggle() {
       <button
         type="button"
         aria-label="Toggle theme"
-        className="h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+        className="h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
       />
     );
   }
@@ -62,7 +62,7 @@ export default function ThemeToggle() {
       }}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-      className="h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-300 hover:text-minecraft-grass hover:bg-white/10 transition-colors"
+      className="h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-minecraft-grass hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.94, rotate: theme === 'dark' ? -10 : 10 }}
     >

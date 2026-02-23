@@ -251,20 +251,20 @@ export default function ChatbotWidget() {
   const conversation = renderConversation();
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex justify-end">
       {open ? (
         <Card
-          className="border-white/10 bg-gray-950/25 rounded-2xl w-[360px] shadow-lg shadow-black/40"
+          className="border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/25 rounded-2xl w-full max-w-[420px] shadow-lg shadow-black/10 dark:shadow-black/40"
           hover={false}
         >
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-gray-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-gray-900 dark:text-white shrink-0">
                 <FaComments />
               </div>
               <div className="min-w-0">
-                <div className="text-white font-semibold leading-5 truncate">Asistente</div>
-                <div className="text-xs text-gray-400 leading-4">
+                <div className="text-gray-900 dark:text-white font-semibold leading-5 truncate">Asistente</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 leading-4">
                     {loading
                     ? t(lang, 'chatbot.typing')
                       : mode === 'AGENT'
@@ -317,8 +317,8 @@ export default function ChatbotWidget() {
             ) : null}
 
             {handoffConfirm ? (
-              <div className="mb-2 rounded-xl border border-white/10 bg-black/20 p-3">
-                <div className="text-sm text-gray-200">
+              <div className="mb-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 p-3">
+                <div className="text-sm text-gray-800 dark:text-gray-200">
                   {status === 'authenticated'
                     ? t(lang, 'chatbot.handoffConfirmAuthed')
                     : t(lang, 'chatbot.handoffConfirmUnauthed')}
@@ -355,15 +355,15 @@ export default function ChatbotWidget() {
 
           <div
             ref={listRef}
-            className="h-72 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-3 space-y-2"
+            className="h-72 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-3 space-y-2"
           >
             {conversation.map((m, idx) => (
               <div key={idx} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
                 <div
                   className={
                     m.role === 'user'
-                      ? 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-white/10 border border-white/10 text-white'
-                      : 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-white/5 border border-white/10 text-gray-100'
+                      ? 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-minecraft-grass text-white border border-minecraft-grass/20'
+                      : 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-gray-100'
                   }
                 >
                   <span className="whitespace-pre-wrap break-words">{m.content}</span>
@@ -373,7 +373,7 @@ export default function ChatbotWidget() {
 
             {loading ? (
               <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-white/5 border border-white/10 text-gray-100">
+                <div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-100">
                   <span className="opacity-80">…</span>
                 </div>
               </div>
@@ -403,9 +403,9 @@ export default function ChatbotWidget() {
           </div>
 
           {mode === 'AGENT' && ticketId ? (
-            <div className="mt-2 text-xs text-gray-400">
+            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               {t(lang, 'chatbot.ticketLabel')}{': '}
-              <a className="underline hover:text-gray-300" href={`/soporte/${ticketId}`}>
+              <a className="underline hover:text-gray-700 dark:hover:text-gray-300" href={`/soporte/${ticketId}`}>
                 /soporte/{ticketId}
               </a>
             </div>
@@ -415,7 +415,7 @@ export default function ChatbotWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="h-12 w-12 rounded-full bg-white/10 border border-white/10 text-white grid place-items-center hover:bg-white/15"
+          className="h-12 w-12 rounded-full bg-white border border-gray-200 text-gray-900 grid place-items-center hover:bg-gray-50 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/15"
           aria-label={t(lang, 'chatbot.openAria')}
         >
           <FaComments />

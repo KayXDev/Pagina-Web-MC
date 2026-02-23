@@ -531,7 +531,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-950/70 backdrop-blur-md border-b border-white/10 shadow-sm shadow-black/30">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-950/70 backdrop-blur-md border-b border-gray-200 dark:border-white/10 shadow-sm shadow-black/10 dark:shadow-black/30">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-4">
           {/* Logo */}
@@ -552,7 +552,7 @@ const Navbar = () => {
               )}
               {brandIconStatus === 'ok' ? null : <span className="text-white font-bold text-xl">MC</span>}
             </div>
-            <span className="text-white font-bold text-xl hidden sm:block">
+            <span className="text-gray-900 dark:text-white font-bold text-xl hidden sm:block">
               999Wrld Network
             </span>
           </Link>
@@ -568,7 +568,7 @@ const Navbar = () => {
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                     isActive(item.href)
                       ? 'bg-minecraft-grass text-white'
-                      : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'
                   }`}
                 >
                   <Icon />
@@ -594,7 +594,7 @@ const Navbar = () => {
                   )}
                   <Link
                     href="/perfil"
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200 flex items-center space-x-2"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white transition-all duration-200 flex items-center space-x-2"
                   >
                     <FaUser />
                     <span>{session.user.name}</span>
@@ -618,7 +618,7 @@ const Navbar = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-1 ml-3 pl-3 border-l border-white/10">
+            <div className="flex items-center gap-1 ml-3 pl-3 border-l border-gray-200 dark:border-white/10">
               <div className="relative" ref={cartRef}>
                 <button
                   onClick={() => {
@@ -632,7 +632,7 @@ const Navbar = () => {
                       loadProductsIfNeeded();
                     }
                   }}
-                  className="relative p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-all duration-200"
                   aria-label={lang === 'es' ? 'Carrito' : 'Cart'}
                 >
                   <FaShoppingCart />
@@ -649,32 +649,32 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
-                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-lg border border-white/10 bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
+                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
                     >
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                        <div className="text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
-                        <div className="text-xs text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
+                        <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
                       </div>
 
                       {cartLoading ? (
-                        <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'common.loading')}</div>
+                        <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                       ) : cartItems.length === 0 ? (
-                        <div className="px-4 py-6 text-sm text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                        <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
                       ) : (
-                        <div className="max-h-[60vh] overflow-auto divide-y divide-white/10">
+                        <div className="max-h-[60vh] overflow-auto divide-y divide-gray-200 dark:divide-white/10">
                           {cartItems.slice(0, 6).map((it) => {
                             const p = cartProductById.get(String(it.productId));
                             const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
                             const line = Number(p?.price || 0) * Number(it.quantity || 0);
                             return (
-                              <div key={it.productId} className="px-4 py-3 hover:bg-white/5">
+                              <div key={it.productId} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5">
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
-                                    <div className="text-sm font-semibold text-white truncate">{name}</div>
-                                    <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
+                                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>
+                                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">x{it.quantity}</div>
                                   </div>
                                   <div className="flex items-center gap-2 shrink-0">
-                                    <div className="text-sm text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                    <div className="text-sm text-gray-700 dark:text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
                                     <button
                                       type="button"
                                       className="p-2 rounded-md text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
@@ -691,10 +691,10 @@ const Navbar = () => {
                         </div>
                       )}
 
-                      <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3">
-                        <div className="text-sm text-gray-300">
+                      <div className="px-4 py-3 border-t border-gray-200 dark:border-white/10 flex items-center justify-between gap-3">
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
                           {lang === 'es' ? 'Total' : 'Total'}:{' '}
-                          <span className="text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                          <span className="text-gray-900 dark:text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
                         </div>
                         <Link
                           href="/carrito"
@@ -718,7 +718,7 @@ const Navbar = () => {
                       setNotifOpenMobile(false);
                       if (next) fetchNotifications();
                     }}
-                    className="relative p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                    className="relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-all duration-200"
                     aria-label={t(lang, 'nav.notifications')}
                   >
                     <FaBell />
@@ -735,19 +735,19 @@ const Navbar = () => {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 8 }}
-                        className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-lg border border-white/10 bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
+                        className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
                       >
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                          <div className="text-white font-semibold">{t(lang, 'nav.notifications')}</div>
-                          <button onClick={markAllRead} className="text-sm text-gray-300 hover:text-white">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
+                          <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'nav.notifications')}</div>
+                          <button onClick={markAllRead} className="text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
                             {t(lang, 'notifications.markAllRead')}
                           </button>
                         </div>
 
                         {notifLoading ? (
-                          <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'common.loading')}</div>
+                          <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                         ) : notifItems.length === 0 ? (
-                          <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'notifications.empty')}</div>
+                          <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'notifications.empty')}</div>
                         ) : (
                           <div className="max-h-[60vh] overflow-auto">
                             {notifItems.slice(0, 10).map((n: any) => {
@@ -755,12 +755,12 @@ const Navbar = () => {
                               return (
                                 <div
                                   key={n._id}
-                                  className={`px-4 py-3 border-b border-white/5 hover:bg-white/5 ${unread ? 'bg-white/5' : ''}`}
+                                  className={`px-4 py-3 border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 ${unread ? 'bg-gray-50 dark:bg-white/5' : ''}`}
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                      <div className="text-sm font-semibold text-white truncate">{n.title}</div>
-                                      <div className="text-xs text-gray-300 mt-1 line-clamp-2">{n.message}</div>
+                                      <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{n.title}</div>
+                                      <div className="text-xs text-gray-700 dark:text-gray-300 mt-1 line-clamp-2">{n.message}</div>
                                       {n.href && (
                                         <Link
                                           href={n.href}
@@ -778,7 +778,7 @@ const Navbar = () => {
                                     {unread && (
                                       <button
                                         onClick={() => markOneRead(n._id)}
-                                        className="shrink-0 text-xs text-gray-300 hover:text-white"
+                                        className="shrink-0 text-xs text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                                       >
                                         {t(lang, 'notifications.markRead')}
                                       </button>
@@ -790,10 +790,10 @@ const Navbar = () => {
                           </div>
                         )}
 
-                        <div className="px-4 py-3 border-t border-white/10 flex justify-end">
+                        <div className="px-4 py-3 border-t border-gray-200 dark:border-white/10 flex justify-end">
                           <Link
                             href="/notificaciones"
-                            className="text-sm text-gray-300 hover:text-white"
+                            className="text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                             onClick={() => setNotifOpenDesktop(false)}
                           >
                             {t(lang, 'notifications.viewAll')}
@@ -824,7 +824,7 @@ const Navbar = () => {
                     loadProductsIfNeeded();
                   }
                 }}
-                className="relative p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10"
+                className="relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
                 aria-label={lang === 'es' ? 'Carrito' : 'Cart'}
               >
                 <FaShoppingCart size={20} />
@@ -841,32 +841,32 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="absolute right-0 mt-2 w-[92vw] max-w-[420px] rounded-lg border border-white/10 bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-xl overflow-hidden z-50"
                   >
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                      <div className="text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
-                      <div className="text-xs text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
+                      <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
                     </div>
 
                     {cartLoading ? (
-                      <div className="px-4 py-6 text-sm text-gray-400">{t(lang, 'common.loading')}</div>
+                      <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                     ) : cartItems.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                      <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
                     ) : (
-                      <div className="max-h-[50vh] overflow-auto divide-y divide-white/10">
+                      <div className="max-h-[50vh] overflow-auto divide-y divide-gray-200 dark:divide-white/10">
                         {cartItems.slice(0, 5).map((it) => {
                           const p = cartProductById.get(String(it.productId));
                           const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
                           const line = Number(p?.price || 0) * Number(it.quantity || 0);
                           return (
-                            <div key={it.productId} className="px-4 py-3">
+                            <div key={it.productId} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
-                                  <div className="text-sm font-semibold text-white truncate">{name}</div>
-                                  <div className="text-xs text-gray-400 mt-0.5">x{it.quantity}</div>
+                                  <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">x{it.quantity}</div>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <div className="text-sm text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
+                                  <div className="text-sm text-gray-700 dark:text-gray-200">{line > 0 ? formatPrice(line, lang === 'es' ? 'es-ES' : 'en-US') : ''}</div>
                                   <button
                                     type="button"
                                     className="p-2 rounded-md text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
@@ -883,10 +883,10 @@ const Navbar = () => {
                       </div>
                     )}
 
-                    <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3">
-                      <div className="text-sm text-gray-300">
+                    <div className="px-4 py-3 border-t border-gray-200 dark:border-white/10 flex items-center justify-between gap-3">
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
                         {lang === 'es' ? 'Total' : 'Total'}:{' '}
-                        <span className="text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                        <span className="text-gray-900 dark:text-white font-semibold">{formatPrice(cartTotalPrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
                       </div>
                       <Link
                         href="/carrito"
@@ -908,7 +908,7 @@ const Navbar = () => {
                 setIsOpen(next);
                 if (!next) setNotifOpenMobile(false);
               }}
-              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10"
+              className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
             >
               {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </button>

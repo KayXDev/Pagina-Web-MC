@@ -27,8 +27,8 @@ export default function VotePage() {
       <AnimatedSection>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-1" hover={false}>
-            <h2 className="text-2xl font-bold text-white mb-4">{t(lang, 'vote.howTitle')}</h2>
-            <ol className="space-y-3 text-gray-300">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'vote.howTitle')}</h2>
+            <ol className="space-y-3 text-gray-700 dark:text-gray-300">
               <li className="flex items-start gap-3">
                 <Badge variant="info" className="mt-0.5">1</Badge>
                 <span>{t(lang, 'vote.howStep1')}</span>
@@ -46,27 +46,27 @@ export default function VotePage() {
 
           <div className="lg:col-span-2">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">{t(lang, 'vote.linksTitle')}</h2>
-              <p className="text-gray-400">{t(lang, 'vote.linksSubtitle')}</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t(lang, 'vote.linksTitle')}</h2>
+              <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.linksSubtitle')}</p>
             </div>
 
             {VOTE_SITES.length === 0 ? (
               <Card className="text-center" hover={false}>
-                <h3 className="text-2xl font-bold text-white mb-2">{t(lang, 'vote.comingTitle')}</h3>
-                <p className="text-gray-400">{t(lang, 'vote.comingDesc')}</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t(lang, 'vote.comingTitle')}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.comingDesc')}</p>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {VOTE_SITES.map((site) => (
                   <Card key={site.name} className="flex flex-col" hover={false}>
                     <div className="flex items-center justify-between gap-3 mb-3">
-                      <h3 className="text-xl font-bold text-white">{site.name}</h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">{site.name}</h3>
                       <FaVoteYea className="text-minecraft-gold" />
                     </div>
                     {site.description ? (
-                      <p className="text-gray-400 mb-5">{site.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-5">{site.description}</p>
                     ) : (
-                      <p className="text-gray-400 mb-5">&nbsp;</p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-5">&nbsp;</p>
                     )}
                     <div className="mt-auto">
                       <Link
