@@ -26,8 +26,10 @@ const PageHeader = ({ title, description, icon }: PageHeaderProps) => {
           {icon}
         </motion.div>
       )}
-      <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-grass bg-clip-text text-transparent">
-        {title}
+      <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <span className="block text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-minecraft-grass dark:via-minecraft-diamond dark:to-minecraft-grass dark:bg-clip-text">
+          {title}
+        </span>
       </h1>
       {description && (
         <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">{description}</p>

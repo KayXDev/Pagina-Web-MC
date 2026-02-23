@@ -254,7 +254,7 @@ export default function ChatbotWidget() {
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex justify-end">
       {open ? (
         <Card
-          className="border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/25 rounded-2xl w-full max-w-[420px] shadow-lg shadow-black/10 dark:shadow-black/40"
+          className="border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/95 rounded-2xl w-full max-w-[420px] shadow-lg shadow-black/10 dark:shadow-black/40"
           hover={false}
         >
           <div className="flex items-center justify-between gap-3 mb-3">
@@ -317,7 +317,7 @@ export default function ChatbotWidget() {
             ) : null}
 
             {handoffConfirm ? (
-              <div className="mb-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 p-3">
+              <div className="mb-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-950/70 p-3">
                 <div className="text-sm text-gray-800 dark:text-gray-200">
                   {status === 'authenticated'
                     ? t(lang, 'chatbot.handoffConfirmAuthed')
@@ -355,7 +355,7 @@ export default function ChatbotWidget() {
 
           <div
             ref={listRef}
-            className="h-72 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-3 space-y-2"
+            className="h-72 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-950 p-3 space-y-2"
           >
             {conversation.map((m, idx) => (
               <div key={idx} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
@@ -363,7 +363,7 @@ export default function ChatbotWidget() {
                   className={
                     m.role === 'user'
                       ? 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-minecraft-grass text-white border border-minecraft-grass/20'
-                      : 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-gray-100'
+                      : 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-gray-100'
                   }
                 >
                   <span className="whitespace-pre-wrap break-words">{m.content}</span>
@@ -373,7 +373,7 @@ export default function ChatbotWidget() {
 
             {loading ? (
               <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-100">
+                <div className="max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/10 dark:border-white/10 dark:text-gray-100">
                   <span className="opacity-80">…</span>
                 </div>
               </div>

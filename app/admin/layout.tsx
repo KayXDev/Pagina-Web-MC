@@ -100,35 +100,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }) => {
     if (!items.length) return null;
     return (
-      <div className="mb-4">
-        <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 uppercase">{title}</div>
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              onClick={onNavigate}
-              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border border-transparent border-l-2 ${
-                active
-                  ? 'bg-white/10 border-white/10 border-l-minecraft-grass text-white'
-                  : 'text-gray-300 hover:bg-white/5 hover:text-white border-l-transparent hover:border-l-white/10'
-              }`}
-            >
-              <span
-                className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                  active
-                    ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                    : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
-                }`}
-              >
-                <Icon />
-              </span>
-              <span className="font-medium truncate">{item.name}</span>
-            </Link>
-          );
-        })}
+      <div className="mb-4 px-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5">
+          <div className="px-4 pt-4 pb-3">
+            <div className="text-[11px] tracking-wider text-gray-400 uppercase">{title}</div>
+          </div>
+
+          <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={`group flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors min-w-0 ${
+                    active
+                      ? 'bg-minecraft-grass/15 border-minecraft-grass/30 text-white'
+                      : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5 hover:text-white hover:border-white/15'
+                  }`}
+                >
+                  <span
+                    className={`h-8 w-8 grid place-items-center rounded-lg transition-colors shrink-0 ${
+                      active
+                        ? 'bg-minecraft-grass/15 text-minecraft-grass'
+                        : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="text-sm" />
+                  </span>
+                  <span className="text-sm font-medium truncate">{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   };
@@ -149,35 +156,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </h2>
         </div>
 
-        <nav className="px-2 pb-6">
+        <nav className="pb-6">
           <NavSection title={t(lang, 'admin.menuGroups.main')} items={grouped.main} />
           <NavSection title={t(lang, 'admin.menuGroups.content')} items={grouped.content} />
           <NavSection title={t(lang, 'admin.menuGroups.system')} items={grouped.system} />
 
           {role === 'OWNER' && (
-            <div className="mt-3">
-              <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 uppercase">
-                {t(lang, 'admin.menu.permissions')}
+            <div className="mt-1 px-2">
+              <div className="rounded-2xl border border-white/10 bg-white/5">
+                <div className="px-4 pt-4 pb-3">
+                  <div className="text-[11px] tracking-wider text-gray-400 uppercase">
+                    {t(lang, 'admin.menu.permissions')}
+                  </div>
+                </div>
+                <div className="px-3 pb-3">
+                  <Link
+                    href="/admin/permisos"
+                    className={`group flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors min-w-0 ${
+                      isActive('/admin/permisos')
+                        ? 'bg-minecraft-grass/15 border-minecraft-grass/30 text-white'
+                        : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5 hover:text-white hover:border-white/15'
+                    }`}
+                  >
+                    <span
+                      className={`h-8 w-8 grid place-items-center rounded-lg transition-colors shrink-0 ${
+                        isActive('/admin/permisos')
+                          ? 'bg-minecraft-grass/15 text-minecraft-grass'
+                          : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
+                      }`}
+                    >
+                      <FaKey className="text-sm" />
+                    </span>
+                    <span className="text-sm font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
+                  </Link>
+                </div>
               </div>
-              <Link
-                href="/admin/permisos"
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border border-transparent border-l-2 ${
-                  isActive('/admin/permisos')
-                    ? 'bg-white/10 border-white/10 border-l-minecraft-grass text-white'
-                    : 'text-gray-300 hover:bg-white/5 hover:text-white border-l-transparent hover:border-l-white/10'
-                }`}
-              >
-                <span
-                  className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                    isActive('/admin/permisos')
-                      ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                      : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
-                  }`}
-                >
-                  <FaKey />
-                </span>
-                <span className="font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
-              </Link>
             </div>
           )}
         </nav>
@@ -235,30 +248,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <NavSection title={t(lang, 'admin.menuGroups.system')} items={grouped.system} onNavigate={() => setSidebarOpen(false)} />
 
               {role === 'OWNER' && (
-                <div className="mt-3">
-                  <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 uppercase">
-                    {t(lang, 'admin.menu.permissions')}
+                <div className="mt-1">
+                  <div className="rounded-2xl border border-white/10 bg-white/5">
+                    <div className="px-4 pt-4 pb-3">
+                      <div className="text-[11px] tracking-wider text-gray-400 uppercase">
+                        {t(lang, 'admin.menu.permissions')}
+                      </div>
+                    </div>
+                    <div className="px-3 pb-3">
+                      <Link
+                        href="/admin/permisos"
+                        onClick={() => setSidebarOpen(false)}
+                        className={`group flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors min-w-0 ${
+                          isActive('/admin/permisos')
+                            ? 'bg-minecraft-grass/15 border-minecraft-grass/30 text-white'
+                            : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5 hover:text-white hover:border-white/15'
+                        }`}
+                      >
+                        <span
+                          className={`h-8 w-8 grid place-items-center rounded-lg transition-colors shrink-0 ${
+                            isActive('/admin/permisos')
+                              ? 'bg-minecraft-grass/15 text-minecraft-grass'
+                              : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
+                          }`}
+                        >
+                          <FaKey className="text-sm" />
+                        </span>
+                        <span className="text-sm font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
+                      </Link>
+                    </div>
                   </div>
-                  <Link
-                    href="/admin/permisos"
-                    onClick={() => setSidebarOpen(false)}
-                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border border-transparent border-l-2 ${
-                      isActive('/admin/permisos')
-                        ? 'bg-white/10 border-white/10 border-l-minecraft-grass text-white'
-                        : 'text-gray-300 hover:bg-white/5 hover:text-white border-l-transparent hover:border-l-white/10'
-                    }`}
-                  >
-                    <span
-                      className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                        isActive('/admin/permisos')
-                          ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                          : 'bg-white/5 text-gray-200 group-hover:bg-white/10'
-                      }`}
-                    >
-                      <FaKey />
-                    </span>
-                    <span className="font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
-                  </Link>
                 </div>
               )}
             </nav>
