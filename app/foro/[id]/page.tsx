@@ -396,8 +396,8 @@ export default function ForoPostPage() {
           </Button>
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">{t(lang, 'forum.postTitle')}</h1>
-          <p className="text-gray-400 mt-1">{t(lang, 'forum.postSubtitle')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{t(lang, 'forum.postTitle')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t(lang, 'forum.postSubtitle')}</p>
         </div>
       </div>
 
@@ -413,10 +413,10 @@ export default function ForoPostPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-9">
-              <div className="rounded-xl border border-white/10 bg-black/20">
+              <div className="rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20">
                 <div className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden">
+                    <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
                       {post.authorAvatar ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
@@ -426,10 +426,10 @@ export default function ForoPostPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <Link
                           href={`/perfil/${encodeURIComponent(post.authorUsername)}`}
-                          className="text-white font-semibold hover:underline"
+                          className="text-gray-900 dark:text-white font-semibold hover:underline"
                         >
                           <span className="inline-flex items-center gap-1">
                             {post.authorUsername}
@@ -439,7 +439,7 @@ export default function ForoPostPage() {
                           </span>
                         </Link>
                         <span className="text-gray-500">•</span>
-                        <span className="text-gray-400">
+                        <span className="text-gray-600 dark:text-gray-400">
                           {new Intl.DateTimeFormat(getDateLocale(lang), {
                             year: 'numeric',
                             month: 'short',
@@ -463,10 +463,10 @@ export default function ForoPostPage() {
                         </button>
                       )}
 
-                      <div className="mt-3 text-white text-[16px] leading-relaxed">
-                        <div className="font-semibold">{post.title}</div>
+                      <div className="mt-3 text-gray-900 dark:text-white text-[16px] leading-relaxed">
+                        <div className="font-semibold text-gray-900 dark:text-white">{post.title}</div>
                         {post.content && (
-                          <div className="mt-1 whitespace-pre-wrap text-gray-200">{post.content}</div>
+                          <div className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-200">{post.content}</div>
                         )}
                       </div>
 
@@ -475,7 +475,7 @@ export default function ForoPostPage() {
                           {post.media.slice(0, 4).map((url) => (
                             <div
                               key={url}
-                              className="rounded-lg overflow-hidden border border-white/10 bg-black/20"
+                              className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={url} alt="" className="w-full h-44 object-cover" />
@@ -491,7 +491,7 @@ export default function ForoPostPage() {
                         </div>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-2 hover:text-white disabled:opacity-50"
+                          className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white disabled:opacity-50"
                           onClick={toggleLike}
                           disabled={liking}
                         >
@@ -502,7 +502,11 @@ export default function ForoPostPage() {
                           <FaEye className="opacity-80" />
                           <span>{views}</span>
                         </div>
-                        <button type="button" className="inline-flex items-center gap-2 hover:text-white" onClick={sharePost}>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
+                          onClick={sharePost}
+                        >
                           <FaShare className="opacity-80" />
                           <span className="hidden sm:inline">{t(lang, 'forum.share')}</span>
                         </button>
@@ -512,9 +516,9 @@ export default function ForoPostPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="mt-6 rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20 p-4">
                 <div className="flex items-center justify-between gap-3 mb-4">
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                     {t(lang, 'forum.repliesTitle')} ({replies.length})
                   </h3>
 
@@ -527,7 +531,7 @@ export default function ForoPostPage() {
                 </div>
 
                 {replies.length === 0 ? (
-                  <p className="text-gray-400">{t(lang, 'forum.noReplies')}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t(lang, 'forum.noReplies')}</p>
                 ) : (
                   (() => {
                     const { children, roots } = buildThread(replies);
@@ -538,12 +542,12 @@ export default function ForoPostPage() {
                       return (
                         <div>
                           <div
-                            className={`rounded-lg border border-white/10 bg-black/20 p-3 hover:bg-black/30 transition-colors ${
+                            className={`rounded-lg border border-gray-200 bg-white dark:border-white/10 dark:bg-black/20 p-3 hover:bg-gray-50 dark:hover:bg-black/30 transition-colors ${
                               indent > 0 ? 'ml-4 sm:ml-6 border-l-2 border-l-white/10' : ''
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="h-9 w-9 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden">
+                              <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
                                 {r.userAvatar ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img src={r.userAvatar} alt="" className="w-full h-full object-cover" />
@@ -557,7 +561,7 @@ export default function ForoPostPage() {
                                   <div className="text-sm text-gray-400">
                                     <Link
                                       href={`/perfil/${encodeURIComponent(r.username)}`}
-                                      className="text-white font-medium hover:underline"
+                                      className="text-gray-900 dark:text-white font-medium hover:underline"
                                     >
                                       <span className="inline-flex items-center gap-1">
                                         {r.username}
@@ -586,7 +590,7 @@ export default function ForoPostPage() {
                                     {!r.isLegacy && (
                                       <button
                                         type="button"
-                                        className="text-gray-300 hover:text-white text-sm"
+                                        className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm"
                                         onClick={() => onReplyTo(r._id, r.username)}
                                       >
                                         {t(lang, 'forum.replyTitle')}
@@ -604,7 +608,7 @@ export default function ForoPostPage() {
                                   </div>
                                 </div>
 
-                                <div className="mt-2 whitespace-pre-wrap text-gray-200 leading-relaxed text-sm">
+                                <div className="mt-2 whitespace-pre-wrap text-gray-700 dark:text-gray-200 leading-relaxed text-sm">
                                   {r.content}
                                 </div>
 
@@ -613,7 +617,7 @@ export default function ForoPostPage() {
                                     {r.media.slice(0, 4).map((url) => (
                                       <div
                                         key={url}
-                                        className="rounded-lg overflow-hidden border border-white/10 bg-black/20"
+                                        className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                                       >
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={url} alt="" className="w-full h-36 object-cover" />
@@ -649,13 +653,13 @@ export default function ForoPostPage() {
 
               <div className="mt-6">
                 <Card hover={false} className="p-4">
-                  <h3 className="text-lg font-bold text-white mb-3">{t(lang, 'forum.replyTitle')}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{t(lang, 'forum.replyTitle')}</h3>
                   {!session ? (
-                    <p className="text-gray-400">{t(lang, 'forum.loginToReply')}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t(lang, 'forum.loginToReply')}</p>
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden">
+                        <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
                           {(session?.user as any)?.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={String((session?.user as any).avatar)} alt="" className="w-full h-full object-cover" />
@@ -663,9 +667,9 @@ export default function ForoPostPage() {
                             session?.user?.name?.slice(0, 1)?.toUpperCase() || '?'
                           )}
                         </div>
-                        <div className="text-sm text-gray-300">
-                          <div className="text-white font-semibold">{session?.user?.name}</div>
-                          <div className="text-gray-400">{t(lang, 'forum.replyPlaceholder')}</div>
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          <div className="text-gray-900 dark:text-white font-semibold">{session?.user?.name}</div>
+                          <div className="text-gray-600 dark:text-gray-400">{t(lang, 'forum.replyPlaceholder')}</div>
                         </div>
                       </div>
 
@@ -678,13 +682,14 @@ export default function ForoPostPage() {
                       />
 
                       {replyTo && (
-                        <div className="flex items-center justify-between gap-3 text-sm rounded-md border border-white/10 bg-black/20 px-3 py-2">
-                          <div className="text-gray-300">
-                            {t(lang, 'forum.replyingTo')} <span className="text-white font-semibold">@{replyTo.username}</span>
+                        <div className="flex items-center justify-between gap-3 text-sm rounded-md border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 px-3 py-2">
+                          <div className="text-gray-700 dark:text-gray-300">
+                            {t(lang, 'forum.replyingTo')}{' '}
+                            <span className="text-gray-900 dark:text-white font-semibold">@{replyTo.username}</span>
                           </div>
                           <button
                             type="button"
-                            className="text-gray-300 hover:text-white"
+                            className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                             onClick={() => setReplyTo(null)}
                           >
                             {t(lang, 'common.cancel')}
@@ -693,7 +698,7 @@ export default function ForoPostPage() {
                       )}
 
                       <div className="flex items-center justify-between gap-3">
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                           <input
                             type="file"
                             accept="image/*"
@@ -706,7 +711,7 @@ export default function ForoPostPage() {
                               e.currentTarget.value = '';
                             }}
                           />
-                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/10 bg-black/20 hover:bg-black/30">
+                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-white/10 dark:bg-black/20 dark:hover:bg-black/30">
                             <FaRegImage />
                             <span>{uploading ? t(lang, 'forum.uploading') : t(lang, 'forum.addImage')}</span>
                           </span>
@@ -718,7 +723,10 @@ export default function ForoPostPage() {
                       {replyMedia.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {replyMedia.map((url) => (
-                            <div key={url} className="relative rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                            <div
+                              key={url}
+                              className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                            >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={url} alt="" className="w-full h-24 object-cover" />
                               <button
@@ -748,19 +756,19 @@ export default function ForoPostPage() {
             <aside className="lg:col-span-3">
               <div className="lg:sticky lg:top-24 space-y-3">
                 <Card hover={false} className="p-4">
-                  <div className="text-sm font-semibold text-white mb-2">Resumen</div>
-                  <div className="space-y-2 text-sm text-gray-300">
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Resumen</div>
+                  <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                     <div className="flex items-center justify-between">
                       <span>{t(lang, 'forum.likes')}</span>
-                      <span className="text-white font-semibold">{likesCount}</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">{likesCount}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>{t(lang, 'forum.views')}</span>
-                      <span className="text-white font-semibold">{views}</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">{views}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>{t(lang, 'forum.replies')}</span>
-                      <span className="text-white font-semibold">{replies.length}</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">{replies.length}</span>
                     </div>
                   </div>
                 </Card>

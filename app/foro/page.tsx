@@ -249,9 +249,9 @@ export default function ForoPage() {
                 <div className="h-10 w-10 rounded-lg bg-minecraft-diamond/15 text-minecraft-diamond flex items-center justify-center">
                   <FaComments />
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">{t(lang, 'forum.title')}</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">{t(lang, 'forum.title')}</h1>
               </div>
-              <p className="text-gray-400 mt-2">{t(lang, 'forum.headerDesc')}</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">{t(lang, 'forum.headerDesc')}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -261,8 +261,8 @@ export default function ForoPage() {
                   onClick={() => setFeed('recent')}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
                     feed === 'recent'
-                      ? 'bg-white/10 border-white/15 text-white'
-                      : 'bg-transparent border-white/10 text-gray-400 hover:text-white hover:border-white/15'
+                      ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
+                      : 'bg-transparent border-gray-200 text-gray-700 hover:text-gray-900 hover:border-gray-300 dark:border-white/10 dark:text-gray-400 dark:hover:text-white dark:hover:border-white/15'
                   }`}
                 >
                   {t(lang, 'forum.feed.recent')}
@@ -272,8 +272,8 @@ export default function ForoPage() {
                   onClick={() => setFeed('following')}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
                     feed === 'following'
-                      ? 'bg-white/10 border-white/15 text-white'
-                      : 'bg-transparent border-white/10 text-gray-400 hover:text-white hover:border-white/15'
+                      ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
+                      : 'bg-transparent border-gray-200 text-gray-700 hover:text-gray-900 hover:border-gray-300 dark:border-white/10 dark:text-gray-400 dark:hover:text-white dark:hover:border-white/15'
                   }`}
                 >
                   {t(lang, 'forum.feed.following')}
@@ -320,8 +320,8 @@ export default function ForoPage() {
                     onClick={() => setCategory(c.value as any)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
                       active
-                        ? 'bg-white/10 border-white/15 text-white'
-                        : 'bg-transparent border-white/10 text-gray-400 hover:text-white hover:border-white/15'
+                        ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
+                        : 'bg-transparent border-gray-200 text-gray-700 hover:text-gray-900 hover:border-gray-300 dark:border-white/10 dark:text-gray-400 dark:hover:text-white dark:hover:border-white/15'
                     }`}
                   >
                     {tabLabel(c.value, c.labelKey)}
@@ -334,14 +334,14 @@ export default function ForoPage() {
           {createOpen && (
             <Card hover={false} className="p-4">
               {!session ? (
-                <p className="text-gray-400 text-sm">{t(lang, 'forum.loginToPost')}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'forum.loginToPost')}</p>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
                   <div className="lg:col-span-12 flex items-center gap-3 pb-1">
-                    <div className="h-10 w-10 rounded-full bg-white/10 shrink-0" />
+                    <div className="h-10 w-10 rounded-full bg-gray-200/60 dark:bg-white/10 shrink-0" />
                     <div className="min-w-0">
-                      <div className="text-sm text-white font-semibold truncate">{session?.user?.name}</div>
-                      <div className="text-xs text-gray-400">{t(lang, 'forum.contentPlaceholder')}</div>
+                      <div className="text-sm text-gray-900 dark:text-white font-semibold truncate">{session?.user?.name}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'forum.contentPlaceholder')}</div>
                     </div>
                   </div>
                   <div className="lg:col-span-5">
@@ -378,7 +378,7 @@ export default function ForoPage() {
                     />
                     <div className="mt-2 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                           <input
                             type="file"
                             accept="image/*"
@@ -391,7 +391,7 @@ export default function ForoPage() {
                               e.currentTarget.value = '';
                             }}
                           />
-                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/10 bg-black/20 hover:bg-black/30">
+                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-white/10 dark:bg-black/20 dark:hover:bg-black/30">
                             <FaRegImage />
                             <span>{uploading ? t(lang, 'forum.uploading') : t(lang, 'forum.addImage')}</span>
                           </span>
@@ -399,7 +399,7 @@ export default function ForoPage() {
                         {media.length > 0 && (
                           <button
                             type="button"
-                            className="text-sm text-gray-400 hover:text-white"
+                            className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                             onClick={() => setMedia([])}
                           >
                             {t(lang, 'forum.clearMedia')}
@@ -415,7 +415,10 @@ export default function ForoPage() {
                     {media.length > 0 && (
                       <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {media.map((url) => (
-                          <div key={url} className="relative rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                          <div
+                            key={url}
+                            className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={url} alt="" className="w-full h-24 object-cover" />
                             <button
@@ -439,7 +442,7 @@ export default function ForoPage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <aside className="hidden md:block md:col-span-3">
             <Card hover={false} className="p-4 md:sticky md:top-24">
-              <div className="text-sm font-semibold text-white mb-3">Categorías</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Categorías</div>
               <div className="space-y-1">
                 {CATEGORIES.map((c) => {
                   const active = category === c.value;
@@ -450,8 +453,8 @@ export default function ForoPage() {
                       onClick={() => setCategory(c.value as any)}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors border ${
                         active
-                          ? 'bg-white/10 border-white/15 text-white'
-                          : 'bg-transparent border-transparent text-gray-300 hover:bg-white/5 hover:text-white'
+                          ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
+                          : 'bg-transparent border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
                       }`}
                     >
                       {tabLabel(c.value, c.labelKey)}
@@ -468,15 +471,15 @@ export default function ForoPage() {
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="border border-white/10 rounded-xl bg-black/20 animate-pulse"
+                    className="border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-black/20 animate-pulse"
                   >
                     <div className="p-4">
                       <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-full bg-white/10" />
+                        <div className="h-10 w-10 rounded-full bg-gray-200/60 dark:bg-white/10" />
                         <div className="flex-1">
-                          <div className="h-3 w-32 bg-white/10 rounded mb-2" />
-                          <div className="h-4 w-2/3 bg-white/10 rounded mb-2" />
-                          <div className="h-3 w-1/2 bg-white/10 rounded" />
+                          <div className="h-3 w-32 bg-gray-200/60 dark:bg-white/10 rounded mb-2" />
+                          <div className="h-4 w-2/3 bg-gray-200/60 dark:bg-white/10 rounded mb-2" />
+                          <div className="h-3 w-1/2 bg-gray-200/60 dark:bg-white/10 rounded" />
                         </div>
                       </div>
                     </div>
@@ -484,22 +487,22 @@ export default function ForoPage() {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <Card hover={false} className="p-8 text-center text-gray-400">
+              <Card hover={false} className="p-8 text-center text-gray-600 dark:text-gray-400">
                 {t(lang, 'forum.empty')}
               </Card>
             ) : (
-              <div className="rounded-xl border border-white/10 bg-black/20 overflow-hidden">
-                <div className="divide-y divide-white/10">
+              <div className="rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20 overflow-hidden">
+                <div className="divide-y divide-gray-200 dark:divide-white/10">
                   {filtered.map((post) => {
                     const mediaUrls = Array.isArray(post.media) ? post.media : [];
                     const initial = (post.authorUsername || '?').slice(0, 1).toUpperCase();
 
                     return (
-                      <div key={post._id} className="p-4 hover:bg-black/30 transition-colors">
+                      <div key={post._id} className="p-4 hover:bg-gray-50 dark:hover:bg-black/30 transition-colors">
                         <div className="flex items-start gap-3">
                           <button
                             type="button"
-                            className="h-10 w-10 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-white font-semibold overflow-hidden"
+                            className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden"
                             onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
                           >
                             {post.authorAvatar ? (
@@ -511,10 +514,10 @@ export default function ForoPage() {
                           </button>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                               <button
                                 type="button"
-                                className="text-white font-semibold hover:underline"
+                                className="text-gray-900 dark:text-white font-semibold hover:underline"
                                 onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
                               >
                                 <span className="inline-flex items-center gap-1">
@@ -525,7 +528,7 @@ export default function ForoPage() {
                                 </span>
                               </button>
                               <span className="text-gray-500">•</span>
-                              <span className="text-gray-400">{timeAgo(post.createdAt)}</span>
+                              <span className="text-gray-600 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
                               <span className="ml-auto" />
                               <Badge variant="info">{categoryLabel(post.category)}</Badge>
                             </div>
@@ -535,9 +538,9 @@ export default function ForoPage() {
                               className="mt-1 text-left w-full"
                               onClick={() => router.push(`/foro/${post._id}`)}
                             >
-                              <div className="text-white font-semibold leading-snug">{post.title}</div>
+                              <div className="text-gray-900 dark:text-white font-semibold leading-snug">{post.title}</div>
                               {post.content && (
-                                <div className="mt-1 whitespace-pre-wrap text-gray-200 text-[15px] leading-relaxed">
+                                <div className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-200 text-[15px] leading-relaxed">
                                   {post.content}
                                 </div>
                               )}
@@ -548,7 +551,7 @@ export default function ForoPage() {
                                 {mediaUrls.slice(0, 4).map((url) => (
                                   <div
                                     key={url}
-                                    className="rounded-lg overflow-hidden border border-white/10 bg-black/20"
+                                    className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                                   >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img src={url} alt="" className="w-full h-40 object-cover" />
@@ -557,10 +560,10 @@ export default function ForoPage() {
                               </div>
                             )}
 
-                            <div className="mt-3 flex items-center justify-between text-sm text-gray-400">
+                            <div className="mt-3 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                               <button
                                 type="button"
-                                className="inline-flex items-center gap-2 hover:text-white"
+                                className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
                                 onClick={() => router.push(`/foro/${post._id}`)}
                               >
                                 <FaRegComment className="opacity-80" />
@@ -569,7 +572,7 @@ export default function ForoPage() {
 
                               <button
                                 type="button"
-                                className="inline-flex items-center gap-2 hover:text-white"
+                                className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
                                 onClick={() => toggleLike(post._id)}
                               >
                                 {(post as any)._liked ? (
@@ -587,7 +590,7 @@ export default function ForoPage() {
 
                               <button
                                 type="button"
-                                className="inline-flex items-center gap-2 hover:text-white"
+                                className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
                                 onClick={() => sharePost(post._id)}
                               >
                                 <FaShare className="opacity-80" />

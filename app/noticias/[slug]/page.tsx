@@ -152,10 +152,10 @@ export default function NoticiaPage() {
           )}
 
           {/* Title */}
-          <h1 className="text-4xl font-bold text-white mb-4">{post.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
 
           {/* Meta */}
-          <div className="flex flex-wrap items-center gap-4 text-gray-400 mb-6 pb-6 border-b border-gray-800">
+          <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400 mb-6 pb-6 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center space-x-2">
               <FaUser />
               <span>{post.author}</span>
@@ -186,17 +186,22 @@ export default function NoticiaPage() {
           </div>
 
           {/* Content */}
-          <div className="prose prose-invert prose-lg max-w-none">
+          <div className="prose dark:prose-invert prose-lg max-w-none">
             <ReactMarkdown
               components={{
-                h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-white mb-4" {...props} />,
-                h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-white mb-3 mt-6" {...props} />,
-                h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-white mb-2 mt-4" {...props} />,
-                p: ({ node, ...props }) => <p className="text-gray-300 mb-4 leading-relaxed" {...props} />,
-                ul: ({ node, ...props }) => <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2" {...props} />,
-                ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-gray-300 mb-4 space-y-2" {...props} />,
+                h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4" {...props} />,
+                h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 mt-6" {...props} />,
+                h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4" {...props} />,
+                p: ({ node, ...props }) => <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-2" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-2" {...props} />,
                 a: ({ node, ...props }) => <a className="text-minecraft-grass hover:text-minecraft-grass/80 underline" {...props} />,
-                code: ({ node, ...props }) => <code className="bg-gray-800 px-2 py-1 rounded text-minecraft-diamond" {...props} />,
+                code: ({ node, ...props }) => (
+                  <code
+                    className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-minecraft-diamond"
+                    {...props}
+                  />
+                ),
               }}
             >
               {post.content}

@@ -68,7 +68,7 @@ export default function NoticiasPage() {
       ) : posts.length === 0 ? (
         <div className="text-center py-20">
           <FaNewspaper className="text-6xl text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400 text-lg">{t(lang, 'news.empty')}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'news.empty')}</p>
         </div>
       ) : (
         <AnimatedSection>
@@ -107,17 +107,17 @@ export default function NoticiasPage() {
                     )}
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-white mb-2 hover:text-minecraft-grass transition-colors">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 hover:text-minecraft-grass transition-colors">
                       {post.title}
                     </h3>
 
                     {/* Excerpt */}
-                    <p className="text-gray-400 mb-4 flex-grow line-clamp-3">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 flex-grow line-clamp-3">
                       {post.excerpt}
                     </p>
 
                     {/* Meta */}
-                    <div className="pt-4 border-t border-gray-800 flex items-center justify-between text-sm text-gray-500">
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between text-sm text-gray-600 dark:text-gray-500">
                       <div className="flex items-center space-x-2">
                         <FaUser />
                         <span>{post.author}</span>

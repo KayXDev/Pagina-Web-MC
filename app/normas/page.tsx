@@ -219,7 +219,7 @@ export default function NormasPage() {
           onClick={() => setOpenSection(isOpen ? null : index)}
           className="w-full flex items-center justify-between text-left"
         >
-          <h3 className="text-xl font-bold text-white">{title}</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
           {isOpen ? (
             <FaChevronUp className="text-minecraft-grass" />
           ) : (
@@ -235,7 +235,7 @@ export default function NormasPage() {
             className="mt-4 space-y-2"
           >
             {rules.map((rule, i) => (
-              <li key={i} className="flex items-start space-x-3 text-gray-300">
+              <li key={i} className="flex items-start space-x-3 text-gray-700 dark:text-gray-300">
                 <span className="text-minecraft-grass font-bold mt-1">•</span>
                 <span>{rule}</span>
               </li>
@@ -256,7 +256,7 @@ export default function NormasPage() {
 
       {/* Normas del Servidor */}
       <section className="mb-12">
-        <h2 className="text-3xl font-bold text-white mb-6">{content.serverTitle}</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{content.serverTitle}</h2>
         {content.normasServidor.map((section, index) => (
           <RuleSection
             key={index}
@@ -269,7 +269,7 @@ export default function NormasPage() {
 
       {/* Normas de Discord */}
       <section className="mb-12">
-        <h2 className="text-3xl font-bold text-white mb-6">{content.discordTitle}</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{content.discordTitle}</h2>
         {content.normasDiscord.map((section, index) => (
           <RuleSection
             key={index + content.normasServidor.length}
@@ -282,7 +282,7 @@ export default function NormasPage() {
 
       {/* Consecuencias */}
       <section>
-        <h2 className="text-3xl font-bold text-white mb-6">{content.consequencesTitle}</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{content.consequencesTitle}</h2>
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -295,8 +295,8 @@ export default function NormasPage() {
               <tbody>
                 {content.consecuencias.map((item, index) => (
                   <tr key={index} className="border-b border-gray-800 last:border-0">
-                    <td className="py-3 px-4 text-white">{item.infraccion}</td>
-                    <td className="py-3 px-4 text-gray-300">{item.consecuencia}</td>
+                    <td className="py-3 px-4 text-gray-900 dark:text-white">{item.infraccion}</td>
+                    <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{item.consecuencia}</td>
                   </tr>
                 ))}
               </tbody>
@@ -305,7 +305,7 @@ export default function NormasPage() {
         </Card>
 
         <Card className="mt-6 bg-minecraft-redstone/10 border-minecraft-redstone">
-          <p className="text-white">
+          <p className="text-gray-900 dark:text-white">
             <strong>{content.noteTitle}</strong> {content.note}
           </p>
         </Card>

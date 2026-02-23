@@ -354,12 +354,15 @@ export default function TiendaPage() {
       {/* Gate: Require Minecraft username before showing shop */}
       {!shopUnlocked ? (
         <div className="max-w-3xl mx-auto">
-          <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-            <div className="px-6 py-5 border-b border-white/10 bg-gray-950/30">
+          <Card
+            hover={false}
+            className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl p-0 overflow-hidden"
+          >
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-gray-950/30">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-white text-xl font-semibold">{t(lang, 'shop.minecraftTitle')}</div>
-                  <div className="text-sm text-gray-400 mt-1">{t(lang, 'shop.minecraftDesc')}</div>
+                  <div className="text-gray-900 dark:text-white text-xl font-semibold">{t(lang, 'shop.minecraftTitle')}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t(lang, 'shop.minecraftDesc')}</div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -373,9 +376,9 @@ export default function TiendaPage() {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
                 <div className="md:col-span-5">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-2xl border border-white/10 bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="w-20 h-20 rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
                         {minecraftResolved?.uuid ? (
                           <img
                             src={`https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=160&overlay=true`}
@@ -394,8 +397,8 @@ export default function TiendaPage() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs text-gray-400">{t(lang, 'shop.minecraftLabel')}</div>
-                        <div className="text-white text-lg font-semibold truncate mt-0.5">
+                        <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'shop.minecraftLabel')}</div>
+                        <div className="text-gray-900 dark:text-white text-lg font-semibold truncate mt-0.5">
                           {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
@@ -409,8 +412,8 @@ export default function TiendaPage() {
                 </div>
 
                 <div className="md:col-span-7">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs text-gray-400 mb-2">{t(lang, 'shop.minecraftLabel')}</div>
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 p-4">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">{t(lang, 'shop.minecraftLabel')}</div>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex-1">
                         <Input
@@ -444,12 +447,15 @@ export default function TiendaPage() {
         <>
           {/* Minecraft Account (summary) */}
           <div className="max-w-5xl mx-auto mb-8">
-            <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl px-4 py-2">
+            <Card
+              hover={false}
+              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl px-4 py-2"
+            >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center justify-between gap-3 w-full">
                 <div className="min-w-0">
-                  <div className="text-xs text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
-                  <div className="text-white font-semibold truncate mt-0.5">
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
+                  <div className="text-gray-900 dark:text-white font-semibold truncate mt-0.5">
                     {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
                   </div>
                 </div>
@@ -488,7 +494,7 @@ export default function TiendaPage() {
                   className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
                     selectedCategory === category.value
                       ? 'bg-minecraft-grass text-white'
-                      : 'bg-gray-900/50 text-gray-300 hover:bg-gray-800'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:hover:bg-gray-800'
                   }`}
                 >
                   {category.label}
@@ -529,18 +535,18 @@ export default function TiendaPage() {
                       {/* Product Info */}
                       <div className="flex-grow">
                         <div className="flex items-center justify-between gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-white min-w-0 truncate">{product.name}</h3>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white min-w-0 truncate">{product.name}</h3>
                           <div className="shrink-0">
                             <Badge variant="info">{product.category}</Badge>
                           </div>
                         </div>
-                        <p className="text-gray-400 mb-4">{product.description}</p>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">{product.description}</p>
 
                         {/* Features */}
                         {product.features && product.features.length > 0 && (
                           <ul className="space-y-2 mb-4">
                             {product.features.slice(0, 3).map((feature, i) => (
-                              <li key={i} className="flex items-start space-x-2 text-sm text-gray-300">
+                              <li key={i} className="flex items-start space-x-2 text-sm text-gray-700 dark:text-gray-300">
                                 <FaCheck className="text-minecraft-grass mt-1 flex-shrink-0" />
                                 <span>{feature}</span>
                               </li>
@@ -550,7 +556,7 @@ export default function TiendaPage() {
                       </div>
 
                       {/* Price and Buy Button */}
-                      <div className="mt-auto pt-4 border-t border-gray-800">
+                      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800">
                         <div className="flex items-center justify-between">
                           <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
                           <Button onClick={() => addToCart(product._id)} disabled={savingCart}>
@@ -566,7 +572,7 @@ export default function TiendaPage() {
 
               {filteredProducts.length === 0 && (
                 <div className="text-center py-20">
-                  <p className="text-gray-400 text-lg">{t(lang, 'shop.emptyCategory')}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'shop.emptyCategory')}</p>
                 </div>
               )}
             </AnimatedSection>

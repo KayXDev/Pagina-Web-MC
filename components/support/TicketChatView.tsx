@@ -213,7 +213,7 @@ export default function TicketChatView({
   if (status === 'loading') {
     return (
       <div className="min-h-screen py-20 px-4 flex items-center justify-center">
-        <div className="text-white text-xl">{t(lang, 'common.loading')}</div>
+        <div className="text-gray-900 dark:text-white text-xl">{t(lang, 'common.loading')}</div>
       </div>
     );
   }
@@ -225,23 +225,26 @@ export default function TicketChatView({
   return (
     <div className={embedded ? 'space-y-6' : 'min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto'}>
       {embedded ? (
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <Card
+          className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl"
+          hover={false}
+        >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+              <div className="h-11 w-11 rounded-xl bg-gray-50 border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-gray-900 dark:text-white">
                 <FaTicketAlt />
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">
                   {t(lang, 'support.ticketChat')}
                 </h1>
-                <p className="text-gray-400 text-sm md:text-base">{t(lang, 'support.ticketChatHelp')}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'support.ticketChatHelp')}</p>
               </div>
             </div>
 
             <Link
               href={backHref}
-              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md border border-white/10 bg-white/5 text-gray-200 hover:text-white hover:bg-white/10"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md border border-gray-200 bg-white text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:text-white dark:hover:bg-white/10"
             >
               <FaArrowLeft />
               <span>{t(lang, 'common.back')}</span>
@@ -257,7 +260,10 @@ export default function TicketChatView({
           />
 
           <div className="mb-6">
-            <Link href={backHref} className="inline-flex items-center gap-2 text-gray-300 hover:text-white">
+            <Link
+              href={backHref}
+              className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+            >
               <FaArrowLeft />
               <span>{t(lang, 'common.back')}</span>
             </Link>
@@ -267,17 +273,21 @@ export default function TicketChatView({
 
       <Card
         hover={false}
-        className={embedded ? 'border-white/10 bg-gray-950/25 rounded-2xl' : 'border-gray-800'}
+        className={
+          embedded
+            ? 'border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl'
+            : 'border border-gray-200 dark:border-gray-800'
+        }
       >
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-2xl font-bold text-white truncate">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
                 {ticketDetails?.ticket?.subject || t(lang, 'support.ticketChat')}
               </h2>
               {ticketDetails?.ticket?.status ? getStatusBadge(ticketDetails.ticket.status) : null}
             </div>
-            <p className="text-gray-400 text-sm">{t(lang, 'support.ticketChatHelp')}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'support.ticketChatHelp')}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button
@@ -300,11 +310,11 @@ export default function TicketChatView({
               <>
                 <div className="space-y-3 max-h-[520px] overflow-y-auto">
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] bg-minecraft-grass/20 border border-minecraft-grass/30 rounded-md p-3">
-                      <div className="text-xs text-gray-300 mb-1">
+                    <div className="max-w-[85%] bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border border-minecraft-grass/30 rounded-md p-3">
+                      <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                         {t(lang, 'support.you')} • {new Date(ticketDetails.ticket.createdAt).toLocaleString(getDateLocale(lang))}
                       </div>
-                      <div className="text-white whitespace-pre-wrap">{ticketDetails.ticket.message}</div>
+                      <div className="text-gray-900 dark:text-white whitespace-pre-wrap">{ticketDetails.ticket.message}</div>
                     </div>
                   </div>
 
@@ -313,15 +323,15 @@ export default function TicketChatView({
                       <div
                         className={`max-w-[85%] rounded-md p-3 border ${
                           r.isStaff
-                            ? 'bg-gray-900/60 border-gray-700'
-                            : 'bg-minecraft-grass/20 border-minecraft-grass/30'
+                            ? 'bg-gray-100 border-gray-200 dark:bg-gray-900/60 dark:border-gray-700'
+                            : 'bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border-minecraft-grass/30'
                         }`}
                       >
-                        <div className="text-xs text-gray-300 mb-1">
+                        <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                           {r.isStaff ? t(lang, 'support.staffLabel') : t(lang, 'support.you')} •{' '}
                           {new Date(r.createdAt).toLocaleString(getDateLocale(lang))}
                         </div>
-                        <div className="text-white whitespace-pre-wrap">{r.message}</div>
+                        <div className="text-gray-900 dark:text-white whitespace-pre-wrap">{r.message}</div>
                       </div>
                     </div>
                   ))}
@@ -353,11 +363,11 @@ export default function TicketChatView({
           </div>
 
           <div className="w-full md:w-64 shrink-0">
-            <div className="text-white font-semibold mb-2">
+            <div className="text-gray-900 dark:text-white font-semibold mb-2">
               {t(lang, 'support.participantsTitle')}{' '}
               <span className="text-gray-400 font-normal">({participants.length})</span>
             </div>
-            <div className="bg-black/30 border border-gray-800 rounded-md p-3">
+            <div className="bg-gray-50 border border-gray-200 dark:bg-black/30 dark:border-gray-800 rounded-md p-3">
               {participantsLoading ? (
                 <div className="text-sm text-gray-500">{t(lang, 'common.loading')}</div>
               ) : participants.length === 0 ? (
@@ -367,7 +377,7 @@ export default function TicketChatView({
                   {participants.map((p) => (
                     <div key={p.userId} className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="text-sm text-gray-200 truncate">{p.username}</div>
+                        <div className="text-sm text-gray-900 dark:text-gray-200 truncate">{p.username}</div>
                         <div className="text-xs text-gray-500">
                           {p.isStaff ? t(lang, 'support.participantStaff') : t(lang, 'support.participantUser')}
                         </div>
