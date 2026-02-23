@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
 import { formatDateTime, formatPrice } from '@/lib/utils';
@@ -67,9 +68,16 @@ function Modal({
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  if (!open) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted) return null;
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <button
         type="button"
@@ -90,7 +98,8 @@ function Modal({
           </Card>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
