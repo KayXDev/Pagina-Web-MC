@@ -55,6 +55,60 @@ export default function TiendaPage() {
   }, []);
 
   useEffect(() => {
+    let alive = true;
+
+    const matchesMaintenancePath = (paths: string[], currentPath: string) => {
+      const cur = (currentPath || '').trim();
+      if (!cur.startsWith('/')) return false;
+
+      for (const raw of paths) {
+        const p0 = String(raw || '').trim();
+        if (!p0) continue;
+
+        const isWildcard = p0.endsWith('*');
+        const base = (isWildcard ? p0.slice(0, -1) : p0).replace(/\/+$/, '') || '/';
+
+        if (base === '/') return true;
+        if (cur === base) return true;
+        if (cur.startsWith(base + '/')) return true;
+        if (cur === base + '/') return true;
+      }
+
+      return false;
+    };
+
+    const check = async () => {
+      try {
+        const res = await fetch('/api/maintenance', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!alive) return;
+
+        const enabled = Boolean((data as any).enabled);
+        const paths = Array.isArray((data as any).paths) ? ((data as any).paths as any[]).map((p) => String(p)) : [];
+        const pathname = window.location.pathname;
+
+        if (enabled) {
+          if (!paths.length || matchesMaintenancePath(paths, pathname)) {
+            if (pathname !== '/mantenimiento') {
+              window.location.href = '/mantenimiento';
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    // Run once and poll, so toggling maintenance in admin reflects without refresh.
+    check();
+    const id = window.setInterval(check, 5000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
     // Prefill from localStorage first (guests)
     try {
       const cachedUser = localStorage.getItem('shop.minecraft.username');

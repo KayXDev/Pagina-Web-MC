@@ -79,14 +79,12 @@ export async function middleware(request: NextRequest) {
 
   if (maintenanceKnown) {
     if (maintenanceEnabled) {
-      const isStaff = token?.role === 'ADMIN' || token?.role === 'STAFF' || token?.role === 'OWNER';
-
       const allowList =
         pathname === '/mantenimiento' ||
         pathname.startsWith('/auth') ||
         pathname.startsWith('/admin');
 
-      if (!isStaff && !allowList) {
+      if (!allowList) {
         // If no paths are configured, keep legacy behaviour (maintenance applies to all pages)
         if (!maintenancePaths.length || matchesMaintenancePath(maintenancePaths, pathname)) {
           return NextResponse.redirect(new URL('/mantenimiento', request.url));
