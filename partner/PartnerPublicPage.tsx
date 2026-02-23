@@ -97,8 +97,8 @@ export default function PartnerPublicPage() {
 
             return (
               <Card key={`${it.slot}-${it.ad.id}`} hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 overflow-hidden p-0">
-                <div className="grid grid-cols-1 sm:grid-cols-[320px_1fr]">
-                  <div className="relative w-full h-44 sm:h-full min-h-44 bg-gray-100 dark:bg-white/5">
+                <div className="grid grid-cols-1 sm:grid-cols-[240px_1fr]">
+                  <div className="relative w-full h-32 sm:h-full min-h-32 bg-gray-100 dark:bg-white/5">
                     {banner ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={banner} alt={it.ad.serverName} className="absolute inset-0 w-full h-full object-cover" />
@@ -106,26 +106,26 @@ export default function PartnerPublicPage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-minecraft-grass/20 via-transparent to-transparent" />
                     {!banner ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">#{it.slot}</div>
+                        <div className="text-xs font-semibold text-gray-700 dark:text-gray-200">#{it.slot}</div>
                         <div className="mt-1 text-[12px] text-gray-600 dark:text-gray-400">Sin banner</div>
                       </div>
                     ) : null}
                   </div>
 
-                  <div className="flex-1 p-6">
+                  <div className="flex-1 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <div className="text-gray-900 dark:text-white font-bold text-lg truncate">#{it.slot} • {it.ad.serverName}</div>
+                          <div className="text-gray-900 dark:text-white font-bold text-base truncate">#{it.slot} • {it.ad.serverName}</div>
                           <Badge variant="success">Activo</Badge>
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{it.ad.address}{it.ad.version ? ` • ${it.ad.version}` : ''}</div>
                       </div>
                     </div>
 
-                    <div className="mt-3 text-gray-700 dark:text-gray-300 text-sm line-clamp-4">{it.ad.description}</div>
+                    <div className="mt-2 text-gray-700 dark:text-gray-300 text-sm line-clamp-3">{it.ad.description}</div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
                       {website ? (
                         <a href={website} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">Web</a>
                       ) : null}
