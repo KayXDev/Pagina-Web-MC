@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FaGift, FaVoteYea } from 'react-icons/fa';
+import { FaGift, FaExternalLinkAlt, FaVoteYea } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Badge, Card } from '@/components/ui';
@@ -80,38 +80,35 @@ export default function VotePage() {
                 <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.comingDesc')}</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 {VOTE_SITES.map((site) => (
                   <Card
                     key={site.name}
-                    className="flex flex-col border-gray-200 dark:border-white/10"
-                    hover
+                    hover={false}
+                    className="p-4 sm:p-5 border-gray-200 dark:border-white/10"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate">{site.name}</h3>
-                        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {site.description || (lang === 'es' ? 'Vota por el servidor en este sitio.' : 'Vote for the server on this site.')}
+                        <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+                          {site.name}
                         </div>
                       </div>
-                      <div className="h-10 w-10 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-gold shrink-0">
+
+                      <div className="shrink-0 h-10 w-10 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-gold">
                         <FaVoteYea />
                       </div>
                     </div>
 
-                    <div className="mt-5">
+                    <div className="mt-4">
                       <Link
                         href={site.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 bg-minecraft-grass text-white hover:bg-minecraft-grass/80 shadow-lg shadow-minecraft-grass/20 px-5 py-3 text-base"
+                        className="w-full font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-2 bg-minecraft-grass text-white hover:bg-minecraft-grass/80 shadow-lg shadow-minecraft-grass/20 px-5 py-3 text-base"
                       >
-                        <FaVoteYea />
+                        <FaExternalLinkAlt />
                         <span>{t(lang, 'vote.cta')}</span>
                       </Link>
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 break-all">
-                        {site.url}
-                      </div>
                     </div>
                   </Card>
                 ))}
