@@ -187,20 +187,20 @@ export default function AdminLogsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-white">
               <FaHistory />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold text-white truncate">{t(lang, 'admin.logs.title')}</h1>
-              <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.logs.subtitle')}</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.logs.title')}</h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.logs.subtitle')}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.logs.total')}: {filteredLogs.length}
             </span>
             <Button
@@ -219,11 +219,11 @@ export default function AdminLogsPage() {
 
       {/* Owner webhook config */}
       {isOwner ? (
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-white font-semibold">{t(lang, 'admin.logs.webhookTitle')}</div>
-              <div className="text-xs text-gray-400">{t(lang, 'admin.logs.webhookDesc')}</div>
+              <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.logs.webhookTitle')}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'admin.logs.webhookDesc')}</div>
             </div>
             <div className="text-xs text-gray-500">
               {webhookLoading
@@ -259,10 +259,10 @@ export default function AdminLogsPage() {
       ) : null}
 
       {/* Search + summary */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.logs.search')}</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t(lang, 'admin.logs.search')}</label>
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -270,16 +270,16 @@ export default function AdminLogsPage() {
             />
           </div>
           <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               CREATE: {counts.create}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               UPDATE: {counts.update}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               DELETE: {counts.delete}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.logs.other')}: {counts.other}
             </span>
           </div>
@@ -287,8 +287,8 @@ export default function AdminLogsPage() {
       </Card>
 
       {/* Table */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden" hover={false}>
-        <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 border-b border-white/10 bg-gray-950/40 text-xs text-gray-400">
+      <Card className="rounded-2xl p-0 overflow-hidden dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 border-b border-gray-200 bg-gray-50 text-xs text-gray-600 dark:border-white/10 dark:bg-gray-950/40 dark:text-gray-400">
           <div className="col-span-2">{t(lang, 'admin.logs.columns.time')}</div>
           <div className="col-span-2">{t(lang, 'admin.logs.columns.admin')}</div>
           <div className="col-span-2">{t(lang, 'admin.logs.columns.action')}</div>
@@ -302,9 +302,9 @@ export default function AdminLogsPage() {
             <Card className="shimmer h-24" hover={false} />
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 px-6">{t(lang, 'admin.logs.empty')}</div>
+          <div className="py-16 text-center text-gray-600 dark:text-gray-400 px-6">{t(lang, 'admin.logs.empty')}</div>
         ) : (
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
             {filteredLogs.map((log) => {
               const isExpanded = Boolean(expanded[log._id]);
               const method = log.meta?.method ? String(log.meta.method) : undefined;
@@ -317,11 +317,11 @@ export default function AdminLogsPage() {
                   <div className="grid grid-cols-12 gap-3 px-4 py-3 items-start">
                     {/* Time */}
                     <div className="col-span-12 md:col-span-2">
-                      <div className="text-gray-400 text-xs md:text-sm">{formatDateTime(log.createdAt)}</div>
+                      <div className="text-gray-600 dark:text-gray-400 text-xs md:text-sm">{formatDateTime(log.createdAt)}</div>
                       <div className="mt-1 flex flex-wrap gap-2">
                         {getMethodBadge(method)}
                         {path ? (
-                          <span className="text-xs text-gray-300 px-2 py-1 rounded-md bg-white/5 border border-white/10 truncate max-w-[320px]">
+                          <span className="text-xs text-gray-700 px-2 py-1 rounded-md bg-gray-50 border border-gray-200 truncate max-w-[320px] dark:text-gray-300 dark:bg-white/5 dark:border-white/10">
                             {path}
                           </span>
                         ) : null}
@@ -330,9 +330,9 @@ export default function AdminLogsPage() {
 
                     {/* Admin */}
                     <div className="col-span-7 md:col-span-2 min-w-0">
-                      <div className="text-white font-medium truncate">{log.adminUsername}</div>
+                      <div className="text-gray-900 dark:text-white font-medium truncate">{log.adminUsername}</div>
                       {log.meta?.userAgent ? (
-                        <div className="text-xs text-gray-600 mt-1 truncate">{String(log.meta.userAgent)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-600 mt-1 truncate">{String(log.meta.userAgent)}</div>
                       ) : (
                         <div className="text-xs text-gray-600 mt-1">{t(lang, 'admin.logs.noValue')}</div>
                       )}
@@ -351,7 +351,7 @@ export default function AdminLogsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         {log.targetType ? <Badge variant="default">{log.targetType}</Badge> : null}
                         {log.targetId ? (
-                          <span className="text-xs text-gray-400 break-all">#{log.targetId}</span>
+                          <span className="text-xs text-gray-600 dark:text-gray-400 break-all">#{log.targetId}</span>
                         ) : (
                           <span className="text-xs text-gray-600">{t(lang, 'admin.logs.noValue')}</span>
                         )}
@@ -361,7 +361,7 @@ export default function AdminLogsPage() {
 
                     {/* Source */}
                     <div className="col-span-8 md:col-span-2 min-w-0">
-                      <div className="text-sm text-gray-200 truncate">
+                      <div className="text-sm text-gray-700 dark:text-gray-200 truncate">
                         {method || path
                           ? `${method ? String(method).toUpperCase() : ''}${method && path ? ' ' : ''}${path || ''}`
                           : t(lang, 'admin.logs.noValue')}
@@ -373,7 +373,7 @@ export default function AdminLogsPage() {
 
                     {/* IP + expand */}
                     <div className="col-span-4 md:col-span-1 flex flex-col items-end gap-2">
-                      <div className="text-xs text-gray-300 break-all text-right">
+                      <div className="text-xs text-gray-700 dark:text-gray-300 break-all text-right">
                         {log.ipAddress || t(lang, 'admin.logs.noValue')}
                       </div>
                       {log.details || log.meta ? (
@@ -394,9 +394,9 @@ export default function AdminLogsPage() {
                     <div className="px-4 pb-4">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
-                          <div className="text-xs text-gray-400 mb-2">{t(lang, 'admin.logs.details')}</div>
+                          <div className="text-xs text-gray-700 dark:text-gray-400 mb-2">{t(lang, 'admin.logs.details')}</div>
                           {log.details ? (
-                            <pre className="text-xs text-gray-200 whitespace-pre-wrap bg-black/30 border border-white/10 rounded-md p-3 overflow-x-auto">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 border border-gray-200 rounded-md p-3 overflow-x-auto dark:text-gray-200 dark:bg-black/30 dark:border-white/10">
                               {typeof parsedDetails === 'string'
                                 ? parsedDetails
                                 : JSON.stringify(parsedDetails, null, 2)}
@@ -407,9 +407,9 @@ export default function AdminLogsPage() {
                         </div>
 
                         <div>
-                          <div className="text-xs text-gray-400 mb-2">{t(lang, 'admin.logs.meta')}</div>
+                          <div className="text-xs text-gray-700 dark:text-gray-400 mb-2">{t(lang, 'admin.logs.meta')}</div>
                           {log.meta ? (
-                            <pre className="text-xs text-gray-200 whitespace-pre-wrap bg-black/30 border border-white/10 rounded-md p-3 overflow-x-auto">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 border border-gray-200 rounded-md p-3 overflow-x-auto dark:text-gray-200 dark:bg-black/30 dark:border-white/10">
                               {JSON.stringify(log.meta, null, 2)}
                             </pre>
                           ) : (

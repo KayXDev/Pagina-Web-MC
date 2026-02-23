@@ -219,29 +219,29 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white">
               <FaUsers />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold text-white truncate">{t(lang, 'admin.users.title')}</h1>
-              <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.users.subtitle')}</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.users.title')}</h1>
+              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.users.subtitle')}</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.users.thUser')}: {stats.total}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.users.active')}: {stats.total - stats.banned}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.users.banned')}: {stats.banned}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.users.verified')}: {stats.verified}
             </span>
 
@@ -344,10 +344,10 @@ export default function AdminUsersPage() {
       ) : null}
 
       {/* Search */}
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
           <div className="w-full md:max-w-xl">
-            <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.users.searchPlaceholder')}</label>
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">{t(lang, 'admin.users.searchPlaceholder')}</label>
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <Input
@@ -361,7 +361,7 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="flex items-center gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {loading ? t(lang, 'common.loading') : `${filteredUsers.length} / ${users.length}`}
             </span>
           </div>
@@ -370,160 +370,353 @@ export default function AdminUsersPage() {
 
       {/* Users list */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="border-white/10 bg-gray-950/25 rounded-2xl shimmer h-44" hover={false} />
-          ))}
-        </div>
+        <Card className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.users.title')}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-14 shimmer" />
+            ))}
+          </div>
+        </Card>
       ) : filteredUsers.length === 0 ? (
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
-          <div className="text-center py-12 text-gray-400">{t(lang, 'admin.users.noResults')}</div>
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400">{t(lang, 'admin.users.noResults')}</div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredUsers.map((user) => {
-            const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
-            const canEditTags = isOwner;
-            const canToggleVerified = isOwner;
-            const menuOpen = openMenuUserId === user._id;
+        <>
+          {/* Mobile: cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:hidden gap-4">
+            {filteredUsers.map((user) => {
+              const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
+              const canEditTags = isOwner;
+              const canToggleVerified = isOwner;
+              const menuOpen = openMenuUserId === user._id;
 
-            const statusBadge = user.isBanned ? (
-              <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
-            ) : (
-              <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
-            );
+              const statusBadge = user.isBanned ? (
+                <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
+              ) : (
+                <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
+              );
 
-            return (
-              <Card key={user._id} className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="h-11 w-11 rounded-2xl bg-white/5 border border-white/10 grid place-items-center text-white font-semibold shrink-0">
-                      {getInitial(user.username)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="text-white font-semibold truncate max-w-[220px]">{user.username}</div>
-                        {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
-                        {isProtectedOwner ? <Badge variant="default">LOCKED</Badge> : null}
+              return (
+                <Card
+                  key={user._id}
+                  className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+                  hover={false}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-11 w-11 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                        {getInitial(user.username)}
                       </div>
-                      <div className="text-xs text-gray-300 break-all mt-1">{user.email}</div>
-                    </div>
-                  </div>
-
-                  <div className="relative" data-user-menu-root={user._id}>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="!px-3"
-                      disabled={false}
-                      onClick={() => setOpenMenuUserId((prev) => (prev === user._id ? null : user._id))}
-                    >
-                      <FaEllipsisV />
-                      <span className="sr-only">{t(lang, 'admin.users.thActions')}</span>
-                    </Button>
-
-                    {menuOpen ? (
-                      <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-gray-950/90 backdrop-blur shadow-lg shadow-black/40 overflow-hidden z-20">
-                        <div className="px-3 py-2 text-xs text-gray-400 border-b border-white/10">
-                          {t(lang, 'admin.users.thActions')}
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="text-gray-900 dark:text-white font-semibold truncate max-w-[220px]">{user.username}</div>
+                          {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
+                          {isProtectedOwner ? <Badge variant="default">LOCKED</Badge> : null}
                         </div>
-
-                        {canToggleVerified ? (
-                          <button
-                            type="button"
-                            disabled={isProtectedOwner}
-                            className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            onClick={async () => {
-                              setOpenMenuUserId(null);
-                              handleVerifiedToggle(user._id, Boolean(user.verified));
-                            }}
-                          >
-                            <FaCheckCircle />
-                            <span>{user.verified ? t(lang, 'admin.users.unverify') : t(lang, 'admin.users.verify')}</span>
-                          </button>
-                        ) : null}
-
-                        {canEditTags ? (
-                          <button
-                            type="button"
-                            disabled={isProtectedOwner}
-                            className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            onClick={async () => {
-                              setOpenMenuUserId(null);
-                              const current = (user.tags || []).join(',');
-                              const input = window.prompt(t(lang, 'admin.users.tagsPrompt'), current);
-                              if (input === null) return;
-                              const nextTags = input
-                                .split(',')
-                                .map((t) => t.trim())
-                                .filter(Boolean);
-                              await updateUser(user._id, { tags: nextTags });
-                            }}
-                          >
-                            <FaUserShield />
-                            <span>{t(lang, 'admin.users.tagsBtn')}</span>
-                          </button>
-                        ) : null}
-
-                        <button
-                          type="button"
-                          disabled={isProtectedOwner}
-                          className="w-full px-3 py-2 text-sm text-gray-200 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                          onClick={() => {
-                            setOpenMenuUserId(null);
-                            handleBanToggle(user._id, user.isBanned);
-                          }}
-                        >
-                          <FaBan />
-                          <span>{user.isBanned ? t(lang, 'admin.users.unban') : t(lang, 'admin.users.ban')}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={isProtectedOwner}
-                          className="w-full px-3 py-2 text-sm text-red-300 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                          onClick={async () => {
-                            setOpenMenuUserId(null);
-                            const ok = window.confirm(
-                              `${t(lang, 'admin.users.deleteConfirmA')} ${user.username}${t(lang, 'admin.users.deleteConfirmB')}`
-                            );
-                            if (!ok) return;
-                            await deleteUser(user._id);
-                          }}
-                        >
-                          <FaTrash />
-                          <span>{t(lang, 'admin.users.deleteBtn')}</span>
-                        </button>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 break-all mt-1">{user.email}</div>
                       </div>
-                    ) : null}
+                    </div>
+
+                    <div className="relative" data-user-menu-root={user._id}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="!px-3"
+                        disabled={false}
+                        onClick={() => setOpenMenuUserId((prev) => (prev === user._id ? null : user._id))}
+                      >
+                        <FaEllipsisV />
+                        <span className="sr-only">{t(lang, 'admin.users.thActions')}</span>
+                      </Button>
+
+                      {menuOpen ? (
+                        <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-gray-200 bg-white backdrop-blur shadow-lg shadow-black/10 overflow-hidden z-20 dark:border-white/10 dark:bg-gray-950/90 dark:shadow-black/40">
+                          <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                            {t(lang, 'admin.users.thActions')}
+                          </div>
+
+                          {canToggleVerified ? (
+                            <button
+                              type="button"
+                              disabled={isProtectedOwner}
+                              className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                              onClick={async () => {
+                                setOpenMenuUserId(null);
+                                handleVerifiedToggle(user._id, Boolean(user.verified));
+                              }}
+                            >
+                              <FaCheckCircle />
+                              <span>{user.verified ? t(lang, 'admin.users.unverify') : t(lang, 'admin.users.verify')}</span>
+                            </button>
+                          ) : null}
+
+                          {canEditTags ? (
+                            <button
+                              type="button"
+                              disabled={isProtectedOwner}
+                              className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                              onClick={async () => {
+                                setOpenMenuUserId(null);
+                                const current = (user.tags || []).join(',');
+                                const input = window.prompt(t(lang, 'admin.users.tagsPrompt'), current);
+                                if (input === null) return;
+                                const nextTags = input
+                                  .split(',')
+                                  .map((t) => t.trim())
+                                  .filter(Boolean);
+                                await updateUser(user._id, { tags: nextTags });
+                              }}
+                            >
+                              <FaUserShield />
+                              <span>{t(lang, 'admin.users.tagsBtn')}</span>
+                            </button>
+                          ) : null}
+
+                          <button
+                            type="button"
+                            disabled={isProtectedOwner}
+                            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                            onClick={() => {
+                              setOpenMenuUserId(null);
+                              handleBanToggle(user._id, user.isBanned);
+                            }}
+                          >
+                            <FaBan />
+                            <span>{user.isBanned ? t(lang, 'admin.users.unban') : t(lang, 'admin.users.ban')}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isProtectedOwner}
+                            className="w-full px-3 py-2 text-sm text-red-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-red-300 dark:hover:bg-white/5"
+                            onClick={async () => {
+                              setOpenMenuUserId(null);
+                              const ok = window.confirm(
+                                `${t(lang, 'admin.users.deleteConfirmA')} ${user.username}${t(lang, 'admin.users.deleteConfirmB')}`
+                              );
+                              if (!ok) return;
+                              await deleteUser(user._id);
+                            }}
+                          >
+                            <FaTrash />
+                            <span>{t(lang, 'admin.users.deleteBtn')}</span>
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  {getRoleBadge(user.role)}
-                  {statusBadge}
-                  {(user.tags || []).slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="default">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {(user.tags || []).length > 3 ? <Badge variant="default">+{(user.tags || []).length - 3}</Badge> : null}
-                </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {getRoleBadge(user.role)}
+                    {statusBadge}
+                    {(user.tags || []).slice(0, 3).map((tag) => (
+                      <Badge key={tag} variant="default">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {(user.tags || []).length > 3 ? <Badge variant="default">+{(user.tags || []).length - 3}</Badge> : null}
+                  </div>
 
-                <div className="mt-4">
-                  <div className="text-xs text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</div>
-                  <Select value={user.role} onChange={(e) => handleRoleChange(user._id, e.target.value)} disabled={isProtectedOwner}>
-                    <option value="USER">USER</option>
-                    <option value="STAFF">STAFF</option>
-                    <option value="ADMIN">ADMIN</option>
-                    {isOwner ? <option value="OWNER">OWNER</option> : null}
-                  </Select>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                  <div className="mt-4">
+                    <div className="text-xs text-gray-700 dark:text-gray-400 mb-2">{t(lang, 'admin.users.thRole')}</div>
+                    <Select value={user.role} onChange={(e) => handleRoleChange(user._id, e.target.value)} disabled={isProtectedOwner}>
+                      <option value="USER">USER</option>
+                      <option value="STAFF">STAFF</option>
+                      <option value="ADMIN">ADMIN</option>
+                      {isOwner ? <option value="OWNER">OWNER</option> : null}
+                    </Select>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Desktop: table */}
+          <Card
+            className="hidden xl:block rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+            hover={false}
+          >
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.users.title')}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{filteredUsers.length}</div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.users.thUser')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.users.thRole')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.users.thStatus')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.users.thTags')}</th>
+                    <th className="px-4 py-3 font-semibold text-right">{t(lang, 'admin.users.thActions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
+                  {filteredUsers.map((user) => {
+                    const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
+                    const canEditTags = isOwner;
+                    const canToggleVerified = isOwner;
+                    const menuOpen = openMenuUserId === user._id;
+
+                    const statusBadge = user.isBanned ? (
+                      <Badge variant="danger">{t(lang, 'admin.users.banned')}</Badge>
+                    ) : (
+                      <Badge variant="success">{t(lang, 'admin.users.active')}</Badge>
+                    );
+
+                    return (
+                      <tr key={user._id} className="hover:bg-gray-50/70 dark:hover:bg-white/5">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                              {getInitial(user.username)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[320px]">{user.username}</div>
+                                {user.verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
+                                {isProtectedOwner ? <Badge variant="default">LOCKED</Badge> : null}
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[420px]">{user.email}</div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <Select value={user.role} onChange={(e) => handleRoleChange(user._id, e.target.value)} disabled={isProtectedOwner}>
+                            <option value="USER">USER</option>
+                            <option value="STAFF">STAFF</option>
+                            <option value="ADMIN">ADMIN</option>
+                            {isOwner ? <option value="OWNER">OWNER</option> : null}
+                          </Select>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            {getRoleBadge(user.role)}
+                            {statusBadge}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            {(user.tags || []).slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="default">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {(user.tags || []).length > 3 ? <Badge variant="default">+{(user.tags || []).length - 3}</Badge> : null}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="!px-3"
+                              onClick={() => handleBanToggle(user._id, user.isBanned)}
+                              disabled={isProtectedOwner}
+                            >
+                              <FaBan />
+                              <span className="hidden 2xl:inline">{user.isBanned ? t(lang, 'admin.users.unban') : t(lang, 'admin.users.ban')}</span>
+                            </Button>
+
+                            <div className="relative" data-user-menu-root={user._id}>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="!px-3"
+                                disabled={false}
+                                onClick={() => setOpenMenuUserId((prev) => (prev === user._id ? null : user._id))}
+                              >
+                                <FaEllipsisV />
+                                <span className="sr-only">{t(lang, 'admin.users.thActions')}</span>
+                              </Button>
+
+                              {menuOpen ? (
+                                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-gray-200 bg-white backdrop-blur shadow-lg shadow-black/10 overflow-hidden z-20 dark:border-white/10 dark:bg-gray-950/90 dark:shadow-black/40">
+                                  <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                                    {t(lang, 'admin.users.thActions')}
+                                  </div>
+
+                                  {canToggleVerified ? (
+                                    <button
+                                      type="button"
+                                      disabled={isProtectedOwner}
+                                      className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                                      onClick={async () => {
+                                        setOpenMenuUserId(null);
+                                        handleVerifiedToggle(user._id, Boolean(user.verified));
+                                      }}
+                                    >
+                                      <FaCheckCircle />
+                                      <span>{user.verified ? t(lang, 'admin.users.unverify') : t(lang, 'admin.users.verify')}</span>
+                                    </button>
+                                  ) : null}
+
+                                  {canEditTags ? (
+                                    <button
+                                      type="button"
+                                      disabled={isProtectedOwner}
+                                      className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                                      onClick={async () => {
+                                        setOpenMenuUserId(null);
+                                        const current = (user.tags || []).join(',');
+                                        const input = window.prompt(t(lang, 'admin.users.tagsPrompt'), current);
+                                        if (input === null) return;
+                                        const nextTags = input
+                                          .split(',')
+                                          .map((t) => t.trim())
+                                          .filter(Boolean);
+                                        await updateUser(user._id, { tags: nextTags });
+                                      }}
+                                    >
+                                      <FaUserShield />
+                                      <span>{t(lang, 'admin.users.tagsBtn')}</span>
+                                    </button>
+                                  ) : null}
+
+                                  <button
+                                    type="button"
+                                    disabled={isProtectedOwner}
+                                    className="w-full px-3 py-2 text-sm text-red-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-red-300 dark:hover:bg-white/5"
+                                    onClick={async () => {
+                                      setOpenMenuUserId(null);
+                                      const ok = window.confirm(
+                                        `${t(lang, 'admin.users.deleteConfirmA')} ${user.username}${t(lang, 'admin.users.deleteConfirmB')}`
+                                      );
+                                      if (!ok) return;
+                                      await deleteUser(user._id);
+                                    }}
+                                  >
+                                    <FaTrash />
+                                    <span>{t(lang, 'admin.users.deleteBtn')}</span>
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
       )}
     </div>
   );

@@ -83,13 +83,13 @@ export default function AdminForoPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text truncate">
               {t(lang, 'admin.forum.title')}
             </h1>
-            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.forum.subtitle')}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.forum.subtitle')}</p>
           </div>
           <Button onClick={load} disabled={loading} className="w-full md:w-auto">
             {loading ? t(lang, 'admin.forum.loading') : t(lang, 'admin.forum.reload')}
@@ -105,10 +105,10 @@ export default function AdminForoPage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full h-10 rounded-md bg-gray-950/60 border border-white/10 text-white px-3"
+            className="w-full h-10 rounded-md bg-white border border-gray-300 text-gray-900 px-3 dark:bg-gray-950/60 dark:border-white/10 dark:text-white"
           >
             {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value} className="bg-gray-950">
+              <option key={c.value} value={c.value} className="bg-white dark:bg-gray-950">
                 {c.value === 'all' ? t(lang, 'admin.forum.allCategories') : c.label}
               </option>
             ))}
@@ -116,8 +116,8 @@ export default function AdminForoPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-gray-950/25 overflow-hidden">
-        <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs text-gray-400 border-b border-white/10">
+      <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden dark:border-white/10 dark:bg-gray-950/25">
+        <div className="grid grid-cols-12 gap-2 px-4 py-3 text-xs text-gray-600 border-b border-gray-200 dark:text-gray-400 dark:border-white/10">
           <div className="col-span-5">{t(lang, 'admin.forum.thPost')}</div>
           <div className="col-span-2">{t(lang, 'admin.forum.thAuthor')}</div>
           <div className="col-span-1 text-right">{t(lang, 'admin.forum.thReplies')}</div>
@@ -127,35 +127,35 @@ export default function AdminForoPage() {
         </div>
 
         {posts.length === 0 ? (
-          <div className="px-4 py-6 text-gray-400">{t(lang, 'admin.forum.empty')}</div>
+          <div className="px-4 py-6 text-gray-600 dark:text-gray-400">{t(lang, 'admin.forum.empty')}</div>
         ) : (
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
             {posts.map((p) => (
               <div key={p._id} className="grid grid-cols-12 gap-2 px-4 py-3">
                 <div className="col-span-5 min-w-0">
-                  <div className="text-white font-medium truncate">{p.title}</div>
-                  <div className="text-gray-400 text-sm truncate">{p.content}</div>
+                  <div className="text-gray-900 dark:text-white font-medium truncate">{p.title}</div>
+                  <div className="text-gray-600 dark:text-gray-400 text-sm truncate">{p.content}</div>
                   <div className="text-gray-500 text-xs mt-1">
                     {p.category} • {new Date(p.createdAt).toLocaleString()}
                   </div>
                 </div>
 
-                <div className="col-span-2 text-gray-200 truncate">{p.authorUsername}</div>
+                <div className="col-span-2 text-gray-700 dark:text-gray-200 truncate">{p.authorUsername}</div>
 
-                <div className="col-span-1 text-gray-200 text-right">{p.repliesCount ?? 0}</div>
-                <div className="col-span-1 text-gray-200 text-right">{p.likesCount ?? 0}</div>
-                <div className="col-span-1 text-gray-200 text-right">{p.views ?? 0}</div>
+                <div className="col-span-1 text-gray-700 dark:text-gray-200 text-right">{p.repliesCount ?? 0}</div>
+                <div className="col-span-1 text-gray-700 dark:text-gray-200 text-right">{p.likesCount ?? 0}</div>
+                <div className="col-span-1 text-gray-700 dark:text-gray-200 text-right">{p.views ?? 0}</div>
 
                 <div className="col-span-2 flex justify-end gap-2">
                   <Link
                     href={`/foro/${p._id}`}
-                    className="h-9 px-3 inline-flex items-center rounded-md border border-white/10 text-gray-200 hover:text-white hover:bg-white/5"
+                    className="h-9 px-3 inline-flex items-center rounded-md border border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:text-white dark:hover:bg-white/5"
                     target="_blank"
                   >
                     {t(lang, 'admin.forum.view')}
                   </Link>
                   <button
-                    className="h-9 px-3 inline-flex items-center rounded-md border border-red-500/30 text-red-300 hover:text-red-200 hover:bg-red-500/10"
+                    className="h-9 px-3 inline-flex items-center rounded-md border border-red-300 text-red-700 hover:text-red-800 hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:text-red-200 dark:hover:bg-red-500/10"
                     onClick={() => deletePost(p._id)}
                   >
                     {t(lang, 'admin.forum.delete')}

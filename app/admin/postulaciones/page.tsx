@@ -91,6 +91,11 @@ export default function AdminPostulacionesPage() {
     fetchOpen();
   }, []);
 
+  const getInitial = (username: string) => {
+    const v = String(username || '').trim();
+    return v ? v.slice(0, 1).toUpperCase() : '?';
+  };
+
   const updateStatus = async (id: string, status: StaffApplication['status']) => {
     setUpdatingId(id);
     try {
@@ -155,16 +160,16 @@ export default function AdminPostulacionesPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+          <div className="h-11 w-11 rounded-xl bg-gray-50 border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-gray-900 dark:text-white">
             <FaClipboardList />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text dark:text-transparent truncate">
               {t(lang, 'admin.applications.title')}
             </h1>
-            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.applications.subtitle')}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.applications.subtitle')}</p>
           </div>
         </div>
       </Card>
@@ -179,16 +184,16 @@ export default function AdminPostulacionesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-3xl w-full my-8"
+            className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 max-w-3xl w-full my-8 dark:bg-gray-950/95 dark:border-white/10"
           >
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-2xl font-bold text-white">{selected.username}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selected.username}</h2>
                   <Badge variant={statusVariant(selected.status)}>{statusLabel(selected.status)}</Badge>
                 </div>
-                <div className="text-sm text-gray-400">
-                  <span className="text-gray-300">{t(lang, 'admin.applications.sentAt')}:</span> {formatDateTime(selected.createdAt)}
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.applications.sentAt')}:</span> {formatDateTime(selected.createdAt)}
                 </div>
               </div>
               <Button variant="secondary" size="sm" onClick={() => setSelected(null)}>
@@ -198,23 +203,23 @@ export default function AdminPostulacionesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
+              <Card hover={false} className="rounded-2xl dark:border-white/10 dark:bg-gray-950/35">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.user')}</div>
-                <div className="text-gray-200 font-semibold">{selected.username}</div>
+                <div className="text-gray-900 dark:text-gray-200 font-semibold">{selected.username}</div>
               </Card>
-              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
+              <Card hover={false} className="rounded-2xl dark:border-white/10 dark:bg-gray-950/35">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.discord')}</div>
-                <div className="text-gray-200 font-semibold">{selected.discord}</div>
+                <div className="text-gray-900 dark:text-gray-200 font-semibold">{selected.discord}</div>
               </Card>
-              <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl md:col-span-2">
+              <Card hover={false} className="rounded-2xl md:col-span-2 dark:border-white/10 dark:bg-gray-950/35">
                 <div className="text-xs text-gray-500 mb-1">{t(lang, 'admin.applications.idIfAny')}</div>
-                <div className="text-gray-200 font-semibold break-all">{selected.userId || '—'}</div>
+                <div className="text-gray-900 dark:text-gray-200 font-semibold break-all">{selected.userId || '—'}</div>
               </Card>
             </div>
 
-            <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
-              <div className="text-sm font-semibold text-white mb-3">{t(lang, 'admin.applications.motivation')}</div>
-              <div className="whitespace-pre-wrap text-gray-200 leading-relaxed">{selected.about}</div>
+            <Card hover={false} className="rounded-2xl dark:border-white/10 dark:bg-gray-950/35">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t(lang, 'admin.applications.motivation')}</div>
+              <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-200 leading-relaxed">{selected.about}</div>
             </Card>
 
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -238,14 +243,14 @@ export default function AdminPostulacionesPage() {
 
             {selected.status === 'ACCEPTED' && (
               <div className="mt-6">
-                <Card hover={false} className="border-white/10 bg-gray-950/35 rounded-2xl">
+                <Card hover={false} className="rounded-2xl dark:border-white/10 dark:bg-gray-950/35">
                   <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="text-sm font-semibold text-white">{t(lang, 'admin.applications.chatTitle')}</div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.applications.chatTitle')}</div>
                     {selected.ticketId ? <Badge variant="info">{selected.ticketId}</Badge> : <Badge variant="default">—</Badge>}
                   </div>
 
                   {!selected.ticketId ? (
-                    <div className="text-sm text-gray-400">{t(lang, 'admin.applications.chatUnavailableHint')}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t(lang, 'admin.applications.chatUnavailableHint')}</div>
                   ) : (
                     <Link href={`/admin/postulaciones/chat/${selected.ticketId}`} className="block">
                       <Button className="w-full" variant="secondary">
@@ -260,15 +265,18 @@ export default function AdminPostulacionesPage() {
         </div>
       )}
 
-      <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
-        <div className="flex items-center justify-between">
+      <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <FaClipboardList className="text-minecraft-diamond" />
-            <span className="text-white font-semibold">
+            <div className="h-10 w-10 rounded-xl bg-minecraft-diamond/10 text-minecraft-diamond border border-minecraft-diamond/20 grid place-items-center dark:border-white/10 dark:bg-white/5">
+              <FaClipboardList />
+            </div>
+            <div className="text-gray-900 dark:text-white font-semibold">
               {t(lang, 'admin.tickets.total')}: {items.length}
-            </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex flex-wrap items-center gap-3 justify-start md:justify-end">
             <Badge variant={open ? 'warning' : 'default'}>
               {openLoading
                 ? t(lang, 'common.loading')
@@ -285,61 +293,158 @@ export default function AdminPostulacionesPage() {
       </Card>
 
       {loading ? (
-        <Card hover={false} className="text-center text-gray-400 py-10">{t(lang, 'common.loading')}</Card>
+        <Card
+          hover={false}
+          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 overflow-hidden p-0"
+        >
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.applications.title')}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-14 shimmer" />
+            ))}
+          </div>
+        </Card>
       ) : items.length === 0 ? (
-        <Card hover={false} className="text-center text-gray-400 py-10">{t(lang, 'admin.applications.empty')}</Card>
+        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+          <div className="text-center text-gray-600 dark:text-gray-400 py-10">{t(lang, 'admin.applications.empty')}</div>
+        </Card>
       ) : (
-        <div className="space-y-4">
-          {items.map((a, idx) => (
-            <motion.div
-              key={a._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(idx * 0.03, 0.3) }}
-            >
-              <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-bold text-white">{a.username}</h3>
-                      <Badge variant={statusVariant(a.status)}>{statusLabel(a.status)}</Badge>
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      <span className="text-gray-300">{t(lang, 'admin.applications.discord')}:</span> {a.discord}
-                      <span className="mx-2">•</span>
-                      <span>{formatDateTime(a.createdAt)}</span>
+        <>
+          {/* Mobile: cards */}
+          <div className="space-y-4 xl:hidden">
+            {items.map((a, idx) => (
+              <motion.div
+                key={a._id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(idx * 0.03, 0.25) }}
+              >
+                <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-11 w-11 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                        {getInitial(a.username)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{a.username}</h3>
+                          <Badge variant={statusVariant(a.status)}>{statusLabel(a.status)}</Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.applications.discord')}:</span> {a.discord}
+                          <span className="mx-2">•</span>
+                          <span>{formatDateTime(a.createdAt)}</span>
+                        </div>
+
+                        <div className="mt-3">
+                          <Button variant="secondary" size="sm" onClick={() => setSelected(a)}>
+                            <span>{t(lang, 'admin.applications.viewDetails')}</span>
+                          </Button>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-3">
-                      <Button variant="secondary" size="sm" onClick={() => setSelected(a)}>
-                        <span>{t(lang, 'admin.applications.viewDetails')}</span>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <Button
+                        variant="success"
+                        size="sm"
+                        disabled={updatingId === a._id || a.status === 'ACCEPTED'}
+                        onClick={() => updateStatus(a._id, 'ACCEPTED')}
+                      >
+                        {t(lang, 'admin.applications.accept')}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        disabled={updatingId === a._id || a.status === 'REJECTED'}
+                        onClick={() => updateStatus(a._id, 'REJECTED')}
+                      >
+                        {t(lang, 'admin.applications.reject')}
                       </Button>
                     </div>
                   </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      variant="success"
-                      size="sm"
-                      disabled={updatingId === a._id || a.status === 'ACCEPTED'}
-                      onClick={() => updateStatus(a._id, 'ACCEPTED')}
-                    >
-                      {t(lang, 'admin.applications.accept')}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      disabled={updatingId === a._id || a.status === 'REJECTED'}
-                      onClick={() => updateStatus(a._id, 'REJECTED')}
-                    >
-                      {t(lang, 'admin.applications.reject')}
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+          {/* Desktop: table */}
+          <Card
+            hover={false}
+            className="hidden xl:block rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+          >
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.applications.title')}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{items.length}</div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.applications.user')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.applications.discord')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.users.thStatus')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.applications.sentAt')}</th>
+                    <th className="px-4 py-3 font-semibold text-right">{t(lang, 'admin.users.thActions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
+                  {items.map((a) => (
+                    <tr key={a._id} className="hover:bg-gray-50/70 dark:hover:bg-white/5">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                            {getInitial(a.username)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[280px]">{a.username}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[360px]">{a.userId || '—'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{a.discord}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={statusVariant(a.status)}>{statusLabel(a.status)}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatDateTime(a.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setSelected(a)} className="!px-3">
+                            <span>{t(lang, 'admin.applications.viewDetails')}</span>
+                          </Button>
+                          <Button
+                            variant="success"
+                            size="sm"
+                            disabled={updatingId === a._id || a.status === 'ACCEPTED'}
+                            onClick={() => updateStatus(a._id, 'ACCEPTED')}
+                            className="!px-3"
+                          >
+                            <span>{t(lang, 'admin.applications.accept')}</span>
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            disabled={updatingId === a._id || a.status === 'REJECTED'}
+                            onClick={() => updateStatus(a._id, 'REJECTED')}
+                            className="!px-3"
+                          >
+                            <span>{t(lang, 'admin.applications.reject')}</span>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
       )}
     </div>
   );

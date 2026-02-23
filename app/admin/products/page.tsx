@@ -206,19 +206,38 @@ export default function AdminProductsPage() {
     setFormData({ ...formData, features: newFeatures });
   };
 
+  const getCategoryLabel = (category: string) => {
+    const key = String(category || '').toUpperCase();
+    switch (key) {
+      case 'RANK':
+      case 'RANKS':
+        return t(lang, 'admin.products.category.ranks');
+      case 'BUNDLES':
+        return t(lang, 'admin.products.category.bundles');
+      case 'CURRENCY':
+        return t(lang, 'admin.products.category.currency');
+      case 'KEYS':
+        return t(lang, 'admin.products.category.keys');
+      case 'SPECIAL':
+        return t(lang, 'admin.products.category.special');
+      default:
+        return category;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-white">
               <FaShoppingCart />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text truncate">
                 {t(lang, 'admin.products.title')}
               </h1>
-              <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.products.subtitle')}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.products.subtitle')}</p>
             </div>
           </div>
 
@@ -235,9 +254,9 @@ export default function AdminProductsPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
+            className="bg-white border border-gray-200 text-gray-900 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto dark:bg-gray-950/95 dark:border-white/10 dark:text-gray-100"
           >
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               {editingProduct
                 ? t(lang, 'admin.products.form.editTitle')
                 : t(lang, 'admin.products.form.newTitle')}
@@ -246,7 +265,7 @@ export default function AdminProductsPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.name')}
                   </label>
                   <Input
@@ -257,7 +276,7 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.price')}
                   </label>
                   <Input
@@ -274,7 +293,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.products.form.description')}
                 </label>
                 <Textarea
@@ -286,7 +305,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {lang === 'es' ? 'Imagen del producto' : 'Product image'}
                 </label>
 
@@ -326,7 +345,7 @@ export default function AdminProductsPage() {
 
                     {(formData as any).image ? (
                       <div className="mt-3 flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl border border-white/10 bg-white/5 overflow-hidden grid place-items-center">
+                        <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden grid place-items-center dark:border-white/10 dark:bg-white/5">
                           <img
                             src={(formData as any).image}
                             alt="Preview"
@@ -349,7 +368,7 @@ export default function AdminProductsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.category')}
                   </label>
                   <Select
@@ -366,7 +385,7 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t(lang, 'admin.products.form.stock')}
                   </label>
                   <Input
@@ -379,7 +398,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.products.form.features')}
                 </label>
                 <div className="space-y-2">
@@ -407,7 +426,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {lang === 'es' ? 'Comandos (entrega automática)' : 'Commands (auto delivery)'}
                 </label>
                 <Textarea
@@ -430,7 +449,7 @@ export default function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <span className="text-gray-300">{t(lang, 'admin.products.active')}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.products.active')}</span>
                 </label>
 
                 <label className="flex items-center space-x-2 cursor-pointer">
@@ -440,7 +459,7 @@ export default function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, isUnlimited: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <span className="text-gray-300">{t(lang, 'admin.products.unlimitedStock')}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.products.unlimitedStock')}</span>
                 </label>
               </div>
 
@@ -468,47 +487,160 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <Card key={product._id}>
-            {product.image ? (
-              <div className="mb-3 h-28 w-full rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-                <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+      {/* Products list */}
+      {loading ? (
+        <Card className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.products.title')}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-14 shimmer" />
+            ))}
+          </div>
+        </Card>
+      ) : products.length === 0 ? (
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="text-center py-12 text-gray-600 dark:text-gray-400">{t(lang, 'admin.products.empty')}</div>
+        </Card>
+      ) : (
+        <>
+          {/* Mobile: cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:hidden gap-4">
+            {products.map((product) => (
+              <Card
+                key={product._id}
+                className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+                hover={false}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{product.name}</h3>
+                      <Badge variant={product.isActive ? 'success' : 'default'}>
+                        {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
+                      </Badge>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">{product.description}</p>
+                  </div>
+
+                  {product.image ? (
+                    <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
+                      <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
+                    <Badge variant="info">{getCategoryLabel(product.category)}</Badge>
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    {product.isUnlimited ? t(lang, 'admin.products.unlimitedStock') : `${t(lang, 'admin.products.form.stock')}: ${product.stock ?? 0}`}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => handleEdit(product)} className="flex-1">
+                    <FaEdit />
+                    <span>{t(lang, 'common.edit')}</span>
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => handleDelete(product._id)} className="flex-1">
+                    <FaTrash />
+                    <span>{t(lang, 'common.delete')}</span>
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <Card
+            className="hidden xl:block rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+            hover={false}
+          >
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.products.title')}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{products.length}</div>
               </div>
-            ) : null}
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-xl font-bold text-white">{product.name}</h3>
-              <Badge variant={product.isActive ? 'success' : 'default'}>
-                {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
-              </Badge>
             </div>
-            <p className="text-gray-400 text-sm mb-4">{product.description}</p>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-2xl font-bold text-minecraft-gold">
-                {formatPrice(product.price)}
-              </span>
-              <Badge variant="info">{product.category}</Badge>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={() => handleEdit(product)} className="flex-1">
-                <FaEdit />
-                <span>{t(lang, 'common.edit')}</span>
-              </Button>
-              <Button size="sm" variant="danger" onClick={() => handleDelete(product._id)} className="flex-1">
-                <FaTrash />
-                <span>{t(lang, 'common.delete')}</span>
-              </Button>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.products.form.name')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.products.form.category')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.products.form.price')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.products.form.stock')}</th>
+                    <th className="px-4 py-3 font-semibold">{t(lang, 'admin.products.active')}</th>
+                    <th className="px-4 py-3 font-semibold text-right">{t(lang, 'admin.users.thActions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
+                  {products.map((product) => (
+                    <tr key={product._id} className="hover:bg-gray-50/70 dark:hover:bg-white/5">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {product.image ? (
+                            <div className="h-10 w-10 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
+                              <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-10 w-10 rounded-xl border border-gray-200 bg-gray-50 grid place-items-center text-gray-700 shrink-0 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+                              <FaShoppingCart />
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[420px]">{product.name}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[520px]">{product.description}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <Badge variant="info">{getCategoryLabel(product.category)}</Badge>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-minecraft-gold">{formatPrice(product.price)}</span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {product.isUnlimited ? t(lang, 'admin.products.unlimitedStock') : product.stock ?? 0}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <Badge variant={product.isActive ? 'success' : 'default'}>
+                          {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
+                        </Badge>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button size="sm" variant="secondary" onClick={() => handleEdit(product)} className="!px-3">
+                            <FaEdit />
+                            <span className="hidden 2xl:inline">{t(lang, 'common.edit')}</span>
+                          </Button>
+                          <Button size="sm" variant="danger" onClick={() => handleDelete(product._id)} className="!px-3">
+                            <FaTrash />
+                            <span className="hidden 2xl:inline">{t(lang, 'common.delete')}</span>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Card>
-        ))}
-      </div>
-
-      {products.length === 0 && !loading && (
-        <div className="text-center py-20">
-          <FaShoppingCart className="text-6xl text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400 text-lg">{t(lang, 'admin.products.empty')}</p>
-        </div>
+        </>
       )}
     </div>
   );

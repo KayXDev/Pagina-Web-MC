@@ -25,25 +25,34 @@ export default function VotePage() {
       />
 
       <AnimatedSection>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <Card
-            className="lg:col-span-1 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 border-minecraft-grass/30"
+            className="lg:col-span-2 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 border-minecraft-grass/30"
             hover={false}
           >
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'vote.howTitle')}</h2>
-            <ol className="space-y-3 text-gray-700 dark:text-gray-300">
-              <li className="flex items-start gap-3">
-                <Badge variant="info" className="mt-0.5">1</Badge>
-                <span>{t(lang, 'vote.howStep1')}</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Badge variant="info" className="mt-0.5">2</Badge>
-                <span>{t(lang, 'vote.howStep2')}</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Badge variant="info" className="mt-0.5">3</Badge>
-                <span>{t(lang, 'vote.howStep3')}</span>
-              </li>
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t(lang, 'vote.howTitle')}</h2>
+              <div className="shrink-0 h-10 w-10 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-gold">
+                <FaVoteYea />
+              </div>
+            </div>
+
+            <ol className="space-y-3">
+              {[
+                t(lang, 'vote.howStep1'),
+                t(lang, 'vote.howStep2'),
+                t(lang, 'vote.howStep3'),
+              ].map((step, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white/70 px-4 py-3 text-gray-700 dark:border-white/10 dark:bg-black/20 dark:text-gray-300"
+                >
+                  <Badge variant="info" className="mt-0.5">
+                    {idx + 1}
+                  </Badge>
+                  <span className="leading-relaxed">{step}</span>
+                </li>
+              ))}
             </ol>
 
             <div className="mt-6 rounded-xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 p-4">
@@ -52,9 +61,7 @@ export default function VotePage() {
                   <FaGift />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {lang === 'es' ? 'Recompensas' : 'Rewards'}
-                  </div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Recompensas' : 'Rewards'}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
                     {lang === 'es' ? 'Votar ayuda al server' : 'Voting helps the server'}
                   </div>
@@ -68,33 +75,36 @@ export default function VotePage() {
             </div>
           </Card>
 
-          <div className="lg:col-span-2">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t(lang, 'vote.linksTitle')}</h2>
-              <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.linksSubtitle')}</p>
+          <Card hover={false} className="lg:col-span-3 border-gray-200 dark:border-white/10">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t(lang, 'vote.linksTitle')}</h2>
+                <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.linksSubtitle')}</p>
+              </div>
+              <Badge variant="info">{VOTE_SITES.length}</Badge>
             </div>
 
             {VOTE_SITES.length === 0 ? (
-              <Card className="text-center" hover={false}>
+              <div className="text-center py-10">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t(lang, 'vote.comingTitle')}</h3>
                 <p className="text-gray-600 dark:text-gray-400">{t(lang, 'vote.comingDesc')}</p>
-              </Card>
+              </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {VOTE_SITES.map((site) => (
-                  <Card
+                  <div
                     key={site.name}
-                    hover={false}
-                    className="p-4 sm:p-5 border-gray-200 dark:border-white/10"
+                    className="rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors p-5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-                          {site.name}
-                        </div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">{site.name}</div>
+                        {site.description ? (
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{site.description}</div>
+                        ) : null}
                       </div>
 
-                      <div className="shrink-0 h-10 w-10 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-gold">
+                      <div className="shrink-0 h-11 w-11 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-gold">
                         <FaVoteYea />
                       </div>
                     </div>
@@ -110,11 +120,11 @@ export default function VotePage() {
                         <span>{t(lang, 'vote.cta')}</span>
                       </Link>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </AnimatedSection>
     </div>

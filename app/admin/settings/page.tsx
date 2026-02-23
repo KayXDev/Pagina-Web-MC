@@ -123,37 +123,47 @@ export default function AdminMaintenancePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-white text-xl">{t(lang, 'admin.settings.loading')}</div>
+      <div className="space-y-6">
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 overflow-hidden p-0" hover={false}>
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.settings.title')}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'admin.settings.loading')}</div>
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-white/10">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-14 shimmer" />
+            ))}
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+          <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-white">
             <FaCog />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text truncate">
               {t(lang, 'admin.settings.title')}
             </h1>
-            <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.settings.subtitle')}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.settings.subtitle')}</p>
           </div>
         </div>
       </Card>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <FaCog />
                 <span>{t(lang, 'admin.settings.sectionTitle')}</span>
               </h2>
-              <p className="text-gray-400 mt-2">{t(lang, 'admin.settings.sectionDesc')}</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">{t(lang, 'admin.settings.sectionDesc')}</p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -169,7 +179,7 @@ export default function AdminMaintenancePage() {
                 className={`relative inline-flex h-7 w-12 items-center rounded-full border transition-colors ${
                   settings.maintenance_mode === 'true'
                     ? 'bg-minecraft-grass/80 border-minecraft-grass/40'
-                    : 'bg-white/5 border-white/10'
+                    : 'bg-gray-200 border-gray-300 dark:bg-white/5 dark:border-white/10'
                 }`}
               >
                 <span
@@ -179,12 +189,12 @@ export default function AdminMaintenancePage() {
                 />
               </button>
 
-              <span className="text-gray-300 text-sm select-none">{t(lang, 'admin.settings.enableMaintenance')}</span>
+              <span className="text-gray-700 dark:text-gray-300 text-sm select-none">{t(lang, 'admin.settings.enableMaintenance')}</span>
             </div>
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">{t(lang, 'admin.settings.messageLabel')}</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t(lang, 'admin.settings.messageLabel')}</label>
             <Textarea
               rows={4}
               value={settings.maintenance_message}
@@ -194,11 +204,11 @@ export default function AdminMaintenancePage() {
           </div>
         </Card>
 
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="text-white font-semibold">{t(lang, 'admin.settings.maintenancePathsLabel')}</div>
+            <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.settings.maintenancePathsLabel')}</div>
             <div className="flex items-center gap-3">
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-600 dark:text-gray-400">
                 {selectedMaintenancePaths.size} {lang === 'es' ? 'seleccionadas' : 'selected'}
               </div>
               <Button
@@ -233,30 +243,30 @@ export default function AdminMaintenancePage() {
                 onClick={() => toggleMaintenancePath(opt.path)}
                 className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
                   selectedMaintenancePaths.has(opt.path)
-                    ? 'border-minecraft-grass/40 bg-minecraft-grass/10'
-                    : 'border-white/10 bg-white/5 hover:bg-white/10'
+                    ? 'border-minecraft-grass/40 bg-minecraft-grass/10 dark:border-minecraft-grass/30 dark:bg-minecraft-grass/10'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
                 }`}
               >
                 <div
                   className={`h-8 w-8 rounded-lg border grid place-items-center ${
                     selectedMaintenancePaths.has(opt.path)
-                      ? 'border-minecraft-grass/40 bg-minecraft-grass/15 text-minecraft-grass'
-                      : 'border-white/10 bg-white/5 text-gray-300'
+                      ? 'border-minecraft-grass/40 bg-minecraft-grass/15 text-minecraft-grass dark:border-minecraft-grass/30 dark:bg-minecraft-grass/10'
+                      : 'border-gray-200 bg-gray-50 text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300'
                   }`}
                   aria-hidden="true"
                 >
                   {selectedMaintenancePaths.has(opt.path) ? <FaCheck /> : <span className="text-xs">•</span>}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
-                  <div className="text-xs text-gray-400 truncate">{opt.path}</div>
+                  <div className="text-sm text-gray-900 dark:text-white font-medium truncate">{t(lang, opt.labelKey)}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{opt.path}</div>
                 </div>
               </button>
             ))}
           </div>
 
           <div className="mt-5">
-            <div className="text-sm font-medium text-gray-300 mb-2">
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {lang === 'es' ? 'Añadir ruta personalizada' : 'Add custom path'}
             </div>
             <div className="flex gap-2">
@@ -287,8 +297,8 @@ export default function AdminMaintenancePage() {
           <p className="text-xs text-gray-500 mt-3">{t(lang, 'admin.settings.maintenancePathsHint')}</p>
         </Card>
 
-        <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
-          <div className="text-white font-semibold mb-2">{t(lang, 'admin.settings.webhookLabel')}</div>
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="text-gray-900 dark:text-white font-semibold mb-2">{t(lang, 'admin.settings.webhookLabel')}</div>
           <Input
             type="text"
             value={settings.maintenance_discord_webhook}

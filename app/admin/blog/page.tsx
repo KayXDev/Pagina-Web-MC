@@ -171,17 +171,17 @@ export default function AdminBlogPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gray-950/25 rounded-2xl" hover={false}>
+      <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white">
+            <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-white">
               <FaNewspaper />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent truncate">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text truncate">
                 {t(lang, 'admin.blog.title')}
               </h1>
-              <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.blog.subtitle')}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.blog.subtitle')}</p>
             </div>
           </div>
 
@@ -198,9 +198,9 @@ export default function AdminBlogPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-950/95 border border-white/10 rounded-2xl p-6 md:p-8 max-w-4xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
+            className="bg-white border border-gray-200 text-gray-900 rounded-2xl p-6 md:p-8 max-w-4xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto dark:bg-gray-950/95 dark:border-white/10 dark:text-gray-100"
           >
-            <h2 className="text-2xl font-bold text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               {editingPost
                 ? t(lang, 'admin.blog.form.editTitle')
                 : t(lang, 'admin.blog.form.newTitle')}
@@ -208,7 +208,7 @@ export default function AdminBlogPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.blog.form.imageLabel')}
                 </label>
 
@@ -245,7 +245,7 @@ export default function AdminBlogPage() {
                         {t(lang, 'admin.blog.form.removeImage')}
                       </Button>
                       {uploadingImage && (
-                        <div className="text-xs text-gray-400 self-center">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 self-center">
                           {t(lang, 'admin.blog.form.uploading')}
                         </div>
                       )}
@@ -254,7 +254,7 @@ export default function AdminBlogPage() {
                 </div>
 
                 {formData.image?.trim() && (
-                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-xl flex items-center justify-center overflow-hidden border border-white/10">
+                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-xl flex items-center justify-center overflow-hidden border border-gray-200 dark:border-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={formData.image}
@@ -269,7 +269,7 @@ export default function AdminBlogPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.blog.form.title')} {formData.title.length > 0 && (
                     <span className={formData.title.length >= 5 ? 'text-green-500' : 'text-yellow-500'}>
                       ({formData.title.length}/5 {t(lang, 'admin.blog.form.titleMin')})
@@ -285,7 +285,7 @@ export default function AdminBlogPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.blog.form.excerpt')} {formData.excerpt.length > 0 && (
                     <span className={formData.excerpt.length >= 10 && formData.excerpt.length <= 200 ? 'text-green-500' : 'text-yellow-500'}>
                       ({formData.excerpt.length}/10-200)
@@ -304,7 +304,7 @@ export default function AdminBlogPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.blog.form.content')} {formData.content.length > 0 && (
                     <span className={formData.content.length >= 50 ? 'text-green-500' : 'text-yellow-500'}>
                       ({formData.content.length}/50 {t(lang, 'admin.blog.form.titleMin')})
@@ -322,7 +322,7 @@ export default function AdminBlogPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t(lang, 'admin.blog.form.tags')}
                 </label>
                 <Input
@@ -339,7 +339,7 @@ export default function AdminBlogPage() {
                   onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
                   className="w-4 h-4"
                 />
-                <span className="text-gray-300">{t(lang, 'admin.blog.publishNow')}</span>
+                <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.blog.publishNow')}</span>
               </label>
 
               <div className="flex gap-3">
@@ -383,14 +383,14 @@ export default function AdminBlogPage() {
             <div className="flex items-start justify-between">
               <div className="flex-grow">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-bold text-white">{post.title}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{post.title}</h3>
                   <Badge variant={post.isPublished ? 'success' : 'default'}>
                     {post.isPublished
                       ? t(lang, 'admin.blog.form.statusPublished')
                       : t(lang, 'admin.blog.form.statusDraft')}
                   </Badge>
                 </div>
-                <p className="text-gray-400 mb-3">{post.excerpt}</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-3">{post.excerpt}</p>
                 <div className="flex items-center gap-4 text-sm text-gray-500">
                   <span>
                     {t(lang, 'admin.blog.by')}: {post.author}
@@ -423,7 +423,7 @@ export default function AdminBlogPage() {
       {posts.length === 0 && !loading && (
         <div className="text-center py-20">
           <FaNewspaper className="text-6xl text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400 text-lg">{t(lang, 'admin.blog.empty')}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'admin.blog.empty')}</p>
         </div>
       )}
     </div>

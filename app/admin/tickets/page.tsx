@@ -301,12 +301,12 @@ export default function AdminTicketsPage() {
         onClick={() => setActiveStatus(status)}
         className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/40 ${
           active
-            ? 'bg-white/10 border-white/10 text-white'
-            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+            ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-white'
+            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10'
         }`}
       >
         <span className="font-medium">{label}</span>
-        <span className="px-2 py-0.5 text-xs rounded-full bg-black/20 border border-white/10 text-gray-200">
+        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-black/20 dark:border-white/10 dark:text-gray-200">
           {count}
         </span>
       </button>
@@ -326,31 +326,34 @@ export default function AdminTicketsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl">
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <span className="h-10 w-10 rounded-xl grid place-items-center bg-minecraft-grass/10 text-minecraft-grass">
+              <span className="h-10 w-10 rounded-xl grid place-items-center bg-minecraft-grass/10 text-minecraft-grass border border-minecraft-grass/20 dark:border-white/10 dark:bg-white/5">
                 <FaTicketAlt />
               </span>
               <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-bold text-white truncate">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
-                <p className="text-gray-400 text-sm md:text-base">{t(lang, 'admin.tickets.headerDesc')}</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
+                <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.tickets.headerDesc')}</p>
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.tickets.total')}: {tickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.tickets.inProgressCount')}: {inProgressTickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.tickets.openCount')}: {openTickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
               {t(lang, 'admin.tickets.closedCount')}: {closedTickets.length}
             </span>
           </div>
@@ -361,10 +364,13 @@ export default function AdminTicketsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
         {/* Inbox */}
         <section className={selectedTicket ? 'xl:col-span-5' : 'xl:col-span-12'} aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
-          <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10 bg-gray-950/40">
+          <Card
+            hover={false}
+            className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+          >
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-gray-950/40">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-white font-semibold">{t(lang, 'admin.tickets.ticketsLabel')}</div>
+                <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.tickets.ticketsLabel')}</div>
                 <div className="text-xs text-gray-500">
                   {loading ? t(lang, 'common.loading') : `${filteredTickets.length} / ${statusTickets.length} ${t(lang, 'admin.tickets.total')}`}
                 </div>
@@ -403,15 +409,17 @@ export default function AdminTicketsPage() {
 
             <div className="max-h-[72vh] overflow-y-auto">
               {loading ? (
-                <div className="p-4">
-                  <Card className="shimmer h-24" hover={false} />
+                <div className="divide-y divide-gray-200 dark:divide-white/10">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-16 shimmer" />
+                  ))}
                 </div>
               ) : filteredTickets.length === 0 ? (
-                <div className="text-center py-16 text-gray-400 px-6">
+                <div className="text-center py-16 text-gray-600 dark:text-gray-400 px-6">
                   {normalizedSearch ? t(lang, 'admin.tickets.noResults') : emptyText}
                 </div>
               ) : (
-                <div className="divide-y divide-white/10">
+                <div className="divide-y divide-gray-200 dark:divide-white/10">
                   {filteredTickets.map((ticket) => {
                     const active = selectedTicket?._id === ticket._id;
                     return (
@@ -420,14 +428,26 @@ export default function AdminTicketsPage() {
                         type="button"
                         onClick={() => openDetails(ticket)}
                         className={`w-full text-left px-4 py-3 transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/30 ${
-                          active ? 'bg-white/10' : 'hover:bg-white/5'
+                          active ? 'bg-gray-50 dark:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                         aria-current={active ? 'true' : undefined}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="text-white font-semibold truncate">{ticket.subject}</div>
-                            <div className="text-xs text-gray-400 mt-1 truncate">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                                  ticket.status === 'OPEN'
+                                    ? 'bg-emerald-500'
+                                    : ticket.status === 'IN_PROGRESS'
+                                      ? 'bg-amber-500'
+                                      : 'bg-gray-400'
+                                }`}
+                                aria-hidden
+                              />
+                              <div className="text-gray-900 dark:text-white font-semibold truncate">{ticket.subject}</div>
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
                               {ticket.username} • {ticket.category}
                             </div>
                             <div className="text-xs text-gray-500 mt-2">
@@ -451,16 +471,19 @@ export default function AdminTicketsPage() {
         {/* Details */}
         {selectedTicket ? (
           <section className="xl:col-span-7" aria-label={t(lang, 'admin.tickets.chat')}>
-            <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b border-white/10 bg-gray-950/40 sticky top-[56px] xl:top-0 z-10">
+            <Card
+              hover={false}
+              className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+            >
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 sticky top-[56px] xl:top-0 z-10 dark:border-white/10 dark:bg-gray-950/40">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-lg md:text-xl font-bold text-white truncate">{selectedTicket.subject}</h2>
+                      <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white truncate">{selectedTicket.subject}</h2>
                       {getStatusBadge(selectedTicket.status)}
                       {getPriorityBadge(selectedTicket.priority)}
                     </div>
-                    <div className="text-xs text-gray-400 mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 flex flex-wrap gap-x-2 gap-y-1">
                       <span className="truncate">{selectedTicket.username}</span>
                       <span>•</span>
                       <span className="truncate">{selectedTicket.email}</span>
@@ -485,7 +508,7 @@ export default function AdminTicketsPage() {
               <div className="p-4 space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       {t(lang, 'admin.tickets.statusLabel')}
                     </label>
                     <Select
@@ -499,7 +522,7 @@ export default function AdminTicketsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       {t(lang, 'admin.tickets.priorityLabel')}
                     </label>
                     <Select
@@ -526,17 +549,17 @@ export default function AdminTicketsPage() {
 
                 <div>
                   <div className="flex items-center justify-between gap-3 mb-2">
-                    <div className="text-white font-semibold">{t(lang, 'admin.tickets.message')}</div>
+                    <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.tickets.message')}</div>
                     <span className="text-xs text-gray-500">{t(lang, 'admin.tickets.category')}: {selectedTicket.category}</span>
                   </div>
-                  <div className="text-gray-200 whitespace-pre-wrap bg-black/20 border border-white/10 p-4 rounded-lg">
+                  <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-black/20 dark:border-white/10">
                     {selectedTicket.message}
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2 gap-3">
-                    <div className="text-white font-semibold">{t(lang, 'admin.tickets.chat')}</div>
+                    <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.tickets.chat')}</div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
                       {participantsLoading ? (
                         <span>{t(lang, 'common.loading')}</span>
@@ -563,7 +586,7 @@ export default function AdminTicketsPage() {
 
                   <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                     {!ticketDetailsLoading && ticketReplies.length === 0 ? (
-                      <div className="text-sm text-gray-400">{t(lang, 'admin.tickets.noReplies')}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{t(lang, 'admin.tickets.noReplies')}</div>
                     ) : null}
 
                     {ticketReplies.map((r) => (
@@ -571,14 +594,14 @@ export default function AdminTicketsPage() {
                         <div
                           className={`max-w-[88%] rounded-lg p-3 border ${
                             r.isStaff
-                              ? 'bg-gray-900/40 border-white/10'
+                              ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/40 dark:border-white/10'
                               : 'bg-minecraft-grass/15 border-minecraft-grass/30'
                           }`}
                         >
-                          <div className="text-[11px] text-gray-300 mb-1">
+                          <div className="text-[11px] text-gray-600 dark:text-gray-300 mb-1">
                             {r.isStaff ? t(lang, 'admin.tickets.staff') : selectedTicket.username} • {formatDateTime(r.createdAt)}
                           </div>
-                          <div className="text-white whitespace-pre-wrap leading-relaxed">{r.message}</div>
+                          <div className="text-gray-900 dark:text-white whitespace-pre-wrap leading-relaxed">{r.message}</div>
                         </div>
                       </div>
                     ))}
