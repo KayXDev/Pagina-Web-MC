@@ -97,11 +97,11 @@ export default function StaffPage() {
             >
               <Card className="text-center">
                 <div className="flex justify-center mb-4">{member.icon}</div>
-                <h3 className="text-2xl font-bold text-white mb-2">{member.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{member.name}</h3>
                 <Badge variant="info" className="mb-3">
                   {member.role}
                 </Badge>
-                <p className="text-gray-400">{member.description}</p>
+                <p className="text-gray-600 dark:text-gray-400">{member.description}</p>
               </Card>
             </motion.div>
           ))}
@@ -110,7 +110,7 @@ export default function StaffPage() {
 
       {/* Responsabilidades */}
       <AnimatedSection>
-        <h2 className="text-3xl font-bold text-white text-center mb-10">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
           Responsabilidades del Staff
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -123,7 +123,7 @@ export default function StaffPage() {
               transition={{ delay: index * 0.2 }}
             >
               <Card>
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
                   {role === 'Administrador' && <FaShieldAlt className="mr-2 text-minecraft-redstone" />}
                   {role === 'Moderador' && <FaUserShield className="mr-2 text-minecraft-diamond" />}
                   {role === 'Ayudante' && <FaUsers className="mr-2 text-minecraft-grass" />}
@@ -131,7 +131,7 @@ export default function StaffPage() {
                 </h3>
                 <ul className="space-y-2">
                   {responsibilities.map((resp, i) => (
-                    <li key={i} className="flex items-start space-x-2 text-gray-300">
+                    <li key={i} className="flex items-start space-x-2 text-gray-700 dark:text-gray-300">
                       <span className="text-minecraft-grass font-bold">•</span>
                       <span className="text-sm">{resp}</span>
                     </li>
@@ -147,8 +147,8 @@ export default function StaffPage() {
       <AnimatedSection>
         <div className="mt-20">
           <Card className="text-center bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 border-minecraft-grass">
-            <h2 className="text-3xl font-bold text-white mb-4">¿Quieres unirte al Staff?</h2>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">¿Quieres unirte al Staff?</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
               Buscamos personas comprometidas, maduras y con ganas de ayudar a la comunidad. 
               Las aplicaciones se abren periódicamente en nuestro Discord.
             </p>

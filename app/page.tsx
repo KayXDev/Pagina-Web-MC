@@ -212,8 +212,8 @@ export default function HomePage() {
       <AnimatedSection>
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{t(lang, 'home.why.title')}</h2>
-            <p className="text-gray-400 text-lg">{t(lang, 'home.why.subtitle')}</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.why.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.why.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -227,8 +227,8 @@ export default function HomePage() {
               >
                 <Card className="text-center h-full">
                   <div className="flex justify-center mb-4">{feature.icon}</div>
-                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -240,8 +240,8 @@ export default function HomePage() {
       <AnimatedSection>
         <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{t(lang, 'home.modes.title')}</h2>
-            <p className="text-gray-400 text-lg">{t(lang, 'home.modes.subtitle')}</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.modes.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.modes.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -255,8 +255,8 @@ export default function HomePage() {
               >
                 <Card hover className="text-center h-full">
                   <div className="text-6xl mb-4">{mode.image}</div>
-                  <h3 className="text-2xl font-bold text-white mb-2">{mode.name}</h3>
-                  <p className="text-gray-400">{mode.description}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{mode.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{mode.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -268,18 +268,18 @@ export default function HomePage() {
       <AnimatedSection>
         <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-3">{t(lang, 'home.staffForm.title')}</h2>
-            <p className="text-gray-400 text-lg">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">{t(lang, 'home.staffForm.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               {staffOpen ? t(lang, 'home.staffForm.openDesc') : t(lang, 'home.staffForm.subtitle')}
             </p>
           </div>
 
-          <Card hover={false} className="border-gray-800">
+          <Card hover={false} className="border-gray-200 dark:border-gray-800">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {staffOpen ? t(lang, 'home.staffForm.openTitle') : t(lang, 'home.staffForm.closedTitle')}
               </h3>
-              <p className="text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 {staffOpen ? t(lang, 'home.staffForm.openDesc') : t(lang, 'home.staffForm.closedDesc')}
               </p>
             </div>
@@ -316,10 +316,10 @@ export default function HomePage() {
       <AnimatedSection>
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <Card className="text-center bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 border-minecraft-grass">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {t(lang, 'home.cta.title')}
             </h2>
-            <p className="text-gray-300 text-lg mb-8">
+            <p className="text-gray-700 dark:text-gray-300 text-lg mb-8">
               {t(lang, 'home.cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

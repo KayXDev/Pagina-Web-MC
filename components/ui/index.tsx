@@ -16,7 +16,7 @@ export const Card = ({ children, className = '', hover = true, onClick }: CardPr
     <motion.div
       whileHover={hover ? { y: -5, transition: { duration: 0.2 } } : {}}
       onClick={onClick}
-      className={`rounded-xl p-6 bg-white border border-gray-200 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow hover:shadow-md dark:bg-gray-900/60 dark:border-white/10 dark:shadow-black/30 dark:ring-white/10 ${className}`}
+      className={`rounded-xl p-6 bg-white border border-gray-200 text-gray-900 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow hover:shadow-md dark:bg-gray-900/60 dark:border-white/10 dark:text-gray-100 dark:shadow-black/30 dark:ring-white/10 ${className}`}
     >
       {children}
     </motion.div>
