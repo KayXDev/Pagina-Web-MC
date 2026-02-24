@@ -1,192 +1,218 @@
 # 999 Wrld Network
 
-Web completa para un servidor de Minecraft con estilo **comunidad / red social**: Home con estado del servidor, noticias, foro, perfiles, tienda, soporte con tickets y un **panel de administración**.
+Full website for a Minecraft server with a **community / social network** style: Home with server status, news, forum, profiles, store, ticket-based support system, and a full **admin panel**.
 
 ## 🔗 Demo
 
 - Live Demo: https://999wrld.vercel.app
 
-## 🧭 Tabla de contenido
+---
 
-- [✨ Funcionalidades](#-funcionalidades)
+## 🧭 Table of Contents
+
+- [✨ Features](#-features)
 - [🧱 Stack](#-stack)
-- [✅ Requisitos](#-requisitos)
-- [🚀 Instalación local](#-instalación-local)
-- [🔐 Acceso y roles](#-acceso-y-roles)
-- [🔧 Variables de entorno](#-variables-de-entorno)
+- [✅ Requirements](#-requirements)
+- [🚀 Local Installation](#-local-installation)
+- [🔐 Access & Roles](#-access--roles)
+- [🔧 Environment Variables](#-environment-variables)
 - [📜 Scripts](#-scripts)
-- [🖼️ Uploads (local vs producción)](#️-uploads-local-vs-producción)
+- [🖼️ Uploads (Local vs Production)](#️-uploads-local-vs-production)
 - [🌍 Deploy](#-deploy)
+- [🤖 Chatbot (AI + Human Agent)](#-chatbot-ai--human-agent)
 - [🧯 Troubleshooting](#-troubleshooting)
-- [🔒 Seguridad](#-seguridad)
+- [🔒 Security](#-security)
 
-## ✨ Funcionalidades
+---
 
-### 🌐 Público
+## ✨ Features
 
-- 🏠 Home con estado del servidor (IP/puerto configurables).
-- 📰 Noticias/Blog (posts, vistas, likes).
-- 💬 Foro (posts, replies, likes, vistas, imágenes).
-- 👤 Perfiles públicos y privados (avatar, banner, actividad, follows).
-- 🛒 Tienda (productos + categorías).
-- 🎫 Soporte (tickets + chat).
-- 🔔 Notificaciones.
-- 📄 Páginas legales: términos, privacidad, normas.
+### 🌐 Public
+
+- 🏠 Home with server status (configurable IP/port).
+- 📰 News/Blog (posts, views, likes).
+- 💬 Forum (posts, replies, likes, views, images).
+- 👤 Public & private profiles (avatar, banner, activity, follows).
+- 🛒 Store (products + categories).
+- 🎫 Support (tickets + chat).
+- 🔔 Notifications.
+- 📄 Legal pages: terms, privacy policy, rules.
 
 ### 🛠️ Admin (`/admin`)
 
-- 📊 Dashboard con estadísticas + accesos rápidos.
-- 👥 Usuarios (roles, bans, verificado, etc.).
-- 🛍️ Productos/Tienda (CRUD).
-- 🎫 Tickets/Soporte.
-- 💬 Foro (moderación/gestión).
-- 📰 Blog/Noticias (CRUD + imagen).
-- 🧾 Postulaciones de staff.
+- 📊 Dashboard with statistics + quick access.
+- 👥 Users (roles, bans, verification, etc.).
+- 🛍️ Store/Products (CRUD).
+- 🎫 Tickets/Support.
+- 💬 Forum (moderation/management).
+- 📰 Blog/News (CRUD + image).
+- 🧾 Staff applications.
 - 🧠 Logs.
-- ⚙️ Settings (incluye modo mantenimiento).
-- 🔑 Permisos por secciones (OWNER).
+- ⚙️ Settings (includes maintenance mode).
+- 🔑 Section-based permissions (OWNER).
+
+---
 
 ## 🧱 Stack
 
-| Capa | Tecnología |
-|---|---|
+| Layer | Technology |
+|-------|------------|
 | Frontend | Next.js 14 (App Router) + React + TypeScript |
 | UI | TailwindCSS + Framer Motion |
 | Auth | NextAuth (JWT) |
-| DB | MongoDB Atlas + Mongoose |
-| Uploads (prod) | Vercel Blob (recomendado en Vercel) |
-| IA (chatbot) | Groq (API compatible estilo OpenAI) |
+| Database | MongoDB Atlas + Mongoose |
+| Uploads (prod) | Vercel Blob (recommended on Vercel) |
+| AI (chatbot) | Groq (OpenAI-compatible API style) |
 
-## ✅ Requisitos
+---
 
-- Node.js **18.17+** (o Node 20+ recomendado)
+## ✅ Requirements
+
+- Node.js **18.17+** (Node 20+ recommended)
 - npm
-- MongoDB (Atlas recomendado)
+- MongoDB (Atlas recommended)
 
-## 🚀 Instalación local
+---
 
-1) Instala dependencias:
+## 🚀 Local Installation
+
+1) Install dependencies:
 
 ```bash
 npm install
 ```
 
-2) Crea tu `.env` desde el ejemplo:
+2) Create your `.env` file from the example:
 
 ```bash
 cp .env.example .env
 ```
 
-3) Genera un secreto fuerte para NextAuth:
+3) Generate a strong secret for NextAuth:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-4) Inicializa la base de datos (seed + admin inicial):
+4) Initialize the database (seed + initial admin):
 
 ```bash
 npm run init-db
 ```
 
-5) Arranca el servidor en localhost:
+5) Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Abre: http://localhost:3000
+Open: http://localhost:3000
 
-## 🔐 Acceso y roles
+---
+
+## 🔐 Access & Roles
 
 - Login: `/auth/login`
 - Admin: `/admin`
 
-Roles utilizados:
+### Roles
 
-| Rol | Acceso |
-|---|---|
-| `OWNER` | Acceso total + permisos por secciones |
-| `ADMIN` | Acceso a admin (puede limitarse por secciones) |
-| `STAFF` | Acceso a admin (comportamiento “full” actual) |
-| `USER` | Solo público + su perfil |
+| Role | Access |
+|------|--------|
+| `OWNER` | Full access + section-based permissions |
+| `ADMIN` | Admin access (can be limited by section) |
+| `STAFF` | Admin access (currently full behavior) |
+| `USER` | Public access + own profile |
 
-El usuario admin inicial se crea con `npm run init-db` usando `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+The initial admin user is created with `npm run init-db` using `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
-## 🔧 Variables de entorno
+---
 
-La referencia completa está en `.env.example`. Tabla rápida:
+## 🔧 Environment Variables
 
-| Variable | Obligatoria | Uso |
-|---|:---:|---|
-| `MONGODB_URI` | ✅ | Conexión a MongoDB |
-| `NEXTAUTH_URL` | ✅ | URL base (local: `http://localhost:3000`) |
-| `NEXTAUTH_SECRET` | ✅ | Secreto de NextAuth |
-| `ADMIN_EMAIL` | ➖ | Email del admin inicial (seed) |
-| `ADMIN_PASSWORD` | ➖ | Password del admin inicial (seed) |
-| `SITE_NAME` | ➖ | Nombre del sitio |
-| `SITE_URL` | ➖ | URL del sitio |
-| `MINECRAFT_SERVER_IP` | ➖ | IP/host para status |
-| `MINECRAFT_SERVER_PORT` | ➖ | Puerto para status |
-| `NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN` | ➖ | Abre/cierra postulaciones |
-| `BLOB_READ_WRITE_TOKEN` | ➖ | Uploads en Vercel Blob (producción) |
-| `GROQ_API_KEY` | ➖ | API key del chatbot (Groq) |
-| `GROQ_MODEL` | ➖ | Modelo del chatbot (ej: `llama-3.1-8b-instant`) |
-| `CLOUDINARY_URL` (o 3 vars) | ➖ | Uploads alternativos (opcional) |
+Full reference available in `.env.example`.
 
-Variables públicas (cliente):
+### Required
 
-| Variable | Uso |
-|---|---|
-| `NEXT_PUBLIC_MINECRAFT_SERVER_IP` | IP/host mostrado en Home |
-| `NEXT_PUBLIC_DISCORD_URL` | Link del footer |
-| `NEXT_PUBLIC_TIKTOK_URL` | Link del footer |
-| `NEXT_PUBLIC_YOUTUBE_URL` | Link del footer |
+| Variable | Required | Purpose |
+|-----------|:--------:|----------|
+| `MONGODB_URI` | ✅ | MongoDB connection |
+| `NEXTAUTH_URL` | ✅ | Base URL (local: `http://localhost:3000`) |
+| `NEXTAUTH_SECRET` | ✅ | NextAuth secret |
+
+### Optional
+
+| Variable | Purpose |
+|------------|----------|
+| `ADMIN_EMAIL` | Initial admin email (seed) |
+| `ADMIN_PASSWORD` | Initial admin password (seed) |
+| `SITE_NAME` | Website name |
+| `SITE_URL` | Website URL |
+| `MINECRAFT_SERVER_IP` | Server IP/host for status |
+| `MINECRAFT_SERVER_PORT` | Server port for status |
+| `NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN` | Open/close staff applications |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob uploads (production) |
+| `GROQ_API_KEY` | Chatbot API key (Groq) |
+| `GROQ_MODEL` | Chatbot model (e.g. `llama-3.1-8b-instant`) |
+| `CLOUDINARY_URL` (or 3 vars) | Alternative uploads (optional) |
+
+### Public (Client-side)
+
+| Variable | Purpose |
+|------------|----------|
+| `NEXT_PUBLIC_MINECRAFT_SERVER_IP` | Displayed server IP on Home |
+| `NEXT_PUBLIC_DISCORD_URL` | Footer link |
+| `NEXT_PUBLIC_TIKTOK_URL` | Footer link |
+| `NEXT_PUBLIC_YOUTUBE_URL` | Footer link |
+
+---
 
 ## 📜 Scripts
 
-| Script | Qué hace |
-|---|---|
-| `npm run dev` | Dev en localhost |
-| `npm run build` | Build de producción |
-| `npm start` | Ejecuta el build |
-| `npm run lint` | Lint |
-| `npm run init-db` | Seed + crea admin inicial |
+| Script | Description |
+|--------|------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm start` | Run production build |
+| `npm run lint` | Run linter |
+| `npm run init-db` | Seed DB + create initial admin |
 
-Otros scripts útiles:
+### Additional Useful Scripts
 
 - `node scripts/check-db.js`
 - `node scripts/clean-db.js`
 - `node scripts/reset-admin-password.js`
-- `node scripts/set-owner.js --email tu@email.com --tags OWNER,FOUNDER`
+- `node scripts/set-owner.js --email your@email.com --tags OWNER,FOUNDER`
 - `node scripts/fix-tickets-index.js`
 
-## 🖼️ Uploads (local vs producción)
+---
 
-- **Local/Dev**: se escriben archivos en `public/uploads/...`.
-- **Producción (Vercel)**: el filesystem es efímero → usa **Vercel Blob** (necesita `BLOB_READ_WRITE_TOKEN`).
+## 🖼️ Uploads (Local vs Production)
 
-El helper soporta varios providers en este orden (según configuración):
+- **Local/Dev**: Files are written to `public/uploads/...`.
+- **Production (Vercel)**: Filesystem is ephemeral → use **Vercel Blob** (`BLOB_READ_WRITE_TOKEN` required).
 
-- Cloudinary (si está configurado)
-- Vercel Blob (si hay token)
-- Filesystem local (solo dev)
+Upload helper supports providers in this order (based on configuration):
 
-Vercel Blob (producción en Vercel):
+1. Cloudinary (if configured)
+2. Vercel Blob (if token is present)
+3. Local filesystem (dev only)
+
+### Vercel Blob (Production on Vercel)
 
 ```env
 BLOB_READ_WRITE_TOKEN=
 ```
 
-Cloudinary (opcional, elige una opción):
+### Cloudinary (Optional)
 
-**Opción A (1 variable):**
+**Option A (1 variable):**
 
 ```env
 CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
 ```
 
-**Opción B (3 variables):**
+**Option B (3 variables):**
 
 ```env
 CLOUDINARY_CLOUD_NAME=
@@ -194,47 +220,57 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
+---
+
 ## 🌍 Deploy
 
-Recomendado: **Vercel**.
+Recommended: **Vercel**
 
-Checklist:
+### Checklist
 
-1) Configura variables de entorno en tu provider (igual que `.env`).
-2) MongoDB Atlas: revisa usuarios/credenciales y **Network Access** (IP allowlist).
-3) Ajusta `NEXTAUTH_URL` al dominio real.
-4) Si hay uploads en Vercel: configura `BLOB_READ_WRITE_TOKEN` (Vercel Blob). (Cloudinary es opcional.)
+1. Configure environment variables in your hosting provider (same as `.env`).
+2. MongoDB Atlas: verify credentials and **Network Access (IP allowlist)**.
+3. Set `NEXTAUTH_URL` to your real domain.
+4. If using uploads on Vercel → configure `BLOB_READ_WRITE_TOKEN`.
 
-## 🤖 Chatbot (IA + agente humano)
+---
 
-- Endpoint IA: `/api/chat` (Groq)
-- Derivación a humano: el widget puede abrir un **ticket** y continuar la conversación con admins/staff.
+## 🤖 Chatbot (AI + Human Agent)
+
+- AI Endpoint: `/api/chat` (Groq)
+- Human escalation: The widget can create a **ticket** and continue the conversation with admins/staff.
 - Admin inbox: `/admin/tickets`
-- Idioma: el chatbot responde en **es/en** (según el idioma del usuario y/o el mensaje).
+- Language: The chatbot responds in **EN/ES** depending on user language and message.
+
+---
 
 ## 📄 License
 
-Este proyecto se publica bajo **AGPL-3.0**. Ver [LICENSE](LICENSE).
+This project is licensed under **AGPL-3.0**. See [LICENSE](LICENSE).
+
+---
 
 ## 🧯 Troubleshooting
 
-### Login no funciona
+### Login not working
 
-- Revisa `MONGODB_URI`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
-- Ejecuta `npm run init-db`
-- Limpia cache: `rm -rf .next` y reinicia
+- Check `MONGODB_URI`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`
+- Run `npm run init-db`
+- Clear cache: `rm -rf .next` and restart
 
-### MongoDB no conecta
+### MongoDB connection fails
 
-- Verifica password/usuario en Atlas
-- Verifica IP allowlist en Atlas
+- Verify Atlas username/password
+- Verify IP allowlist in Atlas
 
-Docs adicionales:
+Additional documentation:
 
 - `SETUP.md`
 - `TROUBLESHOOTING.md`
 
-## 🔒 Seguridad
+---
 
-- No subas `.env` al repo.
-- Si un secreto se filtra, rota credenciales inmediatamente.
+## 🔒 Security
+
+- Do NOT upload `.env` to the repository.
+- If a secret leaks, rotate credentials immediately.
