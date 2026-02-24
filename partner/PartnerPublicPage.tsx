@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, Badge, Button } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
+import { getClientLangFromCookie, type Lang, getDateLocale, t } from '@/lib/i18n';
 import { formatDateTime } from '@/lib/utils';
 import { PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 import { FaBolt, FaCrown, FaGem, FaShieldAlt } from 'react-icons/fa';
@@ -302,24 +302,27 @@ export default function PartnerPublicPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="info">Ranking en vivo</Badge>
-            <Badge variant="warning">Destacados: VIP + #{PARTNER_PAID_MAX_SLOT}</Badge>
-            <Badge variant="success">Online + jugadores</Badge>
+            <Badge variant="info">{t(lang, 'partnerPublic.badges.liveRanking')}</Badge>
+            <Badge variant="warning">
+              {t(lang, 'partnerPublic.badges.featuredPrefix')}
+              {PARTNER_PAID_MAX_SLOT}
+            </Badge>
+            <Badge variant="success">{t(lang, 'partnerPublic.badges.onlinePlayers')}</Badge>
           </div>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Partners destacados</h1>
+          <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.title')}</h1>
           <p className="mt-1 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Publica tu servidor y aparece en el top con banner y enlaces.
+            {t(lang, 'partnerPublic.subtitle')}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <Link href="#ranking" className="inline-flex">
-            <Button variant="secondary" size="md">Ver ranking</Button>
+            <Button variant="secondary" size="md">{t(lang, 'partnerPublic.actions.viewRanking')}</Button>
           </Link>
           <Link href="/partner/publicar" className="inline-flex">
             <Button variant="primary" size="md">
               <FaBolt />
-              <span>Publicar mi servidor</span>
+              <span>{t(lang, 'partnerPublic.actions.publishMyServer')}</span>
             </Button>
           </Link>
         </div>
@@ -331,11 +334,11 @@ export default function PartnerPublicPage() {
           <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <div className="text-gray-900 dark:text-white font-semibold">No se pudo cargar el ranking</div>
+                <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'partnerPublic.errors.cannotLoadRanking')}</div>
                 <div className="text-gray-600 dark:text-gray-400 text-sm mt-1 break-words">{error}</div>
               </div>
               <Link href="/partner/publicar" className="shrink-0 hidden sm:inline-flex">
-                <Button variant="secondary" size="sm">Publicar</Button>
+                <Button variant="secondary" size="sm">{t(lang, 'partnerPublic.actions.publish')}</Button>
               </Link>
             </div>
           </Card>
@@ -350,19 +353,19 @@ export default function PartnerPublicPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <Badge variant="warning">Vacío</Badge>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Aún no hay partners activos</span>
+                    <Badge variant="warning">{t(lang, 'partnerPublic.badges.empty')}</Badge>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{t(lang, 'partnerPublic.emptyState.noActive')}</span>
                   </div>
                   <div className="mt-2 text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                    Sé el primero en ocupar un puesto del top
+                    {t(lang, 'partnerPublic.emptyState.beFirstTitle')}
                   </div>
                   <div className="mt-1 text-sm sm:text-base text-gray-700 dark:text-gray-300">
-                    Un banner claro + una descripción directa suelen ayudar mucho.
+                    {t(lang, 'partnerPublic.emptyState.beFirstDesc')}
                   </div>
                 </div>
                 <div className="shrink-0">
                   <Link href="/partner/publicar" className="inline-flex">
-                    <Button variant="primary" size="md">Publicar</Button>
+                    <Button variant="primary" size="md">{t(lang, 'partnerPublic.actions.publish')}</Button>
                   </Link>
                 </div>
               </div>
@@ -425,7 +428,7 @@ export default function PartnerPublicPage() {
                         ) : null}
                         {!banner ? (
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-                            <div className="mt-1 text-[12px] text-gray-600 dark:text-gray-400">Sin banner</div>
+                            <div className="mt-1 text-[12px] text-gray-600 dark:text-gray-400">{t(lang, 'partnerPublic.fields.noBanner')}</div>
                           </div>
                         ) : null}
                       </div>
@@ -447,14 +450,14 @@ export default function PartnerPublicPage() {
                                   )}
                                 </span>
                               ) : (
-                                <Badge variant="success">Destacado</Badge>
+                                <Badge variant="success">{t(lang, 'partnerPublic.badges.featured')}</Badge>
                               )}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400 truncate">{it.ad.address}{it.ad.version ? ` • ${it.ad.version}` : ''}</div>
                           </div>
 
                           <div className="shrink-0 text-right">
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400">Jugadores</div>
+                            <div className="text-[11px] text-gray-500 dark:text-gray-400">{t(lang, 'partnerPublic.fields.players')}</div>
                             {status === undefined ? (
                               <div className="text-sm font-semibold tabular-nums text-gray-700 dark:text-gray-200">—</div>
                             ) : status && status.online ? (
@@ -462,7 +465,7 @@ export default function PartnerPublicPage() {
                                 {status.players.online}/{status.players.max}
                               </div>
                             ) : (
-                              <div className="text-sm font-semibold tabular-nums text-gray-500 dark:text-gray-400">Offline</div>
+                              <div className="text-sm font-semibold tabular-nums text-gray-500 dark:text-gray-400">{t(lang, 'partnerPublic.fields.offline')}</div>
                             )}
                           </div>
                         </div>
@@ -471,13 +474,15 @@ export default function PartnerPublicPage() {
 
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           {website ? (
-                            <a href={website} target="_blank" rel="noreferrer" className="text-base text-minecraft-grass hover:underline">Web</a>
+                            <a href={website} target="_blank" rel="noreferrer" className="text-base text-minecraft-grass hover:underline">{t(lang, 'partnerPublic.fields.web')}</a>
                           ) : null}
                           {discord ? (
-                            <a href={discord} target="_blank" rel="noreferrer" className="text-base text-minecraft-grass hover:underline">Discord</a>
+                            <a href={discord} target="_blank" rel="noreferrer" className="text-base text-minecraft-grass hover:underline">{t(lang, 'partnerPublic.fields.discord')}</a>
                           ) : null}
                           {it.endsAt ? (
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Activo hasta: {formatDateTime(it.endsAt, dateLocale)}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {t(lang, 'partnerPublic.fields.activeUntil')} {formatDateTime(it.endsAt, dateLocale)}
+                            </span>
                           ) : null}
                         </div>
                       </div>
@@ -487,13 +492,13 @@ export default function PartnerPublicPage() {
               })}
           </div>
 
-          {loading ? <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando ranking…</div> : null}
+          {loading ? <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">{t(lang, 'partnerPublic.badges.loadingRanking')}</div> : null}
 
           <div className="mt-10">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold text-lg">Todos los partners</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Lista general (aprobados por admin). Sin límite de servidores.</div>
+                <div className="text-gray-900 dark:text-white font-bold text-lg">{t(lang, 'partnerPublic.all.title')}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{t(lang, 'partnerPublic.all.subtitle')}</div>
               </div>
             </div>
 
@@ -517,7 +522,7 @@ export default function PartnerPublicPage() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={banner} alt={a.serverName} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
-                          <div className="absolute inset-0 grid place-items-center text-xs text-gray-600 dark:text-gray-400">Sin banner</div>
+                          <div className="absolute inset-0 grid place-items-center text-xs text-gray-600 dark:text-gray-400">{t(lang, 'partnerPublic.fields.noBanner')}</div>
                         )}
                       </div>
 
@@ -529,13 +534,13 @@ export default function PartnerPublicPage() {
                           </div>
                           <div className="shrink-0">
                             {status === undefined ? (
-                              <Badge variant="default">Cargando…</Badge>
+                              <Badge variant="default">{t(lang, 'partnerPublic.badges.loading')}</Badge>
                             ) : status && status.online ? (
                               <Badge variant="success">
-                                {Number(status.players?.online || 0)}/{Number(status.players?.max || 0)} jugadores
+                                {Number(status.players?.online || 0)}/{Number(status.players?.max || 0)} {t(lang, 'partnerPublic.fields.playersSuffix')}
                               </Badge>
                             ) : (
-                              <Badge variant="default">Offline</Badge>
+                              <Badge variant="default">{t(lang, 'partnerPublic.fields.offline')}</Badge>
                             )}
                           </div>
                         </div>
@@ -544,10 +549,10 @@ export default function PartnerPublicPage() {
 
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           {website ? (
-                            <a href={website} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">Web</a>
+                            <a href={website} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">{t(lang, 'partnerPublic.fields.web')}</a>
                           ) : null}
                           {discord ? (
-                            <a href={discord} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">Discord</a>
+                            <a href={discord} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">{t(lang, 'partnerPublic.fields.discord')}</a>
                           ) : null}
                         </div>
                       </div>
@@ -564,7 +569,7 @@ export default function PartnerPublicPage() {
                 onClick={() => void loadBrowse(false)}
                 disabled={browseLoading || !browseCursor}
               >
-                {browseLoading ? 'Cargando…' : browseCursor ? 'Cargar más' : 'No hay más'}
+                {browseLoading ? t(lang, 'partnerPublic.badges.loading') : browseCursor ? t(lang, 'partnerPublic.actions.loadMore') : t(lang, 'partnerPublic.actions.noMore')}
               </Button>
             </div>
           </div>
@@ -573,15 +578,15 @@ export default function PartnerPublicPage() {
         {/* Right rail */}
         <aside className="space-y-3">
           <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">Por qué publicar aquí</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.why.title')}</div>
             <div className="mt-3 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
                   <FaCrown />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Top visible</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Plazas limitadas para destacar.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.why.topTitle')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">{t(lang, 'partnerPublic.why.topDesc')}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -589,8 +594,8 @@ export default function PartnerPublicPage() {
                   <FaGem />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Anuncio completo</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Banner, descripción, web y Discord.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.why.fullTitle')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">{t(lang, 'partnerPublic.why.fullDesc')}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -598,47 +603,51 @@ export default function PartnerPublicPage() {
                   <FaShieldAlt />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Datos en vivo</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Online/offline y jugadores cuando aplica.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.why.liveTitle')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">{t(lang, 'partnerPublic.why.liveDesc')}</div>
                 </div>
               </div>
             </div>
           </Card>
 
           <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">Cómo funciona</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.how.title')}</div>
             <div className="mt-3 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">1</div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Rellena tu anuncio</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Nombre, IP, versión, descripción y banner.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.how.step1Title')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">{t(lang, 'partnerPublic.how.step1Desc')}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">2</div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Elige tu puesto</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Compra VIP o un slot #1–#5, o publica gratis en la lista general.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.how.step2Title')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    {t(lang, 'partnerPublic.how.step2DescPrefix')}
+                    {PARTNER_PAID_MAX_SLOT}
+                    {t(lang, 'partnerPublic.how.step2DescSuffix')}
+                  </div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">3</div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Aparece en el ranking</div>
-                  <div className="text-sm text-gray-700 dark:text-gray-300">Tu anuncio se muestra con enlaces y datos.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'partnerPublic.how.step3Title')}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">{t(lang, 'partnerPublic.how.step3Desc')}</div>
                 </div>
               </div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 p-4">
-              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Consejo</div>
-              <div className="mt-1 text-sm text-gray-800 dark:text-gray-200">Un banner claro y una descripción breve suelen ayudar.</div>
+              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{t(lang, 'partnerPublic.how.tipLabel')}</div>
+              <div className="mt-1 text-sm text-gray-800 dark:text-gray-200">{t(lang, 'partnerPublic.how.tipText')}</div>
             </div>
 
             <div className="mt-4">
               <Link href="/partner/publicar" className="inline-flex w-full">
-                <Button variant="primary" size="md" className="w-full">Empezar ahora</Button>
+                <Button variant="primary" size="md" className="w-full">{t(lang, 'partnerPublic.actions.startNow')}</Button>
               </Link>
             </div>
           </Card>
