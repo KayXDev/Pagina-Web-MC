@@ -4,7 +4,7 @@ Full website for a Minecraft server with a **community / social network** style:
 
 ## 🔗 Demo
 
-- Live Demo: https://999wrld.vercel.app
+- Live Demo: https://999wrldnetwork.es
 
 ---
 
