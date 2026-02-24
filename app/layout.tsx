@@ -66,7 +66,7 @@ export default function RootLayout({
         />
       </head>
       <body className={rajdhani.className}>
-        <Providers>
+        <Providers initialLang={lang}>
           <RootShell>{children}</RootShell>
           <CookieConsent />
           <ChatbotWidget />
