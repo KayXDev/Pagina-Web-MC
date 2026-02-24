@@ -16,7 +16,8 @@ import {
 } from 'react-icons/fa';
 import { Card, Badge, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -72,14 +73,14 @@ const postBadgeVariant = (published?: boolean) => {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    setLang(getClientLangFromCookie());
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {

@@ -3,16 +3,13 @@
 import { useEffect, useState } from 'react';
 import { FaIdBadge, FaClock, FaShieldAlt } from 'react-icons/fa';
 import { Card, Badge } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { useProfile } from './_components/profile-context';
 
 export default function PerfilPage() {
   const { session, status, details, loadingDetails } = useProfile();
-  const [lang, setLang] = useState<Lang>('es');
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
+  const lang = useClientLang();
 
   const formatDateTime = (value?: string | null) => {
     if (!value) return t(lang, 'common.loading');

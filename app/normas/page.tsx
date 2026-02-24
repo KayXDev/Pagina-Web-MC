@@ -5,15 +5,12 @@ import { motion } from 'framer-motion';
 import { FaBook, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import { Card } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 export default function NormasPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [openSection, setOpenSection] = useState<number | null>(0);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const content =
     lang === 'en'

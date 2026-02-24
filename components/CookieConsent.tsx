@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Badge, Button, Card } from '@/components/ui';
+import { useClientLang } from '@/lib/useClientLang';
 
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -30,13 +31,9 @@ function setCookie(name: string, value: string, maxAgeSeconds: number) {
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
-  const [lang, setLang] = useState<'es' | 'en'>('es');
+  const lang = useClientLang();
 
   useEffect(() => {
-    // Decide language from cookie (simple, client-side).
-    const cookieLang = getCookie('lang');
-    setLang(cookieLang === 'en' ? 'en' : 'es');
-
     const existing = getCookie('cookie_consent');
     if (existing === 'accepted' || existing === 'rejected') {
       setVisible(false);

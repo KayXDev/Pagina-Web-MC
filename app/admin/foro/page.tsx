@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 
 import { Badge, Button, Card, Input, Select } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 type ForumAdminPost = {
   _id: string;
@@ -28,7 +29,7 @@ const CATEGORIES = [
 ];
 
 export default function AdminForoPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState<ForumAdminPost[]>([]);
   const [q, setQ] = useState('');
@@ -65,7 +66,6 @@ export default function AdminForoPage() {
   };
 
   useEffect(() => {
-    setLang(getClientLangFromCookie());
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryString]);

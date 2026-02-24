@@ -6,7 +6,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { FaArrowLeft, FaCheckCircle, FaUser } from 'react-icons/fa';
 import { Badge, Button } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { PublicProfileProvider, usePublicProfile } from './public-profile-context';
 import { toast } from 'react-toastify';
 
@@ -47,12 +48,8 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data: session } = useSession();
   const { usernameParam, profile, loading, setProfile } = usePublicProfile();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [followLoading, setFollowLoading] = useState(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const tabs = useMemo(
     () => [

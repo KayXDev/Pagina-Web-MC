@@ -8,7 +8,8 @@ import { FaBell } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import { Badge, Button, Card } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatTimeAgo } from '@/lib/utils';
 
 type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
@@ -25,17 +26,13 @@ type NotificationItem = {
 export default function NotificacionesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [markingAll, setMarkingAll] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {

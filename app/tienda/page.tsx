@@ -10,7 +10,8 @@ import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Badge, Input } from '@/components/ui';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import type { MinecraftAccountSource } from '@/lib/minecraftAccount';
 
 interface Product {
@@ -25,7 +26,7 @@ interface Product {
 
 export default function TiendaPage() {
   const { status } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -49,10 +50,6 @@ export default function TiendaPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(false);
   const [savingCart, setSavingCart] = useState(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     let alive = true;

@@ -5,7 +5,8 @@ import { FaTicketAlt, FaTimes, FaSearch, FaSyncAlt } from 'react-icons/fa';
 import { Card, Badge, Button, Select, Textarea, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatDateTime } from '@/lib/utils';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t, type Lang } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface Ticket {
   _id: string;
@@ -38,7 +39,7 @@ type Participant = {
 };
 
 export default function AdminTicketsPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -55,9 +56,7 @@ export default function AdminTicketsPage() {
   const liveFetchRef = useRef(false);
 
   useEffect(() => {
-    const clientLang = getClientLangFromCookie();
-    setLang(clientLang);
-    fetchTickets(clientLang);
+    fetchTickets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

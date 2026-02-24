@@ -7,7 +7,8 @@ import { FaCreditCard, FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from '
 import PageHeader from '@/components/PageHeader';
 import { Badge, Button, Card, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatPrice } from '@/lib/utils';
 
 type CartItem = { productId: string; quantity: number };
@@ -21,7 +22,7 @@ type Product = {
 
 export default function CartPage() {
   const { status } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -50,10 +51,6 @@ export default function CartPage() {
     lang === 'es'
       ? 'Introduce y verifica tu username de Minecraft para poder pagar.'
       : 'Enter and verify your Minecraft username to checkout.';
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const localCartKey = 'shop.cart.items';
   const readLocalCart = (): CartItem[] => {

@@ -18,7 +18,8 @@ import {
 } from 'react-icons/fa';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { toast } from 'react-toastify';
 
 type ForumCategory = 'GENERAL' | 'HELP' | 'REPORTS' | 'TRADES';
@@ -51,7 +52,7 @@ const CATEGORIES: Array<{ value: '' | ForumCategory; labelKey: string }> = [
 export default function ForoPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [category, setCategory] = useState<'' | ForumCategory>('');
@@ -69,10 +70,6 @@ export default function ForoPage() {
 
   const [media, setMedia] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const fetchPosts = async (
     selectedCategory: '' | ForumCategory,

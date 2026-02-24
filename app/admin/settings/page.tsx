@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
 import { FaCheck, FaCog, FaPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 export default function AdminMaintenancePage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [customPath, setCustomPath] = useState('');
@@ -81,10 +82,6 @@ export default function AdminMaintenancePage() {
     next.delete(path);
     setSettings((prev) => ({ ...prev, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) }));
   };
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     fetchSettings();

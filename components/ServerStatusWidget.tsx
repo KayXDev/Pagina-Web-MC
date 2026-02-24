@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaServer, FaUsers, FaCopy, FaCheck } from 'react-icons/fa';
 import { getServerStatus, type ServerStatus } from '@/lib/minecraft';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface ServerStatusWidgetProps {
   host: string;
@@ -12,14 +13,10 @@ interface ServerStatusWidgetProps {
 }
 
 const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     const fetchStatus = async () => {

@@ -6,7 +6,8 @@ import { useSession } from 'next-auth/react';
 import { createPortal } from 'react-dom';
 import { FaBullhorn, FaCalendarAlt, FaCrown, FaTag } from 'react-icons/fa';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
+import { getDateLocale } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatDateTime, formatPrice } from '@/lib/utils';
 import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT, PARTNER_SLOTS, type PartnerPricingConfig } from '@/lib/partnerPricing';
 
@@ -116,8 +117,7 @@ export default function PartnerAdminPage() {
 
   const [tab, setTab] = useState<'ADS' | 'BOOKINGS' | 'PRICING' | 'OWNER'>('ADS');
 
-  const [lang, setLang] = useState<Lang>('es');
-  useEffect(() => setLang(getClientLangFromCookie()), []);
+  const lang = useClientLang();
   const dateLocale = getDateLocale(lang);
 
   const [adsStatus, setAdsStatus] = useState<AdminAd['status']>('PENDING_REVIEW');

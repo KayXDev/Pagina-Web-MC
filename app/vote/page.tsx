@@ -1,20 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useClientLang } from '@/lib/useClientLang';
 import Link from 'next/link';
 import { FaGift, FaExternalLinkAlt, FaVoteYea } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Badge, Card } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { VOTE_SITES } from '@/lib/voteSites';
 
 export default function VotePage() {
-  const [lang, setLang] = useState<Lang>('es');
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
+  const lang = useClientLang();
 
   return (
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

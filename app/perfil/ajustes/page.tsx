@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { Badge, Card, Input, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { useProfile } from '../_components/profile-context';
 import { FaImage, FaSignOutAlt, FaTrash, FaUpload, FaUserCircle } from 'react-icons/fa';
 
 export default function PerfilAjustesPage() {
   const { update } = useSession();
   const { session, status, refresh, details, loadingDetails } = useProfile();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
 
   const [username, setUsername] = useState('');
   const [savingUsername, setSavingUsername] = useState(false);
@@ -30,10 +31,6 @@ export default function PerfilAjustesPage() {
   const [minecraftResolved, setMinecraftResolved] = useState<null | { username: string; uuid: string }>(null);
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
   const [savingMinecraft, setSavingMinecraft] = useState(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     if (session?.user?.name) setUsername(session.user.name);

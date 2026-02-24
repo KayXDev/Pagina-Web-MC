@@ -7,11 +7,12 @@ import { motion } from 'framer-motion';
 import { FaUser, FaEnvelope, FaLock, FaUserPlus } from 'react-icons/fa';
 import { Input, Button, Card } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -19,10 +20,6 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

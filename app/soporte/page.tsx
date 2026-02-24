@@ -8,7 +8,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Card, Input, Textarea, Select, Button, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface Ticket {
   _id: string;
@@ -22,7 +23,7 @@ interface Ticket {
 export default function SoportePage() {
   const { status } = useSession();
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [formData, setFormData] = useState({
@@ -30,10 +31,6 @@ export default function SoportePage() {
     category: 'TECHNICAL',
     message: '',
   });
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {

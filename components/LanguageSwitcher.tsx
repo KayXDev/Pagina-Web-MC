@@ -3,17 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCheck, FaGlobe } from 'react-icons/fa';
-import { getClientLangFromCookie, normalizeLang, type Lang, t } from '@/lib/i18n';
+import { normalizeLang, type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 export default function LanguageSwitcher({ className = '' }: { className?: string }) {
   const router = useRouter();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -52,11 +49,22 @@ export default function LanguageSwitcher({ className = '' }: { className?: strin
 
   const applyLang = (nextRaw: string) => {
     const next = normalizeLang(nextRaw);
-    setLang(next);
     setCookie(next);
     setOpen(false);
+
+    try {
+      document.documentElement.lang = next;
+    } catch {
+      // ignore
+    }
+
+    try {
+      window.dispatchEvent(new Event('langchange'));
+    } catch {
+      // ignore
+    }
+
     router.refresh();
-    window.location.reload();
   };
 
   return (

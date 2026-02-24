@@ -6,7 +6,8 @@ import { FaPlus, FaEdit, FaTrash, FaNewspaper, FaEye } from 'react-icons/fa';
 import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatDate } from '@/lib/utils';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface BlogPost {
   _id: string;
@@ -24,7 +25,7 @@ interface BlogPost {
 }
 
 export default function AdminBlogPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -38,10 +39,6 @@ export default function AdminBlogPage() {
     tags: '',
     isPublished: false,
   });
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     fetchPosts();

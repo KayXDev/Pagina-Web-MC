@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { FaKey } from 'react-icons/fa';
 import { Card, Button, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 type AdminUser = {
   _id: string;
@@ -19,7 +20,7 @@ type AdminUser = {
 const SECTION_KEYS = ['users', 'products', 'tickets', 'forum', 'blog', 'partner', 'applications', 'logs', 'settings'] as const;
 
 export default function AdminPermisosPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -47,7 +48,6 @@ export default function AdminPermisosPage() {
   };
 
   useEffect(() => {
-    setLang(getClientLangFromCookie());
     // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps

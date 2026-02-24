@@ -6,7 +6,8 @@ import { FaPlus, FaEdit, FaTrash, FaShoppingCart, FaUpload } from 'react-icons/f
 import { Card, Button, Input, Textarea, Select, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatPrice } from '@/lib/utils';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface Product {
   _id: string;
@@ -23,7 +24,7 @@ interface Product {
 }
 
 export default function AdminProductsPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -42,10 +43,6 @@ export default function AdminProductsPage() {
     isUnlimited: true,
     stock: 0,
   });
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     fetchProducts();

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, Badge, Button } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, getDateLocale, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatDateTime } from '@/lib/utils';
 import { PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 import { FaBolt, FaCrown, FaGem, FaShieldAlt } from 'react-icons/fa';
@@ -110,7 +111,7 @@ function getPodiumStyles(slot: number) {
 }
 
 export default function PartnerPublicPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<ActiveItem[]>([]);
@@ -121,10 +122,6 @@ export default function PartnerPublicPage() {
   const [browseError, setBrowseError] = useState<string | null>(null);
 
   const [statusByAdId, setStatusByAdId] = useState<Record<string, ServerStatus | null>>({});
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const loadBrowse = async (reset: boolean) => {
     setBrowseLoading(true);

@@ -9,7 +9,8 @@ import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Badge } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface BlogPost {
   _id: string;
@@ -25,13 +26,9 @@ interface BlogPost {
 }
 
 export default function NoticiasPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -40,7 +37,7 @@ export default function NoticiasPage() {
         const data = await response.json();
         setPosts(data);
       } catch (error) {
-        toast.error(t(getClientLangFromCookie(), 'news.loadError'));
+        toast.error(t(lang, 'news.loadError'));
       } finally {
         setLoading(false);
       }

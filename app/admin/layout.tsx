@@ -19,18 +19,16 @@ import {
   FaTimes,
   FaUsers,
 } from 'react-icons/fa';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { Badge } from '@/components/ui';
+import { useClientLang } from '@/lib/useClientLang';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
   const { data: session } = useSession();
 
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     setSidebarOpen(false);

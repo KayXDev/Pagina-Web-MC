@@ -9,7 +9,8 @@ import { Card, Button, Badge } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface BlogPost {
   _id: string;
@@ -28,7 +29,7 @@ export default function NoticiaPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const slug = typeof params?.slug === 'string' ? params.slug : '';
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [likesCount, setLikesCount] = useState(0);
@@ -36,21 +37,17 @@ export default function NoticiaPage() {
   const [liking, setLiking] = useState(false);
 
   useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
-
-  useEffect(() => {
     const fetchPost = async () => {
       try {
         const response = await fetch(`/api/blog/${slug}`);
         if (!response.ok) {
-          throw new Error(t(getClientLangFromCookie(), 'news.notFound'));
+          throw new Error(t(lang, 'news.notFound'));
         }
         const data = await response.json();
         setPost(data);
         setLikesCount(typeof data?.likesCount === 'number' ? data.likesCount : 0);
       } catch (error: any) {
-        toast.error(error.message || t(getClientLangFromCookie(), 'news.postLoadError'));
+        toast.error(error.message || t(lang, 'news.postLoadError'));
         router.push('/noticias');
       } finally {
         setLoading(false);
@@ -60,7 +57,7 @@ export default function NoticiaPage() {
     if (slug) {
       fetchPost();
     }
-  }, [slug, router]);
+  }, [slug, router, lang]);
 
   useEffect(() => {
     const fetchLikeStatus = async () => {

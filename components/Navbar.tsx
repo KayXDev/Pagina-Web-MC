@@ -9,7 +9,8 @@ import { signOut, useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatPrice } from '@/lib/utils';
 import { 
   FaHome, 
@@ -35,7 +36,7 @@ const Navbar = () => {
   const [brandIconStatus, setBrandIconStatus] = useState<'ok' | 'error'>('ok');
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifOpenDesktop, setNotifOpenDesktop] = useState(false);
@@ -53,10 +54,6 @@ const Navbar = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartProducts, setCartProducts] = useState<Product[]>([]);
   const cartRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     setMounted(true);

@@ -7,7 +7,8 @@ import { FaUsers, FaUser, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle,
 import { motion } from 'framer-motion';
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface User {
   _id: string;
@@ -22,7 +23,7 @@ interface User {
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,9 +39,7 @@ export default function AdminUsersPage() {
   });
 
   useEffect(() => {
-    const clientLang = getClientLangFromCookie();
-    setLang(clientLang);
-    fetchUsers(clientLang);
+    fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

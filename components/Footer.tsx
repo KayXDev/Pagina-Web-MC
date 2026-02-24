@@ -2,14 +2,11 @@
 
 import Link from 'next/link';
 import { FaDiscord, FaTiktok, FaYoutube, FaHeart } from 'react-icons/fa';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
-import { useEffect, useState } from 'react';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 const Footer = () => {
-  const [lang, setLang] = useState<Lang>('es');
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
+  const lang = useClientLang();
   const currentYear = new Date().getFullYear();
 
   return (

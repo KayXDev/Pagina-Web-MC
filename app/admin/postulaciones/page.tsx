@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import { FaClipboardList, FaTimes } from 'react-icons/fa';
 import { Card, Badge, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, getDateLocale, t, type Lang } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface StaffApplication {
   _id: string;
@@ -20,7 +21,7 @@ interface StaffApplication {
 }
 
 export default function AdminPostulacionesPage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<StaffApplication[]>([]);
   const [openLoading, setOpenLoading] = useState(true);
@@ -28,10 +29,6 @@ export default function AdminPostulacionesPage() {
   const [toggling, setToggling] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<StaffApplication | null>(null);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const formatDateTime = (iso: string) =>
     new Intl.DateTimeFormat(getDateLocale(lang), {

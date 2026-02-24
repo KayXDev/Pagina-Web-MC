@@ -6,7 +6,8 @@ import { signOut } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
 import { FaCheckCircle, FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { Badge, Button } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { ProfileProvider, useProfile } from './profile-context';
 
 function initials(name: string) {
@@ -44,11 +45,7 @@ function getTagVariant(tag: string): 'default' | 'success' | 'warning' | 'danger
 function InnerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, status, details, loadingDetails } = useProfile();
-  const [lang, setLang] = useState<Lang>('es');
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
+  const lang = useClientLang();
 
   const tabs = useMemo(
     () => [

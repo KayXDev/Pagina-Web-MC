@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { useProfile } from '../_components/profile-context';
 import { FaComments, FaEye, FaHeart } from 'react-icons/fa';
 
@@ -27,13 +28,9 @@ function formatDate(value?: string, lang?: Lang) {
 
 export default function PerfilActividadPage() {
   const { session, status } = useProfile();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [items, setItems] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const username = String(session?.user?.name || '');
 

@@ -6,7 +6,8 @@ import { Card, Badge, Input, Button } from '@/components/ui';
 import { formatDateTime } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t, type Lang } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface Log {
   _id: string;
@@ -22,7 +23,7 @@ interface Log {
 
 export default function AdminLogsPage() {
   const { data: session } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -68,9 +69,7 @@ export default function AdminLogsPage() {
   };
 
   useEffect(() => {
-    const clientLang = getClientLangFromCookie();
-    setLang(clientLang);
-    fetchLogs(clientLang);
+    fetchLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

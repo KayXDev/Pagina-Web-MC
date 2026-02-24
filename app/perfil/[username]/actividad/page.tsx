@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Badge, Card } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { FaComments, FaEye, FaHeart } from 'react-icons/fa';
 
 type ForumPost = {
@@ -27,13 +28,9 @@ function formatDate(value?: string, lang?: Lang) {
 
 export default function PublicPerfilActividadPage() {
   const params = useParams<{ username: string }>();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [items, setItems] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const username = typeof params?.username === 'string' ? params.username : '';
 

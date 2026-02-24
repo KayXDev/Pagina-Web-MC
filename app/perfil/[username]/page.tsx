@@ -2,17 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { type Lang, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { FaClock, FaIdBadge } from 'react-icons/fa';
 import { usePublicProfile } from './_components/public-profile-context';
 
 export default function PublicPerfilOverviewPage() {
   const { profile, loading } = usePublicProfile();
-  const [lang, setLang] = useState<Lang>('es');
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
+  const lang = useClientLang();
 
   const formatDateTime = (value?: string | null) => {
     if (!value) return '-';

@@ -7,11 +7,12 @@ import { FaPlay, FaShoppingCart, FaUsers, FaShieldAlt, FaFire, FaGem } from 'rea
 import ServerStatusWidget from '@/components/ServerStatusWidget';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Input, Textarea } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, t } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { toast } from 'react-toastify';
 
 export default function HomePage() {
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [staffForm, setStaffForm] = useState({ username: '', discord: '', about: '' });
   const [sendingStaff, setSendingStaff] = useState(false);
 
@@ -54,9 +55,6 @@ export default function HomePage() {
   };
 
   const [staffOpen, setStaffOpen] = useState(process.env.NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN === 'true');
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     const loadStaffOpen = async () => {

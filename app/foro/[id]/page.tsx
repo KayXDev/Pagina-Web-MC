@@ -18,7 +18,8 @@ import {
 } from 'react-icons/fa';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Badge, Button, Card, Textarea } from '@/components/ui';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { toast } from 'react-toastify';
 
 type ForumCategory = 'GENERAL' | 'HELP' | 'REPORTS' | 'TRADES';
@@ -63,7 +64,7 @@ export default function ForoPostPage() {
   const { data: session } = useSession();
   const postId = typeof params?.id === 'string' ? params.id : '';
 
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<ForumPost | null>(null);
   const [views, setViews] = useState(0);
@@ -84,10 +85,6 @@ export default function ForoPostPage() {
   const [followLoading, setFollowLoading] = useState(false);
 
   const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'OWNER';
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const categoryLabel = useMemo(() => {
     const c = post?.category;

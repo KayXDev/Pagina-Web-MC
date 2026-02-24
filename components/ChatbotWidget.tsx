@@ -5,7 +5,8 @@ import { Card, Button, Input } from '@/components/ui';
 import { FaComments, FaTimes } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getClientLangFromCookie, t, type Lang } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 type ChatMsg = { role: 'user' | 'assistant'; content: string };
 
@@ -24,7 +25,7 @@ export default function ChatbotWidget() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,10 +49,14 @@ export default function ChatbotWidget() {
   );
 
   useEffect(() => {
-    const clientLang = getClientLangFromCookie();
-    setLang(clientLang);
-    setMessages([{ role: 'assistant', content: t(clientLang, 'chatbot.greet') }]);
-  }, []);
+    setMessages((prev) => {
+      if (prev.length === 0) return [{ role: 'assistant', content: t(lang, 'chatbot.greet') }];
+      if (prev.length === 1 && prev[0]?.role === 'assistant') {
+        return [{ role: 'assistant', content: t(lang, 'chatbot.greet') }];
+      }
+      return prev;
+    });
+  }, [lang]);
 
   const transcript = useMemo(() => {
     const lines = messages

@@ -8,7 +8,8 @@ import { FaArrowLeft, FaTicketAlt } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import { Badge, Button, Card, Textarea } from '@/components/ui';
 import { toast } from 'react-toastify';
-import { getClientLangFromCookie, getDateLocale, type Lang, t } from '@/lib/i18n';
+import { getDateLocale, t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 
 interface Ticket {
   _id: string;
@@ -51,7 +52,7 @@ export default function TicketChatView({
   const { status } = useSession();
   const router = useRouter();
 
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
   const [loading, setLoading] = useState(true);
   const [ticketDetails, setTicketDetails] = useState<{ ticket: Ticket; replies: TicketReply[] } | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -61,10 +62,6 @@ export default function TicketChatView({
   const [participants, setParticipants] = useState<Participant[]>([]);
 
   const fetchingDetailsRef = useRef(false);
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {

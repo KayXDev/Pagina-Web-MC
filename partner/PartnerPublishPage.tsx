@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
-import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
+import { getDateLocale } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
 import { formatDateTime, formatPrice } from '@/lib/utils';
 import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT } from '@/lib/partnerPricing';
 
@@ -71,7 +72,7 @@ function bookingBadge(status: PartnerBooking['status']) {
 
 export default function PartnerPublishPage() {
   const { data: session, status: sessionStatus } = useSession();
-  const [lang, setLang] = useState<Lang>('es');
+  const lang = useClientLang();
 
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -103,10 +104,6 @@ export default function PartnerPublishPage() {
   const [selectedSlot, setSelectedSlot] = useState<number>(1);
   const [publishMode, setPublishMode] = useState<'FEATURED' | 'STANDARD'>('STANDARD');
   const [submissionNote, setSubmissionNote] = useState<string>('');
-
-  useEffect(() => {
-    setLang(getClientLangFromCookie());
-  }, []);
 
   const dateLocale = getDateLocale(lang);
 
