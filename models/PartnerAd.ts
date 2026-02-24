@@ -18,6 +18,7 @@ export interface IPartnerAd {
 
   status: PartnerAdStatus;
   rejectionReason?: string;
+  submissionNote?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +40,7 @@ const PartnerAdSchema = new Schema<IPartnerAd>(
 
     status: { type: String, enum: ['PENDING_REVIEW', 'APPROVED', 'REJECTED'], default: 'PENDING_REVIEW', index: true },
     rejectionReason: { type: String, default: '', trim: true, maxlength: 300 },
+    submissionNote: { type: String, default: '', trim: true, maxlength: 300 },
   },
   { timestamps: true }
 );

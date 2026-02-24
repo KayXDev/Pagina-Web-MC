@@ -8,7 +8,7 @@ import { FaBullhorn, FaCalendarAlt, FaCrown, FaTag } from 'react-icons/fa';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
 import { formatDateTime, formatPrice } from '@/lib/utils';
-import { PARTNER_MAX_DAYS, PARTNER_SLOTS, type PartnerPricingConfig } from '@/lib/partnerPricing';
+import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT, PARTNER_SLOTS, type PartnerPricingConfig } from '@/lib/partnerPricing';
 
 type AdminAd = {
   _id: string;
@@ -23,6 +23,7 @@ type AdminAd = {
   banner?: string;
   status: 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
   rejectionReason?: string;
+  submissionNote?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -36,14 +37,19 @@ type AdminBooking = {
   days: number;
   currency: string;
   totalPrice: number;
-  provider: 'PAYPAL' | 'STRIPE';
+  provider: 'PAYPAL' | 'STRIPE' | 'FREE';
   status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELED';
+  requestNote?: string;
   paidAt?: string | null;
   startsAt?: string | null;
   endsAt?: string | null;
   createdAt: string;
   ad?: { serverName: string; ownerUsername: string; status: string } | null;
 };
+
+function slotLabel(slot: number): string {
+  return Number(slot) === 0 ? 'VIP' : `#${slot}`;
+}
 
 function adBadge(status: AdminAd['status']) {
   if (status === 'APPROVED') return <Badge variant="success">APROBADO</Badge>;
@@ -124,6 +130,7 @@ export default function PartnerAdminPage() {
 
   const [editAdSaving, setEditAdSaving] = useState(false);
   const [editAdError, setEditAdError] = useState<string | null>(null);
+  const [editBannerUploading, setEditBannerUploading] = useState(false);
   const [editAdForm, setEditAdForm] = useState({
     ownerUsername: '',
     serverName: '',
@@ -155,6 +162,7 @@ export default function PartnerAdminPage() {
   const [overridesSaving, setOverridesSaving] = useState(false);
   const [overridesError, setOverridesError] = useState<string | null>(null);
   const [slotOverrides, setSlotOverrides] = useState<string[]>(Array(PARTNER_SLOTS).fill(''));
+  const [vipOverride, setVipOverride] = useState<string>('');
   const [approvedAds, setApprovedAds] = useState<AdminAd[]>([]);
 
   const [systemAdCreating, setSystemAdCreating] = useState(false);
@@ -184,9 +192,13 @@ export default function PartnerAdminPage() {
       const slots = Array.isArray((data as any)?.overrides?.slots) ? ((data as any).overrides.slots as any[]) : [];
       const next = Array.from({ length: PARTNER_SLOTS }, (_, i) => String(slots[i] ?? '').trim());
       setSlotOverrides(next);
+
+      const vipAdId = String((data as any)?.overrides?.vipAdId || '').trim();
+      setVipOverride(vipAdId);
     } catch (e: any) {
       setOverridesError(String(e?.message || 'Error'));
       setSlotOverrides(Array(PARTNER_SLOTS).fill(''));
+      setVipOverride('');
     } finally {
       setOverridesLoading(false);
     }
@@ -213,7 +225,7 @@ export default function PartnerAdminPage() {
       const res = await fetch('/api/admin/partner/slots', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots: slotOverrides }),
+        body: JSON.stringify({ slots: slotOverrides, vipAdId: vipOverride }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
@@ -267,6 +279,13 @@ export default function PartnerAdminPage() {
                 : []
             )
           : [],
+
+        vipTotalsEur: Array.isArray((cfg as any).vipTotalsEur)
+          ? ((cfg as any).vipTotalsEur as any[]).map((n) => {
+              const v = Number(n);
+              return Number.isFinite(v) ? Math.max(0, Math.round(v * 100) / 100) : 0;
+            })
+          : [],
       });
     } catch (e: any) {
       setPricingError(String(e?.message || 'Error'));
@@ -281,7 +300,9 @@ export default function PartnerAdminPage() {
     const ok =
       Array.isArray(pricing.slotTotalsEur) &&
       pricing.slotTotalsEur.length === PARTNER_SLOTS &&
-      pricing.slotTotalsEur.every((row) => Array.isArray(row) && row.length === PARTNER_MAX_DAYS);
+      pricing.slotTotalsEur.every((row) => Array.isArray(row) && row.length === PARTNER_MAX_DAYS) &&
+      Array.isArray(pricing.vipTotalsEur) &&
+      pricing.vipTotalsEur.length === PARTNER_MAX_DAYS;
     if (!ok) {
       setPricingError(`Debes rellenar los precios para ${PARTNER_SLOTS} slots y ${PARTNER_MAX_DAYS} días.`);
       return;
@@ -295,6 +316,7 @@ export default function PartnerAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slotTotalsEur: pricing.slotTotalsEur,
+          vipTotalsEur: pricing.vipTotalsEur,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -463,6 +485,25 @@ export default function PartnerAdminPage() {
       setEditAdError(String(e?.message || 'Error'));
     } finally {
       setEditAdSaving(false);
+    }
+  };
+
+  const uploadEditBanner = async (file: File) => {
+    setEditBannerUploading(true);
+    setEditAdError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/uploads/partner-banner', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      const url = String((data as any)?.url || '').trim();
+      if (!url) throw new Error('Error al subir imagen');
+      setEditAdForm((p) => ({ ...p, banner: url }));
+    } catch (e: any) {
+      setEditAdError(String(e?.message || 'Error al subir imagen'));
+    } finally {
+      setEditBannerUploading(false);
     }
   };
 
@@ -773,6 +814,13 @@ export default function PartnerAdminPage() {
                       </div>
                     ) : null}
 
+                    {String(selectedAd.submissionNote || '').trim() ? (
+                      <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+                        <div className="font-semibold">Nota de solicitud</div>
+                        <div className="mt-1 whitespace-pre-wrap">{String(selectedAd.submissionNote || '').trim()}</div>
+                      </div>
+                    ) : null}
+
                     <div className="mt-4 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedAd.description}</div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
@@ -839,6 +887,7 @@ export default function PartnerAdminPage() {
                     <th className="py-2 pr-4">Anuncio</th>
                     <th className="py-2 pr-4">User</th>
                     <th className="py-2 pr-4">Pago</th>
+                    <th className="py-2 pr-4">Nota</th>
                     <th className="py-2 pr-4">Fin</th>
                     <th className="py-2">Creada</th>
                   </tr>
@@ -847,13 +896,20 @@ export default function PartnerAdminPage() {
                   {bookings.map((b) => (
                     <tr key={b._id} className="text-gray-700 dark:text-gray-200">
                       <td className="py-3 pr-4">{bookingBadge(b.status)}</td>
-                      <td className="py-3 pr-4 font-semibold">#{b.slot}</td>
+                      <td className="py-3 pr-4 font-semibold">{slotLabel(Number(b.slot))}</td>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-gray-900 dark:text-white">{b.ad?.serverName || '—'}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{b.ad?.ownerUsername || ''}</div>
                       </td>
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400">{b.userId}</td>
-                      <td className="py-3 pr-4">{b.provider} • {formatPrice(Number(b.totalPrice || 0), dateLocale, String(b.currency || 'EUR'))}</td>
+                      <td className="py-3 pr-4">
+                        {String(b.provider) === 'FREE'
+                          ? 'GRATIS'
+                          : `${b.provider} • ${formatPrice(Number(b.totalPrice || 0), dateLocale, String(b.currency || 'EUR'))}`}
+                      </td>
+                      <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400 max-w-[360px]">
+                        {String(b.requestNote || '').trim() ? String(b.requestNote).trim() : '—'}
+                      </td>
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400">{b.endsAt ? formatDateTime(b.endsAt, dateLocale) : '—'}</td>
                       <td className="py-3 text-xs text-gray-500 dark:text-gray-400">{formatDateTime(b.createdAt, dateLocale)}</td>
                     </tr>
@@ -899,7 +955,7 @@ export default function PartnerAdminPage() {
                   </Select>
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Slot #1 {Number(pricing.slotTotalsEur?.[0]?.[pricingDay - 1] || 0)}€ • Slot #10 {Number(pricing.slotTotalsEur?.[9]?.[pricingDay - 1] || 0)}€
+                  VIP {Number(pricing.vipTotalsEur?.[pricingDay - 1] || 0)}€ • Slot #1 {Number(pricing.slotTotalsEur?.[0]?.[pricingDay - 1] || 0)}€ • Slot #10 {Number(pricing.slotTotalsEur?.[9]?.[pricingDay - 1] || 0)}€
                 </div>
               </div>
             </div>
@@ -963,10 +1019,39 @@ export default function PartnerAdminPage() {
           </div>
 
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Editas el precio total de ese día para cada slot (EUR).
+            Editas el precio total de ese día para VIP y para cada slot (EUR).
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {(() => {
+              const dayIdx = Math.min(PARTNER_MAX_DAYS, Math.max(1, pricingDay)) - 1;
+              const v = Number(pricing?.vipTotalsEur?.[dayIdx] ?? 0);
+              return (
+                <div>
+                  <label className="text-xs text-gray-600 dark:text-gray-400">VIP</label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    value={String(Number.isFinite(v) ? v : 0)}
+                    onChange={(e) => {
+                      const nextRaw = e.target.value;
+                      const cleaned = nextRaw.trim();
+                      const nextNum = cleaned === '' ? 0 : Number(cleaned.replace(',', '.'));
+                      const next = Number.isFinite(nextNum) ? Math.max(0, Math.round(nextNum * 100) / 100) : 0;
+                      setPricing((p) => {
+                        if (!p) return p;
+                        const vip = Array.isArray(p.vipTotalsEur) ? [...p.vipTotalsEur] : [];
+                        while (vip.length < PARTNER_MAX_DAYS) vip.push(0);
+                        vip[dayIdx] = next;
+                        return { ...p, vipTotalsEur: vip };
+                      });
+                    }}
+                    disabled={pricingSaving}
+                  />
+                </div>
+              );
+            })()}
             {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
               const slotIdx = slot - 1;
               const dayIdx = Math.min(PARTNER_MAX_DAYS, Math.max(1, pricingDay)) - 1;
@@ -1007,6 +1092,10 @@ export default function PartnerAdminPage() {
       <Modal open={overridesOpen} title="Asignación manual de slots" onClose={() => setOverridesOpen(false)}>
         {overridesError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{overridesError}</div> : null}
 
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          Solo afecta a destacados: VIP + #{PARTNER_PAID_MAX_SLOT}
+        </div>
+
         <div className="flex items-center justify-end gap-2 mb-4">
           <Button variant="secondary" size="sm" onClick={() => setOverridesOpen(false)} disabled={overridesSaving}>Cancelar</Button>
           <Button variant="primary" size="sm" onClick={saveOverrides} disabled={overridesLoading || overridesSaving}>
@@ -1015,7 +1104,23 @@ export default function PartnerAdminPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: PARTNER_SLOTS }, (_, i) => i + 1).map((slot) => {
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400">VIP (fijo arriba)</label>
+            <Select
+              value={String(vipOverride || '')}
+              onChange={(e) => setVipOverride(String(e.target.value || '').trim())}
+              disabled={overridesLoading || overridesSaving}
+            >
+              <option value="">— Automático (reserva activa) —</option>
+              {approvedAds.map((a) => (
+                <option key={a._id} value={a._id}>
+                  {a.serverName} — {a.ownerUsername}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          {Array.from({ length: PARTNER_PAID_MAX_SLOT }, (_, i) => i + 1).map((slot) => {
             const idx = slot - 1;
             const value = String(slotOverrides[idx] || '');
             return (
@@ -1138,8 +1243,35 @@ export default function PartnerAdminPage() {
                 <Input value={editAdForm.discord} onChange={(e) => setEditAdForm((p) => ({ ...p, discord: e.target.value }))} />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
-                <Input value={editAdForm.banner} onChange={(e) => setEditAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
+                <label className="text-xs text-gray-600 dark:text-gray-400">Banner (archivo, opcional)</label>
+                <Input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={editAdSaving || editBannerUploading}
+                  onChange={(e) => {
+                    const file = e.currentTarget.files?.[0];
+                    e.currentTarget.value = '';
+                    if (!file) return;
+                    void uploadEditBanner(file);
+                  }}
+                />
+                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  {editBannerUploading ? <span>Subiendo…</span> : null}
+                  {!editBannerUploading && String(editAdForm.banner || '').trim() ? (
+                    <>
+                      <a href={String(editAdForm.banner || '').trim()} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">Ver</a>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        type="button"
+                        onClick={() => setEditAdForm((p) => ({ ...p, banner: '' }))}
+                        disabled={editAdSaving}
+                      >
+                        Quitar
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
               </div>
               <div className="sm:col-span-2">
                 <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>

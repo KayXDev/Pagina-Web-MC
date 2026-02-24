@@ -16,6 +16,9 @@ function getRequestIp(request: Request) {
 const patchSchema = z.object({
   // EUR totals; allow 0
   slotTotalsEur: z.array(z.array(z.coerce.number().min(0)).length(PARTNER_MAX_DAYS)).length(PARTNER_SLOTS),
+
+  // VIP totals; allow 0
+  vipTotalsEur: z.array(z.coerce.number().min(0)).length(PARTNER_MAX_DAYS),
 });
 
 export async function GET() {
@@ -41,6 +44,7 @@ export async function PATCH(request: Request) {
       slotTotalsEur: parsed.data.slotTotalsEur.map((row) =>
         row.map((n) => Math.max(0, Math.round(Number(n) * 100) / 100))
       ),
+      vipTotalsEur: parsed.data.vipTotalsEur.map((n) => Math.max(0, Math.round(Number(n) * 100) / 100)),
     };
 
     await setPartnerPricingConfig(next);
@@ -53,6 +57,7 @@ export async function PATCH(request: Request) {
       targetId: 'partnerPricing',
       details: JSON.stringify({
         slotTotalsEur: next.slotTotalsEur,
+        vipTotalsEur: next.vipTotalsEur,
       }),
       meta: {
         path: '/api/admin/partner/pricing',

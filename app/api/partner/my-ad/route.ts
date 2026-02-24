@@ -29,7 +29,7 @@ export async function GET() {
     const ad = await PartnerAd.findOne({ userId: user.id }).lean();
     const bookings = ad
       ? await PartnerBooking.find({ adId: String((ad as any)._id) })
-          .select('slot kind days status startsAt endsAt provider totalPrice currency createdAt')
+          .select('slot kind days status startsAt endsAt provider totalPrice currency createdAt requestNote')
           .sort({ createdAt: -1 })
           .limit(20)
           .lean()

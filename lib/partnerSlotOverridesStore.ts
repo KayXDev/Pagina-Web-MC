@@ -1,13 +1,16 @@
 import dbConnect from '@/lib/mongodb';
 import Settings from '@/models/Settings';
 import PartnerAd from '@/models/PartnerAd';
-import { PARTNER_SLOTS } from '@/lib/partnerPricing';
+import { PARTNER_SLOTS, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 
 const SETTINGS_KEY = 'partnerSlotOverrides';
 
 export type PartnerSlotOverrides = {
   // slots[0] => slot #1; value is PartnerAd _id or '' for automatic
   slots: string[];
+
+  // VIP pinned slot (slot=0). PartnerAd _id or '' for automatic
+  vipAdId: string;
 };
 
 function normalize(raw: any): PartnerSlotOverrides {
@@ -17,18 +20,20 @@ function normalize(raw: any): PartnerSlotOverrides {
     const v = String(slots[i] ?? '').trim();
     return v;
   });
-  return { slots: out };
+
+  const vipAdId = String(raw?.vipAdId ?? '').trim();
+  return { slots: out, vipAdId };
 }
 
 export async function getPartnerSlotOverrides(): Promise<PartnerSlotOverrides> {
   await dbConnect();
   const row = await Settings.findOne({ key: SETTINGS_KEY }).select('value').lean();
-  if (!row?.value) return { slots: Array(PARTNER_SLOTS).fill('') };
+  if (!row?.value) return { slots: Array(PARTNER_SLOTS).fill(''), vipAdId: '' };
   try {
     const parsed = JSON.parse(String((row as any).value || ''));
     return normalize(parsed);
   } catch {
-    return { slots: Array(PARTNER_SLOTS).fill('') };
+    return { slots: Array(PARTNER_SLOTS).fill(''), vipAdId: '' };
   }
 }
 
@@ -62,4 +67,16 @@ export async function validatePartnerOverrideAdIds(slots: string[]): Promise<{ o
     }
   }
   return { ok: true };
+}
+
+export async function validatePartnerVipOverrideAdId(vipAdId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const id = String(vipAdId || '').trim();
+  if (!id) return { ok: true };
+  const found = await PartnerAd.findOne({ _id: id, status: 'APPROVED' }).select('_id').lean();
+  if (!found) return { ok: false, error: 'El anuncio para VIP no existe o no está aprobado.' };
+  return { ok: true };
+}
+
+export function isVipOverrideEnabled(overrides: PartnerSlotOverrides): boolean {
+  return Number(PARTNER_VIP_SLOT) === 0 && Boolean(String(overrides?.vipAdId || '').trim());
 }

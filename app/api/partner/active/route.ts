@@ -3,7 +3,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 import dbConnect from '@/lib/mongodb';
 import PartnerAd from '@/models/PartnerAd';
 import PartnerBooking from '@/models/PartnerBooking';
-import { PARTNER_SLOTS } from '@/lib/partnerPricing';
+import { PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 import { getPartnerSlotOverrides } from '@/lib/partnerSlotOverridesStore';
 
 export const runtime = 'nodejs';
@@ -17,8 +17,12 @@ export async function GET() {
 
     const overrides = await getPartnerSlotOverrides();
     const manualBySlot = new Map<number, string>();
-    for (let i = 0; i < PARTNER_SLOTS; i++) {
-      const adId = String(overrides.slots?.[i] || '').trim();
+
+    const vipAdId = String((overrides as any)?.vipAdId || '').trim();
+    if (vipAdId) manualBySlot.set(PARTNER_VIP_SLOT, vipAdId);
+
+    for (let i = 0; i < PARTNER_PAID_MAX_SLOT; i++) {
+      const adId = String((overrides as any).slots?.[i] || '').trim();
       if (adId) manualBySlot.set(i + 1, adId);
     }
 
@@ -28,7 +32,8 @@ export async function GET() {
       { $set: { status: 'EXPIRED', slotActiveKey: '' } }
     );
 
-    const activeBookingsRaw = await PartnerBooking.find({ status: 'ACTIVE', endsAt: { $gt: now } })
+    const featuredSlots = [PARTNER_VIP_SLOT, ...Array.from({ length: PARTNER_PAID_MAX_SLOT }, (_, i) => i + 1)];
+    const activeBookingsRaw = await PartnerBooking.find({ status: 'ACTIVE', endsAt: { $gt: now }, slot: { $in: featuredSlots } })
       .select('adId slot endsAt startsAt kind days')
       .lean();
 
@@ -88,7 +93,11 @@ export async function GET() {
         };
       })
       .filter(Boolean)]
-      .sort((a: any, b: any) => a.slot - b.slot);
+      .sort((a: any, b: any) => {
+        if (Number(a.slot) === PARTNER_VIP_SLOT && Number(b.slot) !== PARTNER_VIP_SLOT) return -1;
+        if (Number(b.slot) === PARTNER_VIP_SLOT && Number(a.slot) !== PARTNER_VIP_SLOT) return 1;
+        return a.slot - b.slot;
+      });
 
     return NextResponse.json(
       { items },

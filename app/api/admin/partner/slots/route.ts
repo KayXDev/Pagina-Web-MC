@@ -7,6 +7,7 @@ import {
   getPartnerSlotOverrides,
   setPartnerSlotOverrides,
   validatePartnerOverrideAdIds,
+  validatePartnerVipOverrideAdId,
 } from '@/lib/partnerSlotOverridesStore';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +20,7 @@ function getRequestIp(request: Request) {
 
 const patchSchema = z.object({
   slots: z.array(z.union([z.string(), z.null(), z.undefined()])).length(PARTNER_SLOTS),
+  vipAdId: z.union([z.string(), z.null(), z.undefined()]).optional(),
 });
 
 export async function GET() {
@@ -41,11 +43,15 @@ export async function PATCH(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
 
     const slots = parsed.data.slots.map((v) => String(v ?? '').trim());
+    const vipAdId = String((parsed.data as any).vipAdId ?? '').trim();
 
     const valid = await validatePartnerOverrideAdIds(slots);
     if (!valid.ok) return NextResponse.json({ error: valid.error }, { status: 400 });
 
-    const saved = await setPartnerSlotOverrides({ slots });
+    const vipValid = await validatePartnerVipOverrideAdId(vipAdId);
+    if (!vipValid.ok) return NextResponse.json({ error: vipValid.error }, { status: 400 });
+
+    const saved = await setPartnerSlotOverrides({ slots, vipAdId });
 
     await AdminLog.create({
       adminId: owner.id,

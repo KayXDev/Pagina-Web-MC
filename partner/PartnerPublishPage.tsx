@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
 import { formatDateTime, formatPrice } from '@/lib/utils';
-import { PARTNER_MAX_DAYS } from '@/lib/partnerPricing';
+import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT } from '@/lib/partnerPricing';
 
 type PartnerAd = {
   _id: string;
@@ -31,9 +31,10 @@ type PartnerBooking = {
   kind: 'CUSTOM' | 'MONTHLY';
   days: number;
   status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELED';
-  provider: 'PAYPAL' | 'STRIPE';
+  provider: 'PAYPAL' | 'STRIPE' | 'FREE';
   totalPrice: number;
   currency: string;
+  requestNote?: string;
   startsAt?: string | null;
   endsAt?: string | null;
   createdAt: string;
@@ -46,7 +47,14 @@ type SlotQuote = {
   dailyPriceEur: number;
   discountPct: number;
   totalEur: number;
+  vip?: boolean;
+  free?: boolean;
+  paid?: boolean;
 };
+
+function slotLabel(slot: number): string {
+  return Number(slot) === 0 ? 'VIP' : `#${slot}`;
+}
 
 function statusBadge(status: PartnerAd['status']) {
   if (status === 'APPROVED') return <Badge variant="success">Aprobado</Badge>;
@@ -93,6 +101,8 @@ export default function PartnerPublishPage() {
   const [slotError, setSlotError] = useState<string | null>(null);
   const [slots, setSlots] = useState<SlotQuote[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<number>(1);
+  const [publishMode, setPublishMode] = useState<'FEATURED' | 'STANDARD'>('STANDARD');
+  const [submissionNote, setSubmissionNote] = useState<string>('');
 
   useEffect(() => {
     setLang(getClientLangFromCookie());
@@ -155,7 +165,8 @@ export default function PartnerPublishPage() {
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       const next = Array.isArray((data as any).slots) ? ((data as any).slots as SlotQuote[]) : [];
       setSlots(next);
-      const firstAvailable = next.find((s) => s.available);
+      const firstAvailablePaid = next.find((s) => s.available && (Boolean(s.vip) || Boolean(s.paid)));
+      const firstAvailable = firstAvailablePaid || next.find((s) => s.available);
       if (firstAvailable) setSelectedSlot(Number(firstAvailable.slot));
     } catch (e: any) {
       setSlotError(String(e?.message || 'Error'));
@@ -167,13 +178,19 @@ export default function PartnerPublishPage() {
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
+    if (publishMode !== 'FEATURED') return;
     void loadSlots();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, normalizedDays]);
+  }, [sessionStatus, normalizedDays, publishMode]);
 
   const selectedQuote = useMemo(() => {
+    if (publishMode !== 'FEATURED') return null;
     return slots.find((s) => Number(s.slot) === Number(selectedSlot)) || null;
-  }, [slots, selectedSlot]);
+  }, [slots, selectedSlot, publishMode]);
+
+  const detailText = publishMode === 'STANDARD'
+    ? 'Gratis → revisión admin → aparece en lista general'
+    : 'Pago ahora → revisión admin → aparece al aprobarse';
 
   const cancelPending = async (bookingId: string) => {
     setCheckoutLoading(true);
@@ -189,7 +206,7 @@ export default function PartnerPublishPage() {
       if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
       setInfo('Reserva cancelada.');
       await loadMine();
-      await loadSlots();
+      if (publishMode === 'FEATURED') await loadSlots();
     } catch (e: any) {
       setError(String(e?.message || 'Error'));
     } finally {
@@ -204,6 +221,10 @@ export default function PartnerPublishPage() {
     form.description.trim().length <= 500;
 
   const startStripe = async () => {
+    if (publishMode !== 'FEATURED') {
+      setError('Cambia a “Destacado (pago)” para elegir slot y pagar.');
+      return;
+    }
     if (!selectedQuote || !selectedQuote.available) {
       setError('Selecciona un slot disponible.');
       return;
@@ -327,7 +348,7 @@ export default function PartnerPublishPage() {
         discord: '',
         banner: '',
       });
-      await loadSlots();
+      if (publishMode === 'FEATURED') await loadSlots();
     } catch (e: any) {
       setError(String(e?.message || 'Error'));
     } finally {
@@ -336,6 +357,10 @@ export default function PartnerPublishPage() {
   };
 
   const startPaypal = async () => {
+    if (publishMode !== 'FEATURED') {
+      setError('Cambia a “Destacado (pago)” para elegir slot y pagar.');
+      return;
+    }
     if (!selectedQuote || !selectedQuote.available) {
       setError('Selecciona un slot disponible.');
       return;
@@ -380,7 +405,64 @@ export default function PartnerPublishPage() {
     }
   };
 
+  const submitStandard = async () => {
+    if (publishMode !== 'STANDARD') {
+      setError('Cambia a “Estándar (gratis)” para enviar a revisión sin slot.');
+      return;
+    }
+    if (!isFormValid) {
+      setError('Completa el formulario (mín. 20 caracteres en descripción).');
+      return;
+    }
+    const note = String(submissionNote || '').trim();
+    if (note.length < 20) {
+      setError('Cuéntanos un poco más (mín. 20 caracteres) para la solicitud.');
+      return;
+    }
+
+    setCheckoutLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await fetch('/api/partner/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          note,
+
+          serverName: form.serverName,
+          address: form.address,
+          version: form.version,
+          description: form.description,
+          website: form.website,
+          discord: form.discord,
+          banner: form.banner,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      setInfo('Enviado a revisión. Queda pendiente de aprobación del admin.');
+      setSubmissionNote('');
+      await loadMine();
+    } catch (e: any) {
+      setError(String(e?.message || 'Error'));
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const pendingBooking = useMemo(() => bookings.find((b) => b.status === 'PENDING') || null, [bookings]);
+
+  const standardDisabledReason = useMemo(() => {
+    if (publishMode !== 'STANDARD') return null;
+    if (checkoutLoading) return 'Procesando…';
+    if (bannerUploading) return 'Espera a que termine de subir el banner.';
+    if (pendingBooking) return 'Tienes una solicitud/pago pendiente. Cancélalo o espera a que se resuelva.';
+    if (!isFormValid) return 'Completa el formulario (nombre, IP y descripción de 20–500 caracteres).';
+    const noteLen = String(submissionNote || '').trim().length;
+    if (noteLen < 20) return 'Escribe el motivo (mín. 20 caracteres).';
+    return null;
+  }, [publishMode, checkoutLoading, bannerUploading, pendingBooking, isFormValid, submissionNote]);
 
   if (sessionStatus === 'loading') {
     return (
@@ -407,11 +489,11 @@ export default function PartnerPublishPage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto py-10 px-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-6">
+    <main className="max-w-6xl mx-auto py-12 px-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Publicar mi servidor</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Compra → rellena datos → revisión admin → aparece al aprobarse.</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Estándar (gratis) o Destacado (pago) → rellena datos → revisión admin → aparece al aprobarse.</p>
         </div>
         <Link href="/partner" className="inline-flex">
           <Button variant="secondary" size="sm">Ver Partners</Button>
@@ -436,8 +518,10 @@ export default function PartnerPublishPage() {
         <Card hover={false} className="rounded-2xl border border-yellow-200 bg-white dark:border-yellow-500/30 dark:bg-yellow-500/10 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <div className="text-yellow-900 dark:text-yellow-100 font-semibold">Tienes una compra pendiente</div>
-              <div className="text-yellow-900/80 dark:text-yellow-100/80 text-sm">Slot #{pendingBooking.slot} • {pendingBooking.provider} • {pendingBooking.days} días</div>
+              <div className="text-yellow-900 dark:text-yellow-100 font-semibold">Tienes una solicitud/pago pendiente</div>
+              <div className="text-yellow-900/80 dark:text-yellow-100/80 text-sm">
+                Slot {slotLabel(Number(pendingBooking.slot))} • {String(pendingBooking.provider) === 'FREE' ? 'GRATIS' : pendingBooking.provider} • {pendingBooking.days} días
+              </div>
             </div>
             <Button variant="secondary" size="sm" onClick={() => cancelPending(pendingBooking._id)} disabled={checkoutLoading}>
               {checkoutLoading ? 'Cancelando…' : 'Cancelar'}
@@ -446,132 +530,157 @@ export default function PartnerPublishPage() {
         </Card>
       ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center justify-between gap-3 mb-6">
             <div>
               <div className="text-gray-900 dark:text-white font-bold">1) Duración y posición</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Elige cuántos días y en qué puesto apareces</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Elige tipo de publicación. Solo “Destacado” usa slots.</div>
             </div>
-            <Badge variant="info">Top 10</Badge>
+            <div className="flex items-center gap-2">
+              <Select
+                value={publishMode}
+                onChange={(e) => {
+                  const next = String(e.target.value || 'STANDARD') as 'FEATURED' | 'STANDARD';
+                  setPublishMode(next);
+                  setError(null);
+                  setInfo(null);
+                }}
+                disabled={checkoutLoading}
+              >
+                <option value="STANDARD">Estándar (gratis)</option>
+                <option value="FEATURED">Destacado (pago)</option>
+              </Select>
+              {publishMode === 'FEATURED' ? (
+                <Badge variant="warning">Destacados: VIP + #{PARTNER_PAID_MAX_SLOT}</Badge>
+              ) : (
+                <Badge variant="info">Sin límite</Badge>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 mb-4">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Duración</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Precio total (no por día) • EUR</div>
+          {publishMode === 'STANDARD' ? (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-5 dark:border-white/10 dark:bg-white/5">
+              <label className="text-xs text-gray-600 dark:text-gray-400">Motivo (obligatorio)</label>
+              <Textarea
+                value={submissionNote}
+                onChange={(e) => setSubmissionNote(e.target.value)}
+                placeholder="Cuéntanos por qué tu servidor debería aparecer (comunidad, actividad, contenido, etc.)"
+                rows={4}
+                minLength={20}
+                maxLength={300}
+                disabled={checkoutLoading}
+              />
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{submissionNote.length}/300</div>
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Se revisa por admin y aparece en la lista general al aprobarse.</div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-5 dark:border-white/10 dark:bg-white/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">Duración</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Precio total (no por día) • EUR</div>
+                    </div>
+                    <div className="inline-flex rounded-full border border-gray-200 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5">
+                      {[1, 3, 7, 14, 30].map((d) => {
+                        const active = normalizedDays === d;
+                        return (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setDays(d)}
+                            disabled={checkoutLoading}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                              active
+                                ? 'bg-minecraft-grass/15 text-gray-900 dark:text-white'
+                                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10'
+                            } ${checkoutLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {d}d
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+                    <div>
+                      <label className="text-xs text-gray-600 dark:text-gray-400">Días (1–{PARTNER_MAX_DAYS})</label>
+                      <Select value={String(normalizedDays)} onChange={(e) => setDays(Number(e.target.value || 1))} disabled={checkoutLoading}>
+                        {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
+                          <option key={d} value={String(d)}>{d} día{d === 1 ? '' : 's'}</option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 dark:text-gray-400">Detalle</label>
+                      <Input value={detailText} disabled />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {[1, 3, 7, 14, 30].map((d) => {
-                    const active = normalizedDays === d;
+              </div>
+
+              {slotError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{slotError}</div> : null}
+
+              <div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {(slots || []).map((s) => {
+                    const active = Number(selectedSlot) === Number(s.slot);
+                    const disabled = !s.available || checkoutLoading;
+                    const isVip = Boolean(s.vip) || Number(s.slot) === 0;
                     return (
                       <button
-                        key={d}
+                        key={s.slot}
                         type="button"
-                        onClick={() => setDays(d)}
-                        disabled={checkoutLoading}
-                        className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                        disabled={disabled}
+                        onClick={() => setSelectedSlot(Number(s.slot))}
+                        className={`rounded-2xl border px-5 py-4 text-left transition-colors ${
                           active
-                            ? 'border-minecraft-grass/30 bg-minecraft-grass/10 text-gray-900 dark:text-white'
-                            : 'border-gray-200 bg-white hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-                        } ${checkoutLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            ? isVip
+                              ? 'border-minecraft-gold/70 bg-minecraft-gold/15 ring-2 ring-minecraft-gold/30'
+                              : 'border-minecraft-grass/40 bg-minecraft-grass/10 ring-2 ring-minecraft-grass/20'
+                            : isVip
+                              ? 'border-minecraft-gold/70 bg-minecraft-gold/10 ring-1 ring-minecraft-gold/25 hover:bg-minecraft-gold/15 dark:border-minecraft-gold/40 dark:bg-minecraft-gold/10 dark:hover:bg-minecraft-gold/15'
+                              : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        {d}d
+                        <div className="flex items-baseline justify-between gap-2">
+                          <div className="font-extrabold text-gray-900 dark:text-white whitespace-nowrap">{slotLabel(Number(s.slot))}</div>
+                          <span
+                            className={`text-[11px] font-semibold whitespace-nowrap ${
+                              s.available ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                          >
+                            {s.available ? 'Libre' : 'Ocupado'}
+                          </span>
+                        </div>
+                        <div className="text-[12px] text-gray-600 dark:text-gray-400 mt-2">
+                          Total: {formatPrice(Number(s.totalEur || 0), dateLocale, 'EUR')}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
+
+                {slotsLoading ? <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Cargando slots…</div> : null}
+                <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">Se activa al aprobarse por admin.</div>
               </div>
-
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-gray-600 dark:text-gray-400">Días (1–{PARTNER_MAX_DAYS})</label>
-                  <Select value={String(normalizedDays)} onChange={(e) => setDays(Number(e.target.value || 1))} disabled={checkoutLoading}>
-                    {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={String(d)}>{d} día{d === 1 ? '' : 's'}</option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600 dark:text-gray-400">Detalle</label>
-                  <Input value="Pago ahora → revisión admin → aparece al aprobarse" disabled />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {slotError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{slotError}</div> : null}
-
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4">
-            <div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                {(slots || []).map((s) => {
-                  const active = Number(selectedSlot) === Number(s.slot);
-                  const disabled = !s.available || checkoutLoading;
-                  return (
-                    <button
-                      key={s.slot}
-                      type="button"
-                      disabled={disabled}
-                      onClick={() => setSelectedSlot(Number(s.slot))}
-                      className={`rounded-xl border px-3 py-2 text-left transition-colors ${
-                        active
-                          ? 'border-minecraft-grass/40 bg-minecraft-grass/10 ring-1 ring-minecraft-grass/20'
-                          : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-gray-900 dark:text-white">#{s.slot}</div>
-                        <span className={`text-[11px] ${s.available ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                          {s.available ? 'Libre' : 'Ocupado'}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">
-                        Total: {formatPrice(Number(s.totalEur || 0), dateLocale, 'EUR')}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {slotsLoading ? <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Cargando slots…</div> : null}
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">
-              <div className="text-sm font-semibold text-gray-900 dark:text-white">Resumen</div>
-              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                {selectedQuote ? (
-                  <>
-                    <div><span className="font-semibold">Slot:</span> #{selectedQuote.slot}</div>
-                    <div><span className="font-semibold">Duración:</span> {selectedQuote.days} día{selectedQuote.days === 1 ? '' : 's'}</div>
-                    <div className="mt-2 text-base font-bold text-gray-900 dark:text-white">
-                      {formatPrice(Number(selectedQuote.totalEur || 0), dateLocale, 'EUR')}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-gray-600 dark:text-gray-400">Selecciona un slot.</div>
-                )}
-              </div>
-
-              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                Se activa al aprobarse por admin.
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </Card>
 
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center justify-between gap-3 mb-6">
             <div>
               <div className="text-gray-900 dark:text-white font-bold">2) Rellena el formulario</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Se enviará a revisión al pagar</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Se enviará a revisión ({publishMode === 'FEATURED' ? 'pago' : 'gratis'})</div>
             </div>
             {ad ? statusBadge(ad.status) : <Badge variant="info">Nuevo</Badge>}
           </div>
 
-          {!selectedQuote && !ad ? (
+          {publishMode === 'FEATURED' && !selectedQuote && !ad ? (
             <div className="text-sm text-gray-600 dark:text-gray-400">Selecciona un slot para continuar.</div>
           ) : (
             <>
@@ -650,13 +759,15 @@ export default function PartnerPublishPage() {
 
               {!isFormValid ? (
                 <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
-                  Completa el formulario para poder pagar.
+                  Completa el formulario para poder {publishMode === 'FEATURED' ? 'pagar' : 'enviar a revisión'}.
                 </div>
               ) : null}
 
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="mt-6 flex items-center justify-between gap-4">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Al pagar, se envía a revisión. Al aprobarse, tu slot se activa y apareces en la lista.
+                  {publishMode === 'FEATURED'
+                    ? 'Al enviar, se revisa. Al aprobarse, tu slot se activa y apareces en destacados.'
+                    : 'Al enviar, se revisa. Al aprobarse, apareces en la lista general.'}
                 </div>
                 <div className="flex items-center gap-2">
                   {ad ? (
@@ -681,22 +792,42 @@ export default function PartnerPublishPage() {
                       Eliminar
                     </Button>
                   ) : null}
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={startStripe}
-                    disabled={checkoutLoading || slotsLoading || !selectedQuote?.available || !isFormValid || Boolean(pendingBooking)}
-                  >
-                    {checkoutLoading ? 'Procesando…' : 'Pagar con Stripe'}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={startPaypal}
-                    disabled={checkoutLoading || slotsLoading || !selectedQuote?.available || !isFormValid || Boolean(pendingBooking)}
-                  >
-                    PayPal
-                  </Button>
+                  {publishMode === 'STANDARD' ? (
+                    <div className="flex flex-col items-end gap-1">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={submitStandard}
+                        disabled={Boolean(standardDisabledReason)}
+                      >
+                        {checkoutLoading ? 'Enviando…' : 'Enviar a revisión (gratis)'}
+                      </Button>
+                      {standardDisabledReason ? (
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 max-w-[320px] text-right">
+                          {standardDisabledReason}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={startStripe}
+                        disabled={checkoutLoading || slotsLoading || !selectedQuote?.available || !isFormValid || Boolean(pendingBooking)}
+                      >
+                        {checkoutLoading ? 'Procesando…' : 'Pagar con Stripe'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={startPaypal}
+                        disabled={checkoutLoading || slotsLoading || !selectedQuote?.available || !isFormValid || Boolean(pendingBooking)}
+                      >
+                        PayPal
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </>
@@ -734,9 +865,13 @@ export default function PartnerPublishPage() {
                   {bookings.map((b) => (
                     <tr key={b._id} className="text-gray-700 dark:text-gray-200">
                       <td className="py-3 pr-4">{bookingBadge(b.status)}</td>
-                      <td className="py-3 pr-4 font-semibold">#{b.slot}</td>
+                      <td className="py-3 pr-4 font-semibold">{slotLabel(Number(b.slot))}</td>
                       <td className="py-3 pr-4">{b.kind === 'MONTHLY' ? 'Mensual' : `${b.days} días`}</td>
-                      <td className="py-3 pr-4">{b.provider} • {formatPrice(Number(b.totalPrice || 0), dateLocale, String(b.currency || 'EUR'))}</td>
+                      <td className="py-3 pr-4">
+                        {String(b.provider) === 'FREE'
+                          ? 'GRATIS'
+                          : `${b.provider} • ${formatPrice(Number(b.totalPrice || 0), dateLocale, String(b.currency || 'EUR'))}`}
+                      </td>
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400">{formatDateTime(b.createdAt, dateLocale)}</td>
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400">{b.endsAt ? formatDateTime(b.endsAt, dateLocale) : '—'}</td>
                       <td className="py-3">

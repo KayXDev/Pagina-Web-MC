@@ -61,6 +61,7 @@ export async function GET(request: Request) {
           totalPrice: Number(b.totalPrice || 0),
           provider: String(b.provider || ''),
           status: String(b.status || ''),
+          requestNote: String((b as any).requestNote || ''),
           paidAt: b.paidAt || null,
           startsAt: b.startsAt || null,
           endsAt: b.endsAt || null,

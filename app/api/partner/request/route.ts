@@ -4,20 +4,22 @@ import dbConnect from '@/lib/mongodb';
 import { requireAuth } from '@/lib/session';
 import PartnerAd from '@/models/PartnerAd';
 import PartnerBooking from '@/models/PartnerBooking';
-import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT, computeTotalEurWithConfig, normalizeDays } from '@/lib/partnerPricing';
-import { paypalCreateOrder } from '@/lib/paypal';
-import { getPartnerPricingConfig } from '@/lib/partnerPricingStore';
+import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT, PARTNER_SLOTS, normalizeDays } from '@/lib/partnerPricing';
 import { getPartnerSlotOverrides } from '@/lib/partnerSlotOverridesStore';
+
+export const dynamic = 'force-dynamic';
 
 const schema = z.object({
   slot: z
     .number()
     .int()
-    .refine((s) => Number(s) === PARTNER_VIP_SLOT || (Number(s) >= 1 && Number(s) <= PARTNER_PAID_MAX_SLOT), {
-      message: `Slot inválido (solo VIP y #1–#${PARTNER_PAID_MAX_SLOT})`,
+    .refine((s) => Number(s) >= PARTNER_PAID_MAX_SLOT + 1 && Number(s) <= PARTNER_SLOTS, {
+      message: `Slot inválido (gratis solo #${PARTNER_PAID_MAX_SLOT + 1}–#${PARTNER_SLOTS})`,
     }),
   kind: z.enum(['CUSTOM', 'MONTHLY']),
   days: z.number().int().min(1).max(PARTNER_MAX_DAYS).optional(),
+
+  note: z.string().min(20).max(300),
 
   serverName: z.string().min(3).max(60),
   address: z.string().min(3).max(80),
@@ -27,12 +29,6 @@ const schema = z.object({
   discord: z.string().max(200).optional().or(z.literal('')),
   banner: z.string().max(500).optional().or(z.literal('')),
 });
-
-function getSiteUrl(request: Request): string {
-  const fromEnv = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, '');
-  return new URL(request.url).origin;
-}
 
 export async function POST(request: Request) {
   try {
@@ -45,9 +41,8 @@ export async function POST(request: Request) {
 
     // Admin manual overrides occupy slots too.
     const overrides = await getPartnerSlotOverrides();
-    const isVipManual = Number(parsed.data.slot) === Number(PARTNER_VIP_SLOT) && Boolean(String((overrides as any)?.vipAdId || '').trim());
     const isSlotManual = Number(parsed.data.slot) >= 1 && Boolean(String((overrides as any)?.slots?.[Number(parsed.data.slot) - 1] || '').trim());
-    if (isVipManual || isSlotManual) {
+    if (isSlotManual) {
       return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
     }
 
@@ -104,16 +99,16 @@ export async function POST(request: Request) {
     const kind = parsed.data.kind;
     const days = normalizeDays(kind, parsed.data.days);
 
+    // Ensure slot is available
     const now = new Date();
     await PartnerBooking.updateMany(
       { status: 'ACTIVE', endsAt: { $lt: now } },
       { $set: { status: 'EXPIRED', slotActiveKey: '' } }
     );
 
+    // Clear stale payment reservations (older than 30 min). Do not clear paid pending reviews, and do not clear free requests.
     const staleCutoff = new Date(Date.now() - 30 * 60 * 1000);
     await PartnerBooking.updateMany(
-      // Only cancel unpaid payment reservations; don't cancel already-paid pending reviews,
-      // and don't cancel free requests.
       { status: 'PENDING', createdAt: { $lt: staleCutoff }, paidAt: { $exists: false }, provider: { $in: ['PAYPAL', 'STRIPE'] } },
       { $set: { status: 'CANCELED', slotActiveKey: '' } }
     );
@@ -123,54 +118,31 @@ export async function POST(request: Request) {
       .lean();
 
     if (blocked) {
-      if (String((blocked as any).status) === 'ACTIVE') {
-        return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
-      }
-      const provider = String((blocked as any).provider || '').toUpperCase();
-      const hasPaidAt = Boolean((blocked as any).paidAt);
-      if (hasPaidAt || provider === 'FREE') {
-        return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
-      }
-      const createdAtMs = (blocked as any).createdAt ? new Date((blocked as any).createdAt).getTime() : 0;
-      if (createdAtMs && createdAtMs > staleCutoff.getTime()) {
-        return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
-      }
-    }
-
-    const pricingConfig = await getPartnerPricingConfig();
-    const pricing = computeTotalEurWithConfig({ slot: parsed.data.slot, kind, days, config: pricingConfig });
-    const currency = 'EUR';
-
-    if (!Number.isFinite(pricing.totalEur) || pricing.totalEur <= 0) {
-      return NextResponse.json(
-        { error: 'El precio configurado es 0€. No se puede crear un pago con importe 0€. Sube el precio para poder probar el pago.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
     }
 
     const headers = new Headers(request.headers);
     const ip = headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '';
     const userAgent = headers.get('user-agent') || '';
 
-    let bookingId = '';
     try {
-      const created = await PartnerBooking.create({
+      await PartnerBooking.create({
         adId,
         userId: user.id,
         slot: parsed.data.slot,
         kind,
-        days: pricing.days,
-        currency,
-        dailyPriceEur: pricing.dailyPriceEur,
-        discountPct: pricing.discountPct,
-        totalPrice: pricing.totalEur,
+        days,
+        currency: 'EUR',
+        dailyPriceEur: 0,
+        discountPct: 0,
+        totalPrice: 0,
         status: 'PENDING',
-        provider: 'PAYPAL',
+        provider: 'FREE',
         slotActiveKey: `SLOT#${parsed.data.slot}`,
+        requestNote: String(parsed.data.note || '').trim(),
         ip,
         userAgent,
       });
-      bookingId = String(created._id);
     } catch (err: any) {
       if (String(err?.code) === '11000') {
         return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
@@ -178,30 +150,9 @@ export async function POST(request: Request) {
       throw err;
     }
 
-    const siteUrl = getSiteUrl(request);
-    const returnUrl = `${siteUrl}/partner/paypal/return?bookingId=${encodeURIComponent(bookingId)}`;
-    const cancelUrl = `${siteUrl}/partner/paypal/cancel?bookingId=${encodeURIComponent(bookingId)}`;
-
-    const slotLabel = parsed.data.slot === 0 ? 'VIP' : `#${parsed.data.slot}`;
-    const description = String(process.env.SITE_NAME || 'Partner') + ` - Slot ${slotLabel}`;
-
-    const created = await paypalCreateOrder({
-      totalPrice: pricing.totalEur,
-      currency,
-      description,
-      customId: bookingId,
-      returnUrl,
-      cancelUrl,
-    });
-
-    await PartnerBooking.updateOne(
-      { _id: bookingId },
-      { $set: { paypalOrderId: created.paypalOrderId, paypalStatus: created.status } }
-    );
-
-    return NextResponse.json({ bookingId, paypalOrderId: created.paypalOrderId, approvalUrl: created.approvalUrl });
+    return NextResponse.json({ ok: true });
   } catch (error: any) {
-    console.error('Partner paypal create error:', error);
+    console.error('Partner free request error:', error);
     const message = String(error?.message || 'Error');
     const status = message.includes('Unauthorized') ? 401 : message.includes('Forbidden') ? 403 : 500;
     return NextResponse.json({ error: message }, { status });

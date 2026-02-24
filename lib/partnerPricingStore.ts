@@ -14,6 +14,16 @@ const SETTINGS_KEY = 'partnerPricing';
 function normalizeConfig(raw: any): PartnerPricingConfig {
   const fallback = getDefaultPartnerPricingConfigFromEnv();
 
+  const normalizeVipTotals = (vipRaw: any): number[] => {
+    const arr = Array.isArray(vipRaw) ? vipRaw : [];
+    const nums = arr.map((n: any) => Number(n));
+    return Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => {
+      const v = Number(nums[i]);
+      if (Number.isFinite(v) && v >= 0) return Math.round(v * 100) / 100;
+      return Number(fallback.vipTotalsEur?.[i] ?? 0);
+    });
+  };
+
   // New format: slotTotalsEur
   const rawTotals = raw?.slotTotalsEur;
   if (Array.isArray(rawTotals) && rawTotals.length === PARTNER_SLOTS) {
@@ -30,7 +40,10 @@ function normalizeConfig(raw: any): PartnerPricingConfig {
     });
 
     const ok = normalizedTotals.length === PARTNER_SLOTS && normalizedTotals.every((r) => Array.isArray(r) && r.length === PARTNER_MAX_DAYS);
-    if (ok) return { slotTotalsEur: normalizedTotals };
+    if (ok) {
+      const vipTotalsEur = normalizeVipTotals(raw?.vipTotalsEur);
+      return { slotTotalsEur: normalizedTotals, vipTotalsEur };
+    }
   }
 
   // Back-compat: old format slotDailyPricesEur => derive totals
@@ -43,7 +56,8 @@ function normalizeConfig(raw: any): PartnerPricingConfig {
     const slotTotalsEur = slotDailyPricesEur.map((d: number) =>
       Array.from({ length: PARTNER_MAX_DAYS }, (_, idx) => Math.round((d * (idx + 1)) * 100) / 100)
     );
-    return { slotTotalsEur };
+    const vipTotalsEur = normalizeVipTotals(raw?.vipTotalsEur);
+    return { slotTotalsEur, vipTotalsEur };
   }
 
   return fallback;
@@ -71,7 +85,7 @@ export async function setPartnerPricingConfig(config: PartnerPricingConfig): Pro
       $set: {
         key: SETTINGS_KEY,
         value: JSON.stringify(normalizeConfig(config)),
-        description: 'Partner pricing configuration (fixed totals per day and slot)',
+        description: 'Partner pricing configuration (fixed totals per day and slot, plus VIP)',
       },
     },
     { upsert: true }

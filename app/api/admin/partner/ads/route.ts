@@ -52,6 +52,7 @@ export async function GET(request: Request) {
         banner: String(a.banner || ''),
         status: String(a.status || ''),
         rejectionReason: String(a.rejectionReason || ''),
+        submissionNote: String(a.submissionNote || ''),
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
       })),
@@ -166,12 +167,14 @@ export async function PATCH(request: Request) {
         { $set: { status: 'APPROVED', rejectionReason: '' } }
       );
 
-      // If the user already paid, activate the latest paid booking now.
+      // Activate the latest pending booking (paid or FREE request).
       const booking = await PartnerBooking.findOne({
         adId: String((ad as any)._id),
         status: 'PENDING',
-        paidAt: { $exists: true },
-        $or: [{ startsAt: { $exists: false } }, { startsAt: null }],
+        $and: [
+          { $or: [{ paidAt: { $exists: true } }, { provider: 'FREE' }] },
+          { $or: [{ startsAt: { $exists: false } }, { startsAt: null }] },
+        ],
       })
         .sort({ createdAt: -1 })
         .lean();

@@ -4,12 +4,18 @@ import dbConnect from '@/lib/mongodb';
 import { requireAuth } from '@/lib/session';
 import PartnerAd from '@/models/PartnerAd';
 import PartnerBooking from '@/models/PartnerBooking';
-import { PARTNER_MAX_DAYS, computeTotalEurWithConfig, normalizeDays } from '@/lib/partnerPricing';
+import { PARTNER_MAX_DAYS, PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT, computeTotalEurWithConfig, normalizeDays } from '@/lib/partnerPricing';
 import { getStripe, toStripeAmount } from '@/lib/stripe';
 import { getPartnerPricingConfig } from '@/lib/partnerPricingStore';
+import { getPartnerSlotOverrides } from '@/lib/partnerSlotOverridesStore';
 
 const schema = z.object({
-  slot: z.number().int().min(1).max(10),
+  slot: z
+    .number()
+    .int()
+    .refine((s) => Number(s) === PARTNER_VIP_SLOT || (Number(s) >= 1 && Number(s) <= PARTNER_PAID_MAX_SLOT), {
+      message: `Slot inválido (solo VIP y #1–#${PARTNER_PAID_MAX_SLOT})`,
+    }),
   kind: z.enum(['CUSTOM', 'MONTHLY']),
   days: z.number().int().min(1).max(PARTNER_MAX_DAYS).optional(),
 
@@ -36,6 +42,14 @@ export async function POST(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
 
     await dbConnect();
+
+    // Admin manual overrides occupy slots too.
+    const overrides = await getPartnerSlotOverrides();
+    const isVipManual = Number(parsed.data.slot) === Number(PARTNER_VIP_SLOT) && Boolean(String((overrides as any)?.vipAdId || '').trim());
+    const isSlotManual = Number(parsed.data.slot) >= 1 && Boolean(String((overrides as any)?.slots?.[Number(parsed.data.slot) - 1] || '').trim());
+    if (isVipManual || isSlotManual) {
+      return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
+    }
 
     const existingAd = await PartnerAd.findOne({ userId: user.id }).lean();
 
@@ -99,16 +113,23 @@ export async function POST(request: Request) {
 
     const staleCutoff = new Date(Date.now() - 30 * 60 * 1000);
     await PartnerBooking.updateMany(
-      { status: 'PENDING', createdAt: { $lt: staleCutoff } },
+      // Only cancel unpaid payment reservations; don't cancel already-paid pending reviews,
+      // and don't cancel free requests.
+      { status: 'PENDING', createdAt: { $lt: staleCutoff }, paidAt: { $exists: false }, provider: { $in: ['PAYPAL', 'STRIPE'] } },
       { $set: { status: 'CANCELED', slotActiveKey: '' } }
     );
 
     const blocked = await PartnerBooking.findOne({ slot: parsed.data.slot, status: { $in: ['PENDING', 'ACTIVE'] } })
-      .select('_id status endsAt createdAt')
+      .select('_id status endsAt createdAt paidAt provider')
       .lean();
 
     if (blocked) {
       if (String((blocked as any).status) === 'ACTIVE') {
+        return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
+      }
+      const provider = String((blocked as any).provider || '').toUpperCase();
+      const hasPaidAt = Boolean((blocked as any).paidAt);
+      if (hasPaidAt || provider === 'FREE') {
         return NextResponse.json({ error: 'Slot no disponible' }, { status: 409 });
       }
       const createdAtMs = (blocked as any).createdAt ? new Date((blocked as any).createdAt).getTime() : 0;
@@ -161,9 +182,11 @@ export async function POST(request: Request) {
     const stripe = getStripe();
     const siteUrl = getSiteUrl(request);
 
+    const slotLabel = parsed.data.slot === 0 ? 'VIP' : `#${parsed.data.slot}`;
+
     const label = kind === 'MONTHLY'
-      ? `Partner Slot #${parsed.data.slot} - 30 días (-${pricing.discountPct}%)`
-      : `Partner Slot #${parsed.data.slot} - ${pricing.days} días`;
+      ? `Partner Slot ${slotLabel} - 30 días (-${pricing.discountPct}%)`
+      : `Partner Slot ${slotLabel} - ${pricing.days} días`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

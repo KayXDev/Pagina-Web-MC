@@ -1,7 +1,7 @@
 import mongoose, { Schema, models } from 'mongoose';
 
 export type PartnerBookingStatus = 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELED';
-export type PartnerBookingProvider = 'PAYPAL' | 'STRIPE';
+export type PartnerBookingProvider = 'PAYPAL' | 'STRIPE' | 'FREE';
 export type PartnerBookingKind = 'CUSTOM' | 'MONTHLY';
 
 export interface IPartnerBooking {
@@ -9,7 +9,7 @@ export interface IPartnerBooking {
   adId: string;
   userId: string;
 
-  slot: number; // 1..10
+  slot: number; // 0 (VIP) or 1..10
   kind: PartnerBookingKind;
   days: number;
 
@@ -20,6 +20,9 @@ export interface IPartnerBooking {
 
   status: PartnerBookingStatus;
   provider: PartnerBookingProvider;
+
+  // Optional note (required for free slot requests)
+  requestNote?: string;
 
   // used to prevent double-booking the same slot (partial unique index)
   slotActiveKey: string;
@@ -51,7 +54,7 @@ const PartnerBookingSchema = new Schema<IPartnerBooking>(
     adId: { type: String, required: true, index: true },
     userId: { type: String, required: true, index: true },
 
-    slot: { type: Number, required: true, min: 1, max: 10, index: true },
+    slot: { type: Number, required: true, min: 0, max: 10, index: true },
     kind: { type: String, enum: ['CUSTOM', 'MONTHLY'], required: true },
     days: { type: Number, required: true, min: 1, max: 90 },
 
@@ -61,7 +64,9 @@ const PartnerBookingSchema = new Schema<IPartnerBooking>(
     totalPrice: { type: Number, required: true, min: 0 },
 
     status: { type: String, enum: ['PENDING', 'ACTIVE', 'EXPIRED', 'CANCELED'], default: 'PENDING', index: true },
-    provider: { type: String, enum: ['PAYPAL', 'STRIPE'], required: true, index: true },
+    provider: { type: String, enum: ['PAYPAL', 'STRIPE', 'FREE'], required: true, index: true },
+
+    requestNote: { type: String, default: '' },
 
     slotActiveKey: { type: String, required: true, default: '' },
 
