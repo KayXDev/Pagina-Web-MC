@@ -47,6 +47,9 @@ export default function AdminTicketsPage() {
   const [ticketDetailsLoading, setTicketDetailsLoading] = useState(false);
   const [ticketReplies, setTicketReplies] = useState<TicketReply[]>([]);
   const [replyText, setReplyText] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<any | null>(null);
   const [activeStatus, setActiveStatus] = useState<'IN_PROGRESS' | 'OPEN' | 'CLOSED'>('IN_PROGRESS');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -280,6 +283,8 @@ export default function AdminTicketsPage() {
   const openDetails = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setReplyText('');
+    setAiError(null);
+    setAiResult(null);
   };
 
   const TabButton = ({
@@ -320,6 +325,33 @@ export default function AdminTicketsPage() {
     setTicketReplies([]);
     setReplyText('');
     setParticipants([]);
+    setAiError(null);
+    setAiResult(null);
+  };
+
+  const fetchAiSuggestion = async () => {
+    if (!selectedTicket?._id) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/admin/tickets/ai-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: selectedTicket._id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const hint = (data as any)?.hint ? ` ${(data as any).hint}` : '';
+        throw new Error(String((data as any)?.error || 'Error') + hint);
+      }
+      setAiResult((data as any)?.parsed || (data as any));
+    } catch (e: any) {
+      setAiResult(null);
+      setAiError(e?.message || 'Error');
+      toast.error(e?.message || 'Error');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   return (
@@ -607,6 +639,73 @@ export default function AdminTicketsPage() {
                   </div>
 
                   <div className="mt-4 space-y-3">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-black/20">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">IA</div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={fetchAiSuggestion}
+                          disabled={aiLoading || selectedTicket.status === 'CLOSED'}
+                          className="w-full sm:w-auto justify-center"
+                        >
+                          <span>{aiLoading ? t(lang, 'common.loading') : 'Sugerir respuesta'}</span>
+                        </Button>
+                      </div>
+
+                      {aiError ? <div className="mt-2 text-xs text-red-600 dark:text-red-400">{aiError}</div> : null}
+
+                      {aiResult ? (
+                        <div className="mt-3 space-y-3">
+                          {aiResult.summary ? (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Resumen</div>
+                              <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{aiResult.summary}</div>
+                            </div>
+                          ) : null}
+
+                          {aiResult.replyDraft ? (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Borrador</div>
+                              <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{aiResult.replyDraft}</div>
+                              <div className="mt-2">
+                                <Button
+                                  type="button"
+                                  variant="success"
+                                  size="sm"
+                                  onClick={() => setReplyText(String(aiResult.replyDraft || ''))}
+                                  className="w-full justify-center"
+                                  disabled={selectedTicket.status === 'CLOSED'}
+                                >
+                                  <span>Usar borrador</span>
+                                </Button>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {(aiResult.category || aiResult.priority || aiResult.suggestedStatus) ? (
+                            <div className="flex flex-wrap gap-2">
+                              {aiResult.category ? <Badge variant="info">{String(aiResult.category)}</Badge> : null}
+                              {aiResult.priority ? <Badge variant="warning">{String(aiResult.priority)}</Badge> : null}
+                              {aiResult.suggestedStatus ? <Badge variant="default">{String(aiResult.suggestedStatus)}</Badge> : null}
+                            </div>
+                          ) : null}
+
+                          {Array.isArray(aiResult.followUpQuestions) && aiResult.followUpQuestions.length > 0 ? (
+                            <div>
+                              <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">Preguntas</div>
+                              <ul className="text-sm text-gray-800 dark:text-gray-200 list-disc pl-5 space-y-1">
+                                {aiResult.followUpQuestions.slice(0, 5).map((q: string, idx: number) => (
+                                  <li key={idx}>{q}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+
                     <Textarea
                       rows={3}
                       placeholder={
