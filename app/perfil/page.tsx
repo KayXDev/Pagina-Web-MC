@@ -25,51 +25,77 @@ export default function PerfilPage() {
 
   return (
     <div className="space-y-4">
-      <Card hover={false}>
-        <div className="text-white font-semibold">{t(lang, 'profile.nav.overview')}</div>
-        <div className="text-sm text-gray-400 mt-1">{t(lang, 'profile.detailsTitle')}</div>
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="text-gray-900 dark:text-white font-bold">{t(lang, 'profile.nav.overview')}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t(lang, 'profile.detailsTitle')}</div>
       </Card>
 
-      <Card hover={false}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center space-x-3">
-            <FaIdBadge className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">{t(lang, 'profile.userId')}</p>
-              <p className="text-white break-all">{details?.id || session.user.id}</p>
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaIdBadge />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'profile.userId')}</p>
+                <p className="text-gray-900 dark:text-white break-all font-semibold">{details?.id || session.user.id}</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <FaClock className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">{t(lang, 'profile.memberSince')}</p>
-              <p className="text-white">{loadingDetails ? t(lang, 'common.loading') : formatDateTime(details?.createdAt)}</p>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaClock />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'profile.memberSince')}</p>
+                <p className="text-gray-900 dark:text-white font-semibold">
+                  {loadingDetails ? t(lang, 'common.loading') : formatDateTime(details?.createdAt)}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <FaClock className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">{t(lang, 'profile.lastLogin')}</p>
-              <p className="text-white">{loadingDetails ? t(lang, 'common.loading') : formatDateTime(details?.lastLogin ?? null)}</p>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaClock />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'profile.lastLogin')}</p>
+                <p className="text-gray-900 dark:text-white font-semibold">
+                  {loadingDetails ? t(lang, 'common.loading') : formatDateTime(details?.lastLogin ?? null)}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <FaShieldAlt className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">{t(lang, 'profile.status')}</p>
-              {loadingDetails ? (
-                <p className="text-white">{t(lang, 'common.loading')}</p>
-              ) : details?.isBanned ? (
-                <div className="space-y-1">
-                  <Badge variant="danger">{t(lang, 'profile.statusBanned')}</Badge>
-                  {details?.bannedReason ? <div className="text-xs text-red-300">{details.bannedReason}</div> : null}
-                </div>
-              ) : (
-                <Badge variant="success">{t(lang, 'profile.statusActive')}</Badge>
-              )}
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaShieldAlt />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'profile.status')}</p>
+                {loadingDetails ? (
+                  <p className="text-gray-900 dark:text-white font-semibold">{t(lang, 'common.loading')}</p>
+                ) : details?.isBanned ? (
+                  <div className="space-y-1">
+                    <Badge variant="danger">{t(lang, 'profile.statusBanned')}</Badge>
+                    {details?.bannedReason ? <div className="text-xs text-red-700 dark:text-red-300">{details.bannedReason}</div> : null}
+                  </div>
+                ) : (
+                  <Badge variant="success">{t(lang, 'profile.statusActive')}</Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>

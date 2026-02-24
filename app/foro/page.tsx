@@ -491,76 +491,80 @@ export default function ForoPage() {
                 {t(lang, 'forum.empty')}
               </Card>
             ) : (
-              <div className="rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20 overflow-hidden">
-                <div className="divide-y divide-gray-200 dark:divide-white/10">
-                  {filtered.map((post) => {
-                    const mediaUrls = Array.isArray(post.media) ? post.media : [];
-                    const initial = (post.authorUsername || '?').slice(0, 1).toUpperCase();
+              <div className="space-y-3">
+                {filtered.map((post) => {
+                  const mediaUrls = Array.isArray(post.media) ? post.media : [];
+                  const initial = (post.authorUsername || '?').slice(0, 1).toUpperCase();
 
-                    return (
-                      <div key={post._id} className="p-4 hover:bg-gray-50 dark:hover:bg-black/30 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <button
-                            type="button"
-                            className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden"
-                            onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
-                          >
-                            {post.authorAvatar ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              initial
-                            )}
-                          </button>
+                  return (
+                    <Card
+                      key={post._id}
+                      hover={false}
+                      className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20"
+                    >
+                      <div className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden"
+                          onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
+                        >
+                          {post.authorAvatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            initial
+                          )}
+                        </button>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                              <button
-                                type="button"
-                                className="text-gray-900 dark:text-white font-semibold hover:underline"
-                                onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
-                              >
-                                <span className="inline-flex items-center gap-1">
-                                  {post.authorUsername}
-                                  {post.authorVerified ? (
-                                    <FaCheckCircle className="text-blue-400 shrink-0 text-sm relative top-px" title="Verificado" />
-                                  ) : null}
-                                </span>
-                              </button>
-                              <span className="text-gray-500">•</span>
-                              <span className="text-gray-600 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
-                              <span className="ml-auto" />
-                              <Badge variant="info">{categoryLabel(post.category)}</Badge>
-                            </div>
-
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                             <button
                               type="button"
-                              className="mt-1 text-left w-full"
-                              onClick={() => router.push(`/foro/${post._id}`)}
+                              className="text-gray-900 dark:text-white font-semibold hover:underline"
+                              onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
                             >
-                              <div className="text-gray-900 dark:text-white font-semibold leading-snug">{post.title}</div>
-                              {post.content && (
-                                <div className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-200 text-[15px] leading-relaxed">
-                                  {post.content}
-                                </div>
-                              )}
+                              <span className="inline-flex items-center gap-1">
+                                {post.authorUsername}
+                                {post.authorVerified ? (
+                                  <FaCheckCircle className="text-blue-400 shrink-0 text-sm relative top-px" title="Verificado" />
+                                ) : null}
+                              </span>
                             </button>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-600 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
+                            <span className="ml-auto" />
+                            <Badge variant="info">{categoryLabel(post.category)}</Badge>
+                          </div>
 
-                            {mediaUrls.length > 0 && (
-                              <div className="mt-3 grid grid-cols-2 gap-2">
-                                {mediaUrls.slice(0, 4).map((url) => (
-                                  <div
-                                    key={url}
-                                    className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
-                                  >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={url} alt="" className="w-full h-40 object-cover" />
-                                  </div>
-                                ))}
+                          <button
+                            type="button"
+                            className="mt-1 text-left w-full"
+                            onClick={() => router.push(`/foro/${post._id}`)}
+                          >
+                            <div className="text-gray-900 dark:text-white font-semibold leading-snug">{post.title}</div>
+                            {post.content ? (
+                              <div className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-200 text-sm leading-relaxed line-clamp-3">
+                                {post.content}
                               </div>
-                            )}
+                            ) : null}
+                          </button>
 
-                            <div className="mt-3 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                          {mediaUrls.length > 0 ? (
+                            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {mediaUrls.slice(0, 4).map((url) => (
+                                <div
+                                  key={url}
+                                  className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt="" className="w-full h-24 sm:h-28 object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex flex-wrap items-center gap-4">
                               <button
                                 type="button"
                                 className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
@@ -587,22 +591,22 @@ export default function ForoPage() {
                                 <FaEye className="opacity-80" />
                                 <span>{post.views || 0}</span>
                               </div>
-
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
-                                onClick={() => sharePost(post._id)}
-                              >
-                                <FaShare className="opacity-80" />
-                                <span className="hidden sm:inline">{t(lang, 'forum.share')}</span>
-                              </button>
                             </div>
+
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
+                              onClick={() => sharePost(post._id)}
+                            >
+                              <FaShare className="opacity-80" />
+                              <span className="hidden sm:inline">{t(lang, 'forum.share')}</span>
+                            </button>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>

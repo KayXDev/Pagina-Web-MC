@@ -45,6 +45,8 @@ export default function AdminMaintenancePage() {
   };
 
   const selectedMaintenancePaths = new Set(parseMaintenancePaths(settings.maintenance_paths));
+  const optionsPathSet = new Set(MAINTENANCE_ROUTE_OPTIONS.map((o) => o.path));
+  const customSelectedPaths = Array.from(selectedMaintenancePaths).filter((p) => !optionsPathSet.has(p));
 
   const toggleMaintenancePath = (path: string) => {
     const next = new Set(selectedMaintenancePaths);
@@ -72,6 +74,12 @@ export default function AdminMaintenancePage() {
     next.add(normalized);
     setSettings((prev) => ({ ...prev, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) }));
     setCustomPath('');
+  };
+
+  const removeMaintenancePath = (path: string) => {
+    const next = new Set(selectedMaintenancePaths);
+    next.delete(path);
+    setSettings((prev) => ({ ...prev, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) }));
   };
 
   useEffect(() => {
@@ -293,6 +301,39 @@ export default function AdminMaintenancePage() {
                 : 'Tip: you can use * at the end for prefix matching (e.g. /forum/*).'}
             </p>
           </div>
+
+          {customSelectedPaths.length ? (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  {lang === 'es' ? 'Rutas personalizadas seleccionadas' : 'Selected custom paths'}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  {customSelectedPaths.length}
+                </div>
+              </div>
+              <div className="mt-2 space-y-2">
+                {customSelectedPaths
+                  .slice()
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((p) => (
+                    <div key={p} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-white/10 dark:bg-black/20">
+                      <div className="min-w-0">
+                        <div className="text-sm text-gray-900 dark:text-white truncate">{p}</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-400">
+                          {lang === 'es'
+                            ? 'No está en la lista de secciones (arriba).'
+                            : 'Not in the section list (above).'}
+                        </div>
+                      </div>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => removeMaintenancePath(p)}>
+                        {lang === 'es' ? 'Quitar' : 'Remove'}
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ) : null}
 
           <p className="text-xs text-gray-500 mt-3">{t(lang, 'admin.settings.maintenancePathsHint')}</p>
         </Card>

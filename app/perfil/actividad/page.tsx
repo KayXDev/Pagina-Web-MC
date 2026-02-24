@@ -75,29 +75,42 @@ export default function PerfilActividadPage() {
 
   return (
     <div className="space-y-4">
-      <Card hover={false}>
-        <div className="text-white font-semibold">{t(lang, 'profile.nav.activity')}</div>
-        <div className="text-sm text-gray-400 mt-1">Tus publicaciones del foro</div>
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="text-gray-900 dark:text-white font-bold">{t(lang, 'profile.nav.activity')}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Tus publicaciones del foro</div>
       </Card>
 
       {loading ? (
-        <Card hover={false}>
+        <Card
+          hover={false}
+          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        >
           <div className="text-gray-400 text-sm">{t(lang, 'common.loading')}</div>
         </Card>
       ) : items.length === 0 ? (
-        <Card hover={false}>
+        <Card
+          hover={false}
+          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        >
           <div className="text-gray-400 text-sm">No hay actividad todavía.</div>
         </Card>
       ) : (
         <div className="space-y-3">
           {items.map((p) => (
-            <Card key={p._id} hover={false} className="border-gray-800">
+            <Card
+              key={p._id}
+              hover={false}
+              className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <Link href={`/foro/${p._id}`} className="text-white font-semibold hover:text-minecraft-grass">
+                  <Link href={`/foro/${p._id}`} className="text-gray-900 dark:text-white font-semibold hover:text-minecraft-grass">
                     {p.title}
                   </Link>
-                  <div className="text-sm text-gray-300 mt-2 whitespace-pre-wrap line-clamp-4">{p.content}</div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300 mt-2 whitespace-pre-wrap line-clamp-4">{p.content}</div>
 
                   <div className="mt-3 flex items-center gap-3 flex-wrap text-xs text-gray-400">
                     {p.category && <Badge variant="default">{p.category}</Badge>}
@@ -108,7 +121,7 @@ export default function PerfilActividadPage() {
                   </div>
                 </div>
 
-                <Link href={`/foro/${p._id}`} className="text-sm text-gray-300 hover:text-white shrink-0">
+                <Link href={`/foro/${p._id}`} className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white shrink-0">
                   Ver
                 </Link>
               </div>

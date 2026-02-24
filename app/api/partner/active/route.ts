@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
+import { unstable_noStore as noStore } from 'next/cache';
 import dbConnect from '@/lib/mongodb';
 import PartnerAd from '@/models/PartnerAd';
 import PartnerBooking from '@/models/PartnerBooking';
 import { PARTNER_SLOTS } from '@/lib/partnerPricing';
 import { getPartnerSlotOverrides } from '@/lib/partnerSlotOverridesStore';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
+    noStore();
     await dbConnect();
 
     const overrides = await getPartnerSlotOverrides();
@@ -84,11 +90,24 @@ export async function GET() {
       .filter(Boolean)]
       .sort((a: any, b: any) => a.slot - b.slot);
 
-    return NextResponse.json({ items });
+    return NextResponse.json(
+      { items },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Partner active error:', error);
-    return NextResponse.json({ error: 'Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    );
   }
 }
-
-export const runtime = 'nodejs';

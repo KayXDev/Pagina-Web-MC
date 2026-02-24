@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { createPortal } from 'react-dom';
+import { FaBullhorn, FaCalendarAlt, FaCrown, FaTag } from 'react-icons/fa';
 import { Badge, Button, Card, Input, Select, Textarea } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
 import { formatDateTime, formatPrice } from '@/lib/utils';
@@ -403,6 +404,13 @@ export default function PartnerAdminPage() {
     return { pending, approved, rejected };
   }, [ads]);
 
+  const bookingStats = useMemo(() => {
+    const pending = bookings.filter((b) => b.status === 'PENDING').length;
+    const active = bookings.filter((b) => b.status === 'ACTIVE').length;
+    const expired = bookings.filter((b) => b.status === 'EXPIRED').length;
+    return { pending, active, expired };
+  }, [bookings]);
+
   const selectedAd = useMemo(() => {
     return ads.find((a) => a._id === selectedAdId) || null;
   }, [ads, selectedAdId]);
@@ -506,46 +514,148 @@ export default function PartnerAdminPage() {
 
   return (
     <main className="max-w-6xl mx-auto py-10 px-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Moderación de Partners</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Aprobar antes de mostrar • Top 10 slots</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>Recargar anuncios</Button>
-          <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>Recargar reservas</Button>
-        </div>
-      </div>
+      <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 mb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <div className="text-xs text-gray-600 dark:text-gray-400">Panel</div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">Moderación de Partners</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base mt-2">
+              Gestiona anuncios, reservas y precios • Top {PARTNER_SLOTS} slots
+            </p>
+          </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          Pendientes: <span className="font-semibold">{stats.pending}</span> • Aprobados: <span className="font-semibold">{stats.approved}</span> • Rechazados: <span className="font-semibold">{stats.rejected}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>
+              {adsLoading ? 'Cargando…' : 'Recargar anuncios'}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>
+              {bookingsLoading ? 'Cargando…' : 'Recargar reservas'}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                void loadPricing();
+                setPricingOpen(true);
+              }}
+              disabled={pricingLoading}
+            >
+              {pricingLoading ? 'Cargando…' : 'Editar precios'}
+            </Button>
+            {canOverrideSlots ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  void loadOverrides();
+                  void loadApprovedAds();
+                  setOverridesOpen(true);
+                }}
+                disabled={overridesLoading}
+              >
+                Asignación manual
+              </Button>
+            ) : null}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="text-xs text-gray-600 dark:text-gray-400">Anuncios pendientes</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{stats.pending}</div>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas pendientes</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.pending}</div>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas activas</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.active}</div>
+          </div>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas expiradas</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.expired}</div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 mb-6">
+        <div className="space-y-3">
+          <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Secciones</div>
+
           {([
-            { k: 'ADS' as const, label: 'Anuncios' },
-            { k: 'BOOKINGS' as const, label: 'Reservas' },
-            { k: 'PRICING' as const, label: 'Precios' },
-            ...(canOverrideSlots ? [{ k: 'OWNER' as const, label: 'Owner' }] : []),
-          ] as const).map((t) => {
-            const active = tab === t.k;
+            {
+              k: 'ADS' as const,
+              title: 'Anuncios',
+              desc: 'Revisión, edición y aprobación',
+              icon: FaBullhorn,
+              meta: `${adsStatus === 'PENDING_REVIEW' ? 'Pendientes' : adsStatus === 'APPROVED' ? 'Aprobados' : 'Rechazados'}: ${ads.length}`,
+            },
+            {
+              k: 'BOOKINGS' as const,
+              title: 'Reservas',
+              desc: 'Pagos, estado y duración',
+              icon: FaCalendarAlt,
+              meta: `${bookingsStatus === 'PENDING_OR_ACTIVE' ? 'Pend./Act.' : bookingsStatus}: ${bookings.length}`,
+            },
+            {
+              k: 'PRICING' as const,
+              title: 'Precios',
+              desc: 'Precio por slot y días',
+              icon: FaTag,
+              meta: pricing ? 'Configurado' : pricingLoading ? 'Cargando…' : 'Sin config',
+            },
+            ...(canOverrideSlots
+              ? ([
+                  {
+                    k: 'OWNER' as const,
+                    title: 'Owner',
+                    desc: 'Overrides y anuncio interno',
+                    icon: FaCrown,
+                    meta: 'Acciones avanzadas',
+                  },
+                ] as const)
+              : ([] as const)),
+          ] as const).map((s) => {
+            const Icon = s.icon;
+            const active = tab === s.k;
             return (
               <button
-                key={t.k}
+                key={s.k}
                 type="button"
-                onClick={() => setTab(t.k)}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                onClick={() => setTab(s.k)}
+                className={`w-full text-left rounded-2xl border p-4 transition-colors ${
                   active
-                    ? 'border-minecraft-grass/30 bg-minecraft-grass/10 text-gray-900 dark:text-white'
-                    : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+                    ? 'border-minecraft-grass/30 bg-minecraft-grass/10'
+                    : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-white/10 dark:bg-gray-950/25 dark:hover:bg-white/5'
                 }`}
               >
-                {t.label}
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`h-11 w-11 rounded-xl grid place-items-center border ${
+                      active
+                        ? 'bg-minecraft-grass/15 text-minecraft-grass border-minecraft-grass/30'
+                        : 'bg-gray-50 text-gray-800 border-gray-200 dark:bg-white/5 dark:text-gray-200 dark:border-white/10'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <Icon />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-gray-900 dark:text-white font-bold truncate">{s.title}</div>
+                      {active ? <Badge variant="success">Abierto</Badge> : null}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{s.desc}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">{s.meta}</div>
+                  </div>
+                </div>
               </button>
             );
           })}
         </div>
-      </div>
+
+        <div className="min-w-0 space-y-4">
 
       {tab === 'ADS' ? (
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
@@ -827,6 +937,9 @@ export default function PartnerAdminPage() {
           </Card>
         </div>
       ) : null}
+
+        </div>
+      </div>
 
       <Modal open={pricingOpen} title="Editar precios" onClose={() => setPricingOpen(false)}>
         {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}

@@ -141,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white/80 dark:from-gray-950/20 dark:via-gray-950/60 dark:to-gray-950" />
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-72 md:flex-col border-r border-gray-200 dark:border-white/10 bg-white/75 dark:bg-gray-950/40 backdrop-blur-sm relative z-10">
+      <aside className="hidden md:flex md:w-72 md:flex-col border-r border-gray-200 dark:border-white/10 bg-white/75 dark:bg-gray-950/40 backdrop-blur-sm relative z-10 sticky top-0 h-screen">
         <div className="p-5">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-2xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-grass">
@@ -154,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <nav className="px-2 pb-4 overflow-y-auto">
+        <nav className="px-2 pb-4 overflow-y-auto flex-1">
           <NavSection title={t(lang, 'admin.menuGroups.main')} items={grouped.main} />
           <NavSection title={t(lang, 'admin.menuGroups.content')} items={grouped.content} />
           <NavSection title={t(lang, 'admin.menuGroups.system')} items={grouped.system} />

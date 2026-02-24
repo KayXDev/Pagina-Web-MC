@@ -25,26 +25,40 @@ export default function PublicPerfilOverviewPage() {
 
   return (
     <div className="space-y-4">
-      <Card hover={false}>
-        <div className="text-white font-semibold">{t(lang, 'profile.nav.overview')}</div>
-        <div className="text-sm text-gray-400 mt-1">Información del usuario</div>
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="text-gray-900 dark:text-white font-bold">{t(lang, 'profile.nav.overview')}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Información del usuario</div>
       </Card>
 
-      <Card hover={false}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center space-x-3">
-            <FaIdBadge className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">ID</p>
-              <p className="text-white break-all">{profile.id}</p>
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaIdBadge />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">ID</p>
+                <p className="text-gray-900 dark:text-white break-all font-semibold">{profile.id}</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <FaClock className="text-minecraft-grass text-xl" />
-            <div>
-              <p className="text-gray-400 text-sm">Miembro desde</p>
-              <p className="text-white">{formatDateTime(profile.createdAt || null)}</p>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl border border-gray-200 bg-white grid place-items-center text-minecraft-grass dark:border-white/10 dark:bg-gray-950/40">
+                <FaClock />
+              </div>
+              <div className="min-w-0">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Miembro desde</p>
+                <p className="text-gray-900 dark:text-white font-semibold">{formatDateTime(profile.createdAt || null)}</p>
+              </div>
             </div>
           </div>
         </div>

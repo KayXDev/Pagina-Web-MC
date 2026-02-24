@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { FaUsers, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV } from 'react-icons/fa';
+import { FaUsers, FaUser, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -441,6 +442,16 @@ export default function AdminUsersPage() {
                             {t(lang, 'admin.users.thActions')}
                           </div>
 
+                          <Link
+                            href={`/perfil/${encodeURIComponent(user.username)}`}
+                            target="_blank"
+                            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                            onClick={() => setOpenMenuUserId(null)}
+                          >
+                            <FaUser />
+                            <span>Ver perfil</span>
+                          </Link>
+
                           {canToggleVerified ? (
                             <button
                               type="button"
@@ -650,6 +661,16 @@ export default function AdminUsersPage() {
                                   <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
                                     {t(lang, 'admin.users.thActions')}
                                   </div>
+
+                                  <Link
+                                    href={`/perfil/${encodeURIComponent(user.username)}`}
+                                    target="_blank"
+                                    className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                                    onClick={() => setOpenMenuUserId(null)}
+                                  >
+                                    <FaUser />
+                                    <span>Ver perfil</span>
+                                  </Link>
 
                                   {canToggleVerified ? (
                                     <button
