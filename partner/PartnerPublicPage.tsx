@@ -140,12 +140,12 @@ export default function PartnerPublicPage() {
   const showRanking = !error && !loading && items.length > 0;
 
   return (
-    <main className="max-w-5xl mx-auto py-8 px-4">
+    <main className="max-w-6xl mx-auto py-10 px-4">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
         <div className="absolute inset-0 bg-gradient-to-br from-minecraft-grass/15 via-transparent to-minecraft-diamond/10" />
-        <div className="relative p-5 sm:p-7">
-          <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="relative p-6 sm:p-10">
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="info">Ranking en vivo</Badge>
@@ -153,50 +153,50 @@ export default function PartnerPublicPage() {
                 <Badge variant="success">Estado online y jugadores</Badge>
               </div>
 
-              <h1 className="mt-4 text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 className="mt-4 text-3xl sm:text-5xl font-bold text-gray-900 dark:text-white">
                 Haz que tu servidor destaque
               </h1>
-              <p className="mt-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 max-w-2xl">
+              <p className="mt-3 text-base sm:text-lg text-gray-700 dark:text-gray-300 max-w-2xl">
                 Publica tu servidor en nuestros <span className="font-semibold text-gray-900 dark:text-white">Partners destacados</span> para aparecer en el top,
                 con banner, enlaces y ranking actualizado.
               </p>
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Link href="/partner/publicar" className="inline-flex">
-                  <Button variant="primary" size="md">
+                  <Button variant="primary" size="lg">
                     <FaBolt />
                     <span>Publicar mi servidor</span>
                   </Button>
                 </Link>
                 <Link href="#ranking" className="inline-flex">
-                  <Button variant="secondary" size="md">
+                  <Button variant="secondary" size="lg">
                     <span>Ver ranking</span>
                   </Button>
                 </Link>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-3">
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
                   <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
-                    <span className="h-8 w-8 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
                       <FaCrown />
                     </span>
                     <span>Top visible</span>
                   </div>
                   <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">Aparece en un ranking con plazas limitadas.</div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-3">
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
                   <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
-                    <span className="h-8 w-8 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
                       <FaGem />
                     </span>
                     <span>Perfil completo</span>
                   </div>
                   <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">Banner + descripción + web/Discord para que te encuentren rápido.</div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-3">
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
                   <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
-                    <span className="h-8 w-8 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
                       <FaShieldAlt />
                     </span>
                     <span>Info en vivo</span>
@@ -206,7 +206,7 @@ export default function PartnerPublicPage() {
               </div>
             </div>
 
-            <Card hover={false} className="rounded-3xl border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/35 p-5 sm:p-6">
+            <Card hover={false} className="rounded-3xl border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/35 p-6 sm:p-8">
               <div className="text-sm font-semibold text-gray-900 dark:text-white">Cómo funciona</div>
               <div className="mt-3 space-y-3">
                 <div className="flex items-start gap-3">
@@ -272,7 +272,7 @@ export default function PartnerPublicPage() {
       <div id="ranking" className="mt-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Partners destacados</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Partners destacados</h2>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Ranking en vivo • hasta {PARTNER_SLOTS} puestos
             </p>
@@ -334,8 +334,8 @@ export default function PartnerPublicPage() {
 
             return (
               <Card key={`${it.slot}-${it.ad.id}`} hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 overflow-hidden p-0">
-                <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr]">
-                  <div className="relative w-full h-28 sm:h-full min-h-28 bg-gray-100 dark:bg-white/5">
+                <div className="grid grid-cols-1 sm:grid-cols-[240px_1fr]">
+                  <div className="relative w-full h-32 sm:h-full min-h-32 bg-gray-100 dark:bg-white/5">
                     {banner ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={banner} alt={it.ad.serverName} className="absolute inset-0 w-full h-full object-cover" />
@@ -349,7 +349,7 @@ export default function PartnerPublicPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex-1 p-3 sm:p-4">
+                  <div className="flex-1 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -373,7 +373,7 @@ export default function PartnerPublicPage() {
                       </div>
                     </div>
 
-                    <div className="mt-2 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed line-clamp-3">{it.ad.description}</div>
+                    <div className="mt-2 text-gray-700 dark:text-gray-300 text-base leading-relaxed line-clamp-3">{it.ad.description}</div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       {website ? (
