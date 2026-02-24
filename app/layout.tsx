@@ -2,10 +2,9 @@ import type { Metadata } from 'next';
 import { Rajdhani } from 'next/font/google';
 import { cookies } from 'next/headers';
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import CookieConsent from '@/components/CookieConsent';
 import ChatbotWidget from '@/components/ChatbotWidget';
+import RootShell from '@/components/RootShell';
 import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -68,13 +67,7 @@ export default function RootLayout({
       </head>
       <body className={rajdhani.className}>
         <Providers>
-          <div className="min-h-screen flex flex-col minecraft-bg">
-            <Navbar />
-            <main className="flex-grow pt-16">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <RootShell>{children}</RootShell>
           <CookieConsent />
           <ChatbotWidget />
           <ToastContainer
