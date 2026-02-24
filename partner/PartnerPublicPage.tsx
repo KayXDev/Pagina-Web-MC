@@ -6,6 +6,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { getClientLangFromCookie, type Lang, getDateLocale } from '@/lib/i18n';
 import { formatDateTime } from '@/lib/utils';
 import { PARTNER_SLOTS } from '@/lib/partnerPricing';
+import { FaBolt, FaCrown, FaGem, FaShieldAlt } from 'react-icons/fa';
 
 type ServerStatus = {
   online: boolean;
@@ -136,38 +137,192 @@ export default function PartnerPublicPage() {
 
   const dateLocale = getDateLocale(lang);
 
+  const showRanking = !error && !loading && items.length > 0;
+
   return (
     <main className="max-w-6xl mx-auto py-10 px-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Partners destacados</h1>
-          <p className="text-base text-gray-600 dark:text-gray-400 mt-1">Ranking en vivo • hasta {PARTNER_SLOTS} puestos</p>
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+        <div className="absolute inset-0 bg-gradient-to-br from-minecraft-grass/15 via-transparent to-minecraft-diamond/10" />
+        <div className="relative p-6 sm:p-10">
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="info">Ranking en vivo</Badge>
+                <Badge variant="warning">Slots limitados: {PARTNER_SLOTS}</Badge>
+                <Badge variant="success">Estado online y jugadores</Badge>
+              </div>
+
+              <h1 className="mt-4 text-3xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+                Haz que tu servidor destaque
+              </h1>
+              <p className="mt-3 text-base sm:text-lg text-gray-700 dark:text-gray-300 max-w-2xl">
+                Publica tu servidor en nuestros <span className="font-semibold text-gray-900 dark:text-white">Partners destacados</span> para aparecer en el top,
+                con banner, enlaces y ranking actualizado.
+              </p>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Link href="/partner/publicar" className="inline-flex">
+                  <Button variant="primary" size="lg">
+                    <FaBolt />
+                    <span>Publicar mi servidor</span>
+                  </Button>
+                </Link>
+                <Link href="#ranking" className="inline-flex">
+                  <Button variant="secondary" size="lg">
+                    <span>Ver ranking</span>
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                      <FaCrown />
+                    </span>
+                    <span>Top visible</span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">Aparece en un ranking con plazas limitadas.</div>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                      <FaGem />
+                    </span>
+                    <span>Perfil completo</span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">Banner + descripción + web/Discord para que te encuentren rápido.</div>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-white/5 p-4">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
+                    <span className="h-9 w-9 rounded-xl grid place-items-center bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-minecraft-grass">
+                      <FaShieldAlt />
+                    </span>
+                    <span>Info en vivo</span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">Mostramos online/offline y jugadores (cuando aplica).</div>
+                </div>
+              </div>
+            </div>
+
+            <Card hover={false} className="rounded-3xl border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/35">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">Cómo funciona</div>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">1</div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">Rellena tu anuncio</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">Nombre, IP, versión, descripción y banner.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">2</div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">Elige tu puesto</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">Compra un slot disponible dentro del top.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-minecraft-grass/15 text-minecraft-grass grid place-items-center text-xs font-bold">3</div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">Sale en el ranking</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">Tu anuncio se muestra con datos y enlaces.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 p-4">
+                <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Consejo rápido</div>
+                <div className="mt-1 text-sm text-gray-800 dark:text-gray-200">
+                  Un buen banner + una descripción clara suelen marcar la diferencia.
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <Link href="/partner/publicar" className="inline-flex w-full">
+                  <Button variant="primary" size="md" className="w-full">
+                    <span>Empezar ahora</span>
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
         </div>
-        <Link href="/partner/publicar" className="inline-flex">
-          <Button variant="primary" size="md">Publicar mi servidor</Button>
-        </Link>
       </div>
 
-      {error ? (
-        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="text-gray-900 dark:text-white font-semibold">No se pudo cargar</div>
-          <div className="text-gray-600 dark:text-gray-400 text-sm mt-1">{error}</div>
-        </Card>
-      ) : null}
+      {/* Alerts */}
+      <div className="mt-8">
+        {error ? (
+          <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-gray-900 dark:text-white font-semibold">No se pudo cargar el ranking</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm mt-1 break-words">{error}</div>
+              </div>
+              <Link href="/partner/publicar" className="shrink-0 hidden sm:inline-flex">
+                <Button variant="secondary" size="sm">Publicar</Button>
+              </Link>
+            </div>
+          </Card>
+        ) : null}
+      </div>
+
+      {/* Ranking */}
+      <div id="ranking" className="mt-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Partners destacados</h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Ranking en vivo • hasta {PARTNER_SLOTS} puestos
+            </p>
+          </div>
+          <Link href="/partner/publicar" className="inline-flex">
+            <Button variant="primary" size="md">Publicar mi servidor</Button>
+          </Link>
+        </div>
+      </div>
 
       {!error && !loading && !items.length ? (
-        <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="text-gray-900 dark:text-white font-semibold">Aún no hay partners activos</div>
-          <div className="text-gray-600 dark:text-gray-400 text-sm mt-1">Sé el primero en aparecer en el ranking.</div>
-          <div className="mt-4">
-            <Link href="/partner/publicar" className="inline-flex">
-              <Button variant="primary" size="sm">Publicar mi servidor</Button>
-            </Link>
+        <Card hover={false} className="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 overflow-hidden p-0">
+          <div className="p-6 sm:p-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-minecraft-grass/10 via-transparent to-transparent" />
+            <div className="relative">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="warning">Vacío</Badge>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Aún no hay partners activos</span>
+                  </div>
+                  <div className="mt-3 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    Sé el primero en ocupar un puesto del top
+                  </div>
+                  <div className="mt-2 text-sm sm:text-base text-gray-700 dark:text-gray-300 max-w-2xl">
+                    Publica tu servidor con un anuncio completo (banner, descripción y enlaces) para atraer jugadores.
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Badge variant="info">Banner + enlaces</Badge>
+                    <Badge variant="success">Datos en vivo</Badge>
+                    <Badge variant="default">Slots limitados</Badge>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <Link href="/partner/publicar" className="inline-flex">
+                    <Button variant="primary" size="lg">Publicar mi servidor</Button>
+                  </Link>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Es rápido y sencillo.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
       ) : null}
 
-      <div className="space-y-3">
+      <div className={`space-y-3 ${showRanking ? 'mt-6' : ''}`}>
         {items
           .slice()
           .sort((a, b) => Number(a.slot) - Number(b.slot))
@@ -199,7 +354,7 @@ export default function PartnerPublicPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <div className="text-gray-900 dark:text-white font-bold text-lg sm:text-xl truncate">#{it.slot} • {it.ad.serverName}</div>
-                          <Badge variant="success">Activo</Badge>
+                          <Badge variant="success">Destacado</Badge>
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400 truncate">{it.ad.address}{it.ad.version ? ` • ${it.ad.version}` : ''}</div>
                       </div>
@@ -239,7 +394,7 @@ export default function PartnerPublicPage() {
       </div>
 
       {loading ? (
-        <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">Cargando…</div>
+        <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">Cargando ranking…</div>
       ) : null}
     </main>
   );
