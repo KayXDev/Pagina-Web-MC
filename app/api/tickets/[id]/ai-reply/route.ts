@@ -7,6 +7,15 @@ import { ollamaChat } from '@/lib/ai/ollama';
 import { getKbSnippets } from '@/lib/ai/kb';
 import { groqChat } from '@/lib/ai/groq';
 
+function parseBool(v: string | undefined, defaultValue: boolean) {
+  if (typeof v !== 'string') return defaultValue;
+  const s = v.trim().toLowerCase();
+  if (!s) return defaultValue;
+  if (s === '1' || s === 'true' || s === 'yes' || s === 'on') return true;
+  if (s === '0' || s === 'false' || s === 'no' || s === 'off') return false;
+  return defaultValue;
+}
+
 function parseProvider(v: string | undefined) {
   const s = String(v || '').trim().toLowerCase();
   if (s === 'groq') return 'groq' as const;
@@ -32,22 +41,21 @@ function isStaffRole(role?: string) {
   return role === 'ADMIN' || role === 'STAFF' || role === 'OWNER';
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const user = await requireAuth();
-    if (!isStaffRole((user as any)?.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const enabled = parseBool(process.env.TICKETS_AI_ENABLED, true);
+    if (!enabled) {
+      return NextResponse.json({ ok: false, skipped: 'disabled' }, { status: 200 });
     }
 
-    const body = await request.json().catch(() => ({}));
-    const ticketId = typeof (body as any)?.ticketId === 'string' ? (body as any).ticketId : '';
-
-    if (!ticketId) {
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
-    }
+    const provider = parseProvider(process.env.TICKETS_AI_PROVIDER);
 
     const baseUrl = (process.env.OLLAMA_BASE_URL || '').trim();
-    const provider = parseProvider(process.env.TICKETS_AI_PROVIDER);
     if ((provider === 'ollama' || provider === 'auto') && !baseUrl) {
       return NextResponse.json(
         {
@@ -61,6 +69,8 @@ export async function POST(request: Request) {
     if ((provider === 'groq' || provider === 'auto') && !(process.env.GROQ_API_KEY || '').trim()) {
       return NextResponse.json(
         {
+          ok: false,
+          skipped: 'ai_not_configured',
           error: 'AI not configured',
           hint: 'Set GROQ_API_KEY (and optionally GROQ_MODEL) or switch TICKETS_AI_PROVIDER to ollama.',
         },
@@ -70,12 +80,37 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const ticket = await Ticket.findById(ticketId).lean();
+    const ticket = await Ticket.findById(params.id);
     if (!ticket) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });
     }
 
-    const replies = await TicketReply.find({ ticketId }).sort({ createdAt: 1 }).lean();
+    const isStaff = isStaffRole((user as any)?.role);
+    const isOwner = (ticket as any).userId === user.id;
+    if (!isStaff && !isOwner) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    if ((ticket as any).status === 'CLOSED') {
+      return NextResponse.json({ ok: false, skipped: 'closed' }, { status: 200 });
+    }
+
+    // Avoid loops / spam: only reply if the latest message is from the user.
+    const latest = await TicketReply.findOne({ ticketId: params.id }).sort({ createdAt: -1 }).lean();
+    if (latest && (latest as any).isStaff) {
+      return NextResponse.json({ ok: false, skipped: 'latest_is_staff' }, { status: 200 });
+    }
+
+    // Cooldown between AI replies.
+    const lastAi = await TicketReply.findOne({ ticketId: params.id, isAi: true }).sort({ createdAt: -1 }).lean();
+    if (lastAi?.createdAt) {
+      const elapsedMs = Date.now() - new Date(lastAi.createdAt as any).getTime();
+      if (elapsedMs < 20_000) {
+        return NextResponse.json({ ok: false, skipped: 'cooldown' }, { status: 200 });
+      }
+    }
+
+    const replies = await TicketReply.find({ ticketId: params.id }).sort({ createdAt: 1 }).lean();
 
     const convo = [
       {
@@ -85,14 +120,22 @@ export async function POST(request: Request) {
         at: (ticket as any).createdAt,
       },
       ...replies.map((r: any) => ({
-        from: r.isStaff ? 'staff' : 'user',
+        from: r.isAi ? 'ai' : r.isStaff ? 'staff' : 'user',
         username: r.username,
         message: r.message,
         at: r.createdAt,
       })),
     ];
 
-    const kb = await getKbSnippets(`${(ticket as any).subject}\n${(ticket as any).message}`);
+    const lastUserMsg = (() => {
+      for (let i = convo.length - 1; i >= 0; i--) {
+        const m = convo[i];
+        if (m.from === 'user') return String(m.message || '');
+      }
+      return String((ticket as any).message || '');
+    })();
+
+    const kb = await getKbSnippets(`${(ticket as any).subject}\n${lastUserMsg}`);
 
     const kbText = kb
       .map((k) => `--- ${k.id}\n${k.snippet.trim()}`)
@@ -101,27 +144,29 @@ export async function POST(request: Request) {
 
     const convoText = convo
       .map((m) => {
-        const who = m.from === 'staff' ? 'STAFF' : 'USER';
+        const who = m.from === 'staff' ? 'STAFF' : m.from === 'ai' ? 'AI' : 'USER';
         return `[${who}] ${m.username}: ${String(m.message || '').trim()}`;
       })
       .join('\n')
-      .slice(0, 8000);
+      .slice(0, 9000);
 
     const system =
-      'You are a support-staff assistant for a Minecraft server website.\n' +
+      'You are an AI support assistant for a Minecraft server website.\n' +
+      '- You are NOT a human staff member. Do not claim you are staff.\n' +
+      '- Be concise and helpful.\n' +
       '- Use the provided knowledge snippets when relevant.\n' +
       "- If you are unsure, say so and ask 1-3 clarifying questions.\n" +
-      '- Do not invent policies or prices.\n' +
-      '- Respond in the language of the user (Spanish or English).\n' +
-      'Return ONLY valid JSON with this schema:\n' +
-      '{"language":"es"|"en","summary":string,"category":"TECHNICAL"|"BILLING"|"BAN_APPEAL"|"REPORT"|"OTHER","priority":"LOW"|"MEDIUM"|"HIGH","suggestedStatus":"OPEN"|"IN_PROGRESS"|"CLOSED","replyDraft":string,"followUpQuestions":string[],"internalNotes":string}.\n';
+      '- Do not invent policies, prices, or actions taken by staff.\n' +
+      '- Reply in the language used by the user (Spanish or English).\n' +
+      'Return ONLY the reply text (no JSON, no markdown code fences).\n';
 
     const userPrompt =
       `Ticket subject: ${(ticket as any).subject}\n` +
       `Ticket category: ${(ticket as any).category}\n` +
       `Ticket status: ${(ticket as any).status}\n` +
       `\nConversation:\n${convoText}\n` +
-      `\nKnowledge snippets (may be empty):\n${kbText || '(none)'}\n`;
+      `\nKnowledge snippets (may be empty):\n${kbText || '(none)'}\n` +
+      `\nWrite the next reply message addressed to the user.`;
 
     const raw =
       provider === 'groq'
@@ -131,7 +176,7 @@ export async function POST(request: Request) {
               { role: 'user', content: userPrompt },
             ],
             temperature: 0.2,
-            maxTokens: 700,
+            maxTokens: 450,
           })
         : await ollamaChat({
             baseUrl,
@@ -142,17 +187,31 @@ export async function POST(request: Request) {
             temperature: 0.2,
           });
 
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      // ignore
+    const replyText = String(raw || '').trim();
+    if (!replyText) {
+      return NextResponse.json({ error: 'AI returned empty reply' }, { status: 502 });
     }
 
-    return NextResponse.json({ ok: true, raw, parsed });
+    const reply = await TicketReply.create({
+      ticketId: params.id,
+      userId: 'ai',
+      username: 'IA',
+      message: replyText,
+      isStaff: true,
+      isAi: true,
+    });
+
+    // Mark activity on the ticket and move to IN_PROGRESS.
+    if ((ticket as any).status === 'OPEN') {
+      (ticket as any).status = 'IN_PROGRESS';
+    }
+    (ticket as any).updatedAt = new Date();
+    await ticket.save();
+
+    return NextResponse.json({ ok: true, reply }, { status: 201 });
   } catch (error: any) {
     if (error?.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const causeCode = (error as any)?.cause?.code;
@@ -162,9 +221,11 @@ export async function POST(request: Request) {
       const baseUrl = (process.env.OLLAMA_BASE_URL || '').trim() || 'http://127.0.0.1:11434';
       return NextResponse.json(
         {
+          ok: false,
+          skipped: 'ai_unavailable',
           error: 'AI unavailable',
           hint:
-            `Cannot reach Ollama at ${baseUrl}. Start Ollama (ollama serve / open the Ollama app) and ensure the model exists (e.g. ollama pull llama3.1).`,
+            `Cannot reach Ollama at ${baseUrl}. Start Ollama and ensure the model exists (e.g. ollama pull llama3.1).`,
         },
         { status: 502 }
       );
@@ -177,6 +238,8 @@ export async function POST(request: Request) {
       const models = await listOllamaModels(baseUrl);
       return NextResponse.json(
         {
+          ok: false,
+          skipped: 'model_missing',
           error: 'Ollama model not found',
           hint:
             models.length > 0
@@ -187,7 +250,7 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error('admin/tickets/ai-suggest error:', error);
+    console.error('tickets/[id]/ai-reply error:', error);
     return NextResponse.json({ error: 'Server Error' }, { status: 500 });
   }
 }

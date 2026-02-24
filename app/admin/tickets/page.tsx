@@ -28,6 +28,7 @@ interface TicketReply {
   username: string;
   message: string;
   isStaff: boolean;
+  isAi?: boolean;
   createdAt: string;
 }
 
@@ -630,7 +631,12 @@ export default function AdminTicketsPage() {
                           }`}
                         >
                           <div className="text-[11px] text-gray-600 dark:text-gray-300 mb-1">
-                            {r.isStaff ? t(lang, 'admin.tickets.staff') : selectedTicket.username} • {formatDateTime(r.createdAt)}
+                            {r.isAi
+                              ? t(lang, 'admin.tickets.aiLabel')
+                              : r.isStaff
+                                ? t(lang, 'admin.tickets.staff')
+                                : selectedTicket.username}{' '}
+                            • {formatDateTime(r.createdAt)}
                           </div>
                           <div className="text-gray-900 dark:text-white whitespace-pre-wrap leading-relaxed">{r.message}</div>
                         </div>

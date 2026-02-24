@@ -16,6 +16,7 @@ type TicketReply = {
   _id: string;
   message: string;
   isStaff: boolean;
+  isAi?: boolean;
   createdAt: string;
   username: string;
 };
@@ -126,6 +127,15 @@ export default function ChatbotWidget() {
       setTicketId(id);
       setMode('AGENT');
       pushAssistant(t(lang, 'chatbot.handoffDone'));
+
+      // Let the AI respond once to the newly created ticket.
+      fetch(`/api/tickets/${id}/ai-reply`, { method: 'POST' })
+        .catch(() => undefined)
+        .finally(() => {
+          setTimeout(() => {
+            syncTicket(id, { silent: true });
+          }, 800);
+        });
     } catch (e: any) {
       pushAssistant(String(e?.message || t(lang, 'chatbot.handoffError')));
     } finally {
@@ -201,6 +211,16 @@ export default function ChatbotWidget() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error((data as any)?.error || 'Error');
+
+        // Fire-and-forget: AI replies to the latest user message.
+        fetch(`/api/tickets/${ticketId}/ai-reply`, { method: 'POST' })
+          .catch(() => undefined)
+          .finally(() => {
+            setTimeout(() => {
+              syncTicket(ticketId, { silent: true });
+            }, 800);
+          });
+
         await syncTicket(ticketId, { silent: true });
         return;
       }
@@ -248,7 +268,10 @@ export default function ChatbotWidget() {
     // (user messages are already stored in local state when sending).
     const mappedReplies: ChatMsg[] = ticketReplies
       .filter((r) => r.isStaff)
-      .map((r) => ({ role: 'assistant', content: r.message }));
+      .map((r) => ({
+        role: 'assistant',
+        content: r.isAi ? `${t(lang, 'support.aiLabel')}: ${r.message}` : `${t(lang, 'support.staffLabel')}: ${r.message}`,
+      }));
 
     return [...messages, ...mappedReplies];
   };

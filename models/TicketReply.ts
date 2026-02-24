@@ -7,6 +7,7 @@ export interface ITicketReply {
   username: string;
   message: string;
   isStaff: boolean;
+  isAi?: boolean;
   createdAt: Date;
 }
 
@@ -29,6 +30,10 @@ const TicketReplySchema = new Schema<ITicketReply>(
       required: [true, 'Message is required'],
     },
     isStaff: {
+      type: Boolean,
+      default: false,
+    },
+    isAi: {
       type: Boolean,
       default: false,
     },

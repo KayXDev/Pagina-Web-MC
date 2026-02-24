@@ -28,6 +28,7 @@ interface TicketReply {
   username: string;
   message: string;
   isStaff: boolean;
+  isAi?: boolean;
   createdAt: string;
 }
 
@@ -62,6 +63,7 @@ export default function TicketChatView({
   const [participants, setParticipants] = useState<Participant[]>([]);
 
   const fetchingDetailsRef = useRef(false);
+  const aiBootstrappedRef = useRef(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -81,12 +83,47 @@ export default function TicketChatView({
         throw new Error((data as any).error || t(lang, 'support.loadTicketError'));
       }
       setTicketDetails(data as any);
+
+      // Auto bootstrap: if a ticket is newly opened (no replies yet), let the AI respond once.
+      // This runs only once per mount to avoid loops with polling.
+      try {
+        const parsed = data as any;
+        const replies = Array.isArray(parsed?.replies) ? (parsed.replies as TicketReply[]) : [];
+        const status = String(parsed?.ticket?.status || '');
+        if (!aiBootstrappedRef.current && status !== 'CLOSED' && replies.length === 0) {
+          aiBootstrappedRef.current = true;
+          fetch(`/api/tickets/${ticketId}/ai-reply`, { method: 'POST' })
+            .catch(() => undefined)
+            .finally(() => {
+              // Give the server a moment to write the reply, then refresh.
+              setTimeout(() => {
+                fetchTicketDetails();
+              }, 800);
+            });
+        }
+      } catch {
+        // ignore
+      }
     } catch (error: any) {
       toast.error(error?.message || t(lang, 'support.loadTicketError'));
       setTicketDetails(null);
     } finally {
       fetchingDetailsRef.current = false;
       setLoading(false);
+    }
+  };
+
+  const triggerAiReply = async () => {
+    if (!ticketId) return;
+    try {
+      await fetch(`/api/tickets/${ticketId}/ai-reply`, { method: 'POST' });
+    } catch {
+      // ignore (AI may be disabled / not configured)
+    } finally {
+      // Refresh soon so the AI message shows up.
+      setTimeout(() => {
+        fetchTicketDetails();
+      }, 800);
     }
   };
 
@@ -166,6 +203,9 @@ export default function TicketChatView({
       setReplyText('');
       await fetchTicketDetails();
       await fetchParticipants();
+
+      // Fire-and-forget: AI replies to the user's latest message.
+      triggerAiReply();
     } catch (error: any) {
       toast.error(error?.message || t(lang, 'support.replyError'));
     }
@@ -325,7 +365,11 @@ export default function TicketChatView({
                         }`}
                       >
                         <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
-                          {r.isStaff ? t(lang, 'support.staffLabel') : t(lang, 'support.you')} •{' '}
+                          {r.isAi
+                            ? t(lang, 'support.aiLabel')
+                            : r.isStaff
+                              ? t(lang, 'support.staffLabel')
+                              : t(lang, 'support.you')} •{' '}
                           {new Date(r.createdAt).toLocaleString(getDateLocale(lang))}
                         </div>
                         <div className="text-gray-900 dark:text-white whitespace-pre-wrap">{r.message}</div>
