@@ -136,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen md:flex relative overflow-x-hidden text-gray-900 dark:text-gray-100">
+    <div className="h-[100dvh] md:flex relative overflow-hidden text-gray-900 dark:text-gray-100">
       <div className="absolute inset-0 bg-gray-50 dark:bg-gray-950" />
       <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white/80 dark:from-gray-950/20 dark:via-gray-950/60 dark:to-gray-950" />
 
@@ -292,7 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Content */}
-      <div className="flex-1 min-w-0 relative z-10">
+      <div className="flex-1 min-w-0 relative z-10 h-[100dvh] overflow-y-auto">
         <header className="sticky top-0 z-30 bg-white/75 dark:bg-gray-950/55 backdrop-blur border-b border-gray-200 dark:border-white/10">
           <div className="px-4 md:px-8 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
