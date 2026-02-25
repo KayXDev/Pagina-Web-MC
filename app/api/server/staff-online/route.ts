@@ -2,8 +2,53 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import { getServerStatus } from '@/lib/minecraft';
+import { Rcon } from 'rcon-client';
 
 export const revalidate = 0;
+
+function parsePlayersFromListCommand(text: string): string[] {
+  const raw = String(text || '').trim();
+  if (!raw) return [];
+
+  // Common formats:
+  // - "There are 1 of a max of 20 players online: Notch"
+  // - "There are 0 of a max of 20 players online"
+  // - "Players online (1): Notch" (some servers)
+  const afterColon = raw.includes(':') ? raw.split(':').slice(1).join(':').trim() : '';
+  if (!afterColon) return [];
+  return afterColon
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+async function getOnlinePlayersViaRcon(): Promise<string[] | null> {
+  const rconPassword = String(process.env.RCON_PASSWORD || '').trim();
+  if (!rconPassword) return null;
+
+  const rconHost = String(process.env.RCON_HOST || '').trim();
+  const rconPort = Number.parseInt(String(process.env.RCON_PORT || '25575'), 10);
+
+  if (!rconHost) return null;
+
+  const rcon = await Rcon.connect({
+    host: rconHost,
+    port: Number.isFinite(rconPort) ? rconPort : 25575,
+    password: rconPassword,
+    timeout: 3000,
+  });
+
+  try {
+    const res = await rcon.send('list');
+    return parsePlayersFromListCommand(res);
+  } finally {
+    try {
+      await rcon.end();
+    } catch {
+      // ignore
+    }
+  }
+}
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +57,16 @@ export async function GET(request: Request) {
     const port = parseInt(searchParams.get('port') || process.env.MINECRAFT_SERVER_PORT || '25565', 10);
 
     const status = await getServerStatus(host, port);
-    const playerList = Array.isArray(status?.players?.list) ? status.players.list : [];
+    let playerList = Array.isArray(status?.players?.list) ? status.players.list : [];
+
+    // If the status provider doesn't expose names, optionally fallback to RCON.
+    if ((!playerList || playerList.length === 0) && status?.online && (status?.players?.online || 0) > 0) {
+      const viaRcon = await getOnlinePlayersViaRcon().catch(() => null);
+      if (Array.isArray(viaRcon) && viaRcon.length > 0) {
+        playerList = viaRcon;
+      }
+    }
+
     const playerSet = new Set(playerList.map((p) => String(p || '').trim()).filter(Boolean));
 
     if (!status?.online || playerSet.size === 0) {
