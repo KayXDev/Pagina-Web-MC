@@ -17,6 +17,7 @@ type StaffOnlineResponse = {
   online: boolean;
   count: number;
   staff: StaffOnlineItem[];
+  note?: string;
 };
 
 interface StaffOnlineWidgetProps {
@@ -94,7 +95,11 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
         </div>
       ) : (
         <div className="text-sm text-gray-400">
-          {lang === 'es' ? 'No hay admins conectados ahora mismo.' : 'No admins online right now.'}
+          {data?.note
+            ? data.note
+            : lang === 'es'
+              ? 'No hay admins conectados ahora mismo.'
+              : 'No admins online right now.'}
         </div>
       )}
     </motion.div>
