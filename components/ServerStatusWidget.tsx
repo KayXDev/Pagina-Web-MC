@@ -94,6 +94,15 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
           {t(lang, 'serverStatus.version')}: {status.version}
         </div>
       )}
+
+      {status?.online && status?.motd?.trim() && (
+        <div className="mt-3 rounded-md bg-black/20 border border-gray-800/60 p-3">
+          <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">MOTD</div>
+          <div className="text-sm text-gray-200 whitespace-pre-line leading-relaxed">
+            {status.motd}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
