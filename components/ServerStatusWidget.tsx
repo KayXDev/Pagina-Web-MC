@@ -78,25 +78,6 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
       animate={{ opacity: 1, y: 0 }}
       className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6"
     >
-      {(status?.motd || status?.favicon) && (
-        <div className="rounded-lg border border-gray-800 bg-black/30 p-4 mb-4">
-          <div className="flex items-start gap-3">
-            {status?.favicon ? (
-              <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
-                <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
-              </div>
-            ) : null}
-
-            <div className="min-w-0 flex-1">
-              <div className="text-xs text-gray-400">MOTD</div>
-              <div className="text-white font-medium leading-snug break-words">
-                {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className={`w-3 h-3 rounded-full ${status?.online ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
@@ -104,31 +85,49 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
             {status?.online ? t(lang, 'serverStatus.online') : t(lang, 'serverStatus.offline')}
           </span>
         </div>
-        {status?.online && (
-          <div className="flex items-center space-x-2 text-minecraft-grass">
-            <FaUsers />
-            <span className="font-bold">
-              {status.players.online}/{status.players.max}
-            </span>
-          </div>
-        )}
       </div>
 
-      <div className="flex items-center justify-between bg-black/30 rounded-md p-3 mb-3">
-        <div className="flex items-center space-x-2">
-          <FaServer className="text-minecraft-grass" />
-          <span className="text-white font-mono">{serverAddress}</span>
+      <div className="flex items-center justify-between gap-3 bg-black/30 rounded-md p-3 mb-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
+            {status?.favicon ? (
+              <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
+            ) : (
+              <div className="h-full w-full grid place-items-center text-minecraft-grass">
+                <FaServer />
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <div className="text-white font-mono break-all">{serverAddress}</div>
+            <div className="text-sm text-gray-400 mt-1 leading-snug break-words">
+              {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={copyIP}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
-        >
-          {copied ? <FaCheck /> : <FaCopy />}
-          <span className="text-sm font-medium">
-            {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
-          </span>
-        </button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {status?.online ? (
+            <div className="flex items-center gap-2 text-minecraft-grass px-3 py-2 rounded-md bg-minecraft-grass/10 border border-minecraft-grass/20">
+              <FaUsers />
+              <span className="font-bold">
+                {status.players.online}/{status.players.max}
+              </span>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={copyIP}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
+          >
+            {copied ? <FaCheck /> : <FaCopy />}
+            <span className="text-sm font-medium">
+              {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
+            </span>
+          </button>
+        </div>
       </div>
 
       {status?.version && (
