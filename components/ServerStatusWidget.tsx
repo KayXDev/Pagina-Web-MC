@@ -116,18 +116,20 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
               </span>
             </div>
           ) : null}
-
-          <button
-            type="button"
-            onClick={copyIP}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
-          >
-            {copied ? <FaCheck /> : <FaCopy />}
-            <span className="text-sm font-medium">
-              {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
-            </span>
-          </button>
         </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={copyIP}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
+        >
+          {copied ? <FaCheck /> : <FaCopy />}
+          <span className="text-sm font-medium">
+            {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
+          </span>
+        </button>
       </div>
 
       {status?.version && (
