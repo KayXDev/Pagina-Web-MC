@@ -46,15 +46,21 @@ function padRight(text, width) {
   return text + ' '.repeat(pad);
 }
 
-function printBox(lines) {
+function renderBox(lines) {
   const maxWidth = Math.max(...lines.map((l) => stripAnsi(l).length));
   const top = `┌${'─'.repeat(maxWidth + 2)}┐`;
   const bottom = `└${'─'.repeat(maxWidth + 2)}┘`;
-  console.log(color(top, ansi.cyan));
+
+  const outLines = [color(top, ansi.cyan)];
   for (const line of lines) {
-    console.log(color('│', ansi.cyan) + ' ' + padRight(line, maxWidth) + ' ' + color('│', ansi.cyan));
+    outLines.push(color('│', ansi.cyan) + ' ' + padRight(line, maxWidth) + ' ' + color('│', ansi.cyan));
   }
-  console.log(color(bottom, ansi.cyan));
+  outLines.push(color(bottom, ansi.cyan));
+
+  return {
+    text: outLines.join('\n') + '\n',
+    height: outLines.length,
+  };
 }
 
 function prettyUrl(url) {
@@ -80,11 +86,20 @@ function banner({ readyMs } = {}) {
     lines.push(`${color('Status:  ', ansi.gray)} ${color('Ready', ansi.green)} ${color(`(${readyMs}ms)`, ansi.dim)}`);
   }
 
-  printBox(lines);
+  return renderBox(lines);
 }
 
 function clearScreen() {
   process.stdout.write('\x1b[2J\x1b[0;0H');
+}
+
+function moveCursorUp(lines) {
+  if (lines <= 0) return;
+  process.stdout.write(`\x1b[${lines}A`);
+}
+
+function clearFromCursorDown() {
+  process.stdout.write('\x1b[J');
 }
 
 function isNextStartupNoise(line) {
@@ -110,8 +125,26 @@ function parseReadyMs(line) {
   return Number.parseInt(match[1], 10);
 }
 
-clearScreen();
-banner();
+const isTTY = Boolean(process.stdout.isTTY);
+
+let lastBoxHeight = 0;
+
+function drawBoxInPlace(box) {
+  if (!box) return;
+  if (lastBoxHeight > 0) {
+    moveCursorUp(lastBoxHeight);
+    clearFromCursorDown();
+  }
+  process.stdout.write(box.text);
+  lastBoxHeight = box.height;
+}
+
+// In a real TTY: show a single banner and update it in-place when Ready.
+// In non-TTY (logs/CI): avoid duplicate blocks; print only the final Ready banner.
+if (isTTY) {
+  clearScreen();
+  drawBoxInPlace(banner());
+}
 
 const nextBin = require.resolve('next/dist/bin/next');
 const child = spawn(process.execPath, [nextBin, 'dev', '-H', host, '-p', String(port)], {
@@ -135,8 +168,12 @@ function pipeStream(stream, write) {
         const readyMs = parseReadyMs(line);
         if (readyMs !== null) {
           seenReady = true;
-          clearScreen();
-          banner({ readyMs });
+          const box = banner({ readyMs });
+          if (isTTY) {
+            drawBoxInPlace(box);
+          } else {
+            process.stdout.write(box.text);
+          }
           continue;
         }
 
