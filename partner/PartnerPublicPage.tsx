@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, Badge, Button } from '@/components/ui';
 import { getDateLocale, t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, normalizeExternalUrl } from '@/lib/utils';
 import { PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 import { FaBolt, FaCrown, FaGem, FaShieldAlt } from 'react-icons/fa';
 
@@ -375,8 +375,8 @@ export default function PartnerPublicPage() {
               .sort((a, b) => Number(a.slot) - Number(b.slot))
               .map((it) => {
                 const banner = String(it.ad.banner || '').trim();
-                const website = String(it.ad.website || '').trim();
-                const discord = String(it.ad.discord || '').trim();
+                const website = normalizeExternalUrl(String(it.ad.website || '').trim());
+                const discord = normalizeExternalUrl(String(it.ad.discord || '').trim());
                 const status = statusByAdId[String(it.ad.id || '')];
                 const slotNum = Number(it.slot);
                 const isVip = slotNum === PARTNER_VIP_SLOT;
@@ -504,8 +504,8 @@ export default function PartnerPublicPage() {
             <div className="mt-3 space-y-3">
               {browse.map((a) => {
                 const banner = String(a.banner || '').trim();
-                const website = String(a.website || '').trim();
-                const discord = String(a.discord || '').trim();
+                const website = normalizeExternalUrl(String(a.website || '').trim());
+                const discord = normalizeExternalUrl(String(a.discord || '').trim());
                 const status = statusByAdId[String(a._id || '')];
                 return (
                   <Card

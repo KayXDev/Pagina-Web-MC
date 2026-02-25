@@ -72,3 +72,22 @@ export function truncate(text: string, length: number): string {
 export function copyToClipboard(text: string): Promise<void> {
   return navigator.clipboard.writeText(text);
 }
+
+export function normalizeExternalUrl(input: string): string | null {
+  const raw = String(input || '').trim();
+  if (!raw) return null;
+
+  const normalized = (() => {
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith('//')) return `https:${raw}`;
+    return `https://${raw}`;
+  })();
+
+  try {
+    const url = new URL(normalized);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}

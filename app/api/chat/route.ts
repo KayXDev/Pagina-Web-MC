@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getKbSnippets } from '@/lib/ai/kb';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const chatBodySchema = z
   .object({
@@ -38,6 +40,24 @@ export async function POST(request: Request) {
 
     const preferredLang = body.lang === 'en' ? 'en' : 'es';
 
+    const upstreamMessages = Array.isArray(body.messages)
+      ? body.messages
+      : [{ role: 'user' as const, content: String(body.message || '') }];
+
+    const lastUserText = (() => {
+      for (let i = upstreamMessages.length - 1; i >= 0; i--) {
+        const m = upstreamMessages[i];
+        if (m?.role === 'user') return String(m.content || '');
+      }
+      return String(body.message || '');
+    })();
+
+    const kb = await getKbSnippets(lastUserText, { maxDocs: 2, maxCharsPerDoc: 700 });
+    const kbText = kb
+      .map((k) => `--- ${k.id}\n${k.snippet.trim()}`)
+      .join('\n\n')
+      .slice(0, 2500);
+
     const systemPrompt =
       'You are a support assistant for a Minecraft server/community website. ' +
       'CRITICAL: Reply in the same language as the user message. If the user writes in English, reply in English. If the user writes in Spanish, reply in Spanish. ' +
@@ -46,11 +66,8 @@ export async function POST(request: Request) {
       'First identify the issue and ask 1-2 key clarifying questions if needed (e.g., username, Java/Bedrock, version, server IP, exact error). ' +
       'Then provide short, verifiable steps. ' +
       'If the issue requires internal actions (moderation, billing, account access) or you cannot safely resolve it, say so and suggest talking to a human staff/admin agent. ' +
-      'Never ask for or accept passwords, tokens, API keys, or other sensitive data; if requested, refuse and explain why.';
-
-    const upstreamMessages = Array.isArray(body.messages)
-      ? body.messages
-      : [{ role: 'user' as const, content: String(body.message || '') }];
+      'Never ask for or accept passwords, tokens, API keys, or other sensitive data; if requested, refuse and explain why.\n' +
+      `\nKnowledge snippets (may be empty):\n${kbText || '(none)'}\n`;
 
     const messages = [{ role: 'system' as const, content: systemPrompt }, ...upstreamMessages];
 
@@ -73,7 +90,7 @@ export async function POST(request: Request) {
       const msg =
         typeof (data as any)?.error?.message === 'string'
           ? (data as any).error.message
-          : 'Error al contactar con OpenAI';
+          : 'Error al contactar con Groq';
       return NextResponse.json({ error: msg }, { status: 500 });
     }
 

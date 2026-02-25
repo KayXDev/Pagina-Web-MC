@@ -237,7 +237,7 @@ export default function ForoPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
       <AnimatedSection>
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -437,7 +437,7 @@ export default function ForoPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <aside className="hidden md:block md:col-span-3">
+          <aside className="hidden md:block md:col-span-4">
             <Card hover={false} className="p-4 md:sticky md:top-24">
               <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Categorías</div>
               <div className="space-y-1">
@@ -462,7 +462,7 @@ export default function ForoPage() {
             </Card>
           </aside>
 
-          <div className="md:col-span-9">
+          <div className="md:col-span-8">
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 8 }).map((_, i) => (
