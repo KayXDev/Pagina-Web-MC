@@ -40,7 +40,7 @@ export async function getServerStatus(host: string, port: number = 25565): Promi
         list: data.players?.list || [],
       },
       version: data.version || 'Unknown',
-      motd: data.motd?.clean?.join(' ') || data.motd?.raw?.join(' ') || '',
+      motd: data.motd?.clean?.join('\n') || data.motd?.raw?.join('\n') || '',
       favicon: data.icon || '',
       ping: data.debug?.ping || 0,
     };
