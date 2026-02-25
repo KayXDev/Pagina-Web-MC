@@ -17,6 +17,7 @@ export default function AdminMaintenancePage() {
     maintenance_message: 'Estamos en mantenimiento. Vuelve más tarde.',
     maintenance_paths: '',
     maintenance_discord_webhook: '',
+    services_status_discord_webhook: '',
   });
 
   const MAINTENANCE_ROUTE_OPTIONS: Array<{ path: string; labelKey: string }> = [
@@ -123,6 +124,24 @@ export default function AdminMaintenancePage() {
       toast.error(t(lang, 'admin.settings.saveError'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const sendServicesStatusReport = async () => {
+    try {
+      const response = await fetch('/api/admin/services-status/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String(data?.error || (lang === 'es' ? 'Error enviando reporte' : 'Error sending report')));
+      }
+
+      toast.success(lang === 'es' ? 'Reporte enviado a Discord' : 'Report sent to Discord');
+    } catch (err: any) {
+      toast.error(err?.message || (lang === 'es' ? 'Error enviando reporte' : 'Error sending report'));
     }
   };
 
@@ -344,6 +363,34 @@ export default function AdminMaintenancePage() {
             placeholder="https://discord.com/api/webhooks/..."
           />
           <p className="text-xs text-gray-500 mt-2">{t(lang, 'admin.settings.webhookHint')}</p>
+        </Card>
+
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-gray-900 dark:text-white font-semibold mb-2">
+                {lang === 'es' ? 'Webhook — Estado de servicios' : 'Webhook — Services status'}
+              </div>
+              <p className="text-xs text-gray-500">
+                {lang === 'es'
+                  ? 'Se usa para enviar un embed con el estado de Web/DB/Minecraft/Stripe.'
+                  : 'Used to send an embed with Web/DB/Minecraft/Stripe status.'}
+              </p>
+            </div>
+
+            <Button type="button" variant="secondary" onClick={sendServicesStatusReport}>
+              {lang === 'es' ? 'Enviar reporte ahora' : 'Send report now'}
+            </Button>
+          </div>
+
+          <div className="mt-4">
+            <Input
+              type="text"
+              value={settings.services_status_discord_webhook}
+              onChange={(e) => setSettings({ ...settings, services_status_discord_webhook: e.target.value })}
+              placeholder="https://discord.com/api/webhooks/..."
+            />
+          </div>
         </Card>
 
         <Button type="submit" className="w-full" size="lg" disabled={saving}>

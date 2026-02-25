@@ -85,6 +85,7 @@ export async function PATCH(request: Request) {
       'maintenance_message',
       'maintenance_paths',
       'maintenance_discord_webhook',
+      'services_status_discord_webhook',
       'staff_applications_open',
     ]);
 

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaPlay, FaShoppingCart, FaUsers, FaShieldAlt, FaFire, FaGem } from 'react-icons/fa';
 import ServerStatusWidget from '@/components/ServerStatusWidget';
+import StaffOnlineWidget from '@/components/StaffOnlineWidget';
+import DiscordSupportWidget from '@/components/DiscordSupportWidget';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Input, Textarea } from '@/components/ui';
 import { t } from '@/lib/i18n';
@@ -199,10 +201,17 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="max-w-2xl mx-auto"
           >
-            <ServerStatusWidget 
-              host={serverHost}
-              port={Number.isFinite(serverPort) ? serverPort : 25565}
-            />
+            <div className="space-y-3">
+              <ServerStatusWidget 
+                host={serverHost}
+                port={Number.isFinite(serverPort) ? serverPort : 25565}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <StaffOnlineWidget host={serverHost} port={Number.isFinite(serverPort) ? serverPort : 25565} />
+                <DiscordSupportWidget />
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
