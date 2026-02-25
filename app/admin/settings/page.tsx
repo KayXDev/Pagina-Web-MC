@@ -18,6 +18,7 @@ export default function AdminMaintenancePage() {
     maintenance_paths: '',
     maintenance_discord_webhook: '',
     services_status_discord_webhook: '',
+    services_status_interval_minutes: '60',
   });
 
   const MAINTENANCE_ROUTE_OPTIONS: Array<{ path: string; labelKey: string }> = [
@@ -390,6 +391,25 @@ export default function AdminMaintenancePage() {
               onChange={(e) => setSettings({ ...settings, services_status_discord_webhook: e.target.value })}
               placeholder="https://discord.com/api/webhooks/..."
             />
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Intervalo automático' : 'Automatic interval'}</div>
+              <select
+                value={settings.services_status_interval_minutes}
+                onChange={(e) => setSettings({ ...settings, services_status_interval_minutes: e.target.value })}
+                className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+              >
+                <option value="30">{lang === 'es' ? 'Cada 30 minutos' : 'Every 30 minutes'}</option>
+                <option value="60">{lang === 'es' ? 'Cada 1 hora' : 'Every 1 hour'}</option>
+              </select>
+            </div>
+            <div className="text-xs text-gray-500 flex items-end">
+              {lang === 'es'
+                ? 'Nota: el cron corre cada 30 min, pero respeta este intervalo.'
+                : 'Note: cron runs every 30 min, but respects this interval.'}
+            </div>
           </div>
         </Card>
 
