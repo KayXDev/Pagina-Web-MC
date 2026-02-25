@@ -17,7 +17,7 @@ type AdminUser = {
   adminSectionsConfigured: boolean;
 };
 
-const SECTION_KEYS = ['users', 'products', 'tickets', 'forum', 'blog', 'partner', 'applications', 'logs', 'settings'] as const;
+const SECTION_KEYS = ['users', 'products', 'tickets', 'forum', 'blog', 'partner', 'applications', 'servicesStatus', 'logs', 'settings'] as const;
 
 export default function AdminPermisosPage() {
   const lang = useClientLang();

@@ -84,10 +84,6 @@ function formatCheckValue(c: ServicesStatusCheck) {
   return safeValue(`${icon} **${c.summary}**${latency}${detail}`, 1024);
 }
 
-function configuredLabel(isConfigured: boolean) {
-  return isConfigured ? 'Configurado' : 'No configurado';
-}
-
 export async function buildServicesStatusReport(trigger: ServicesStatusTrigger) {
   await dbConnect();
 
@@ -194,38 +190,6 @@ export async function buildServicesStatusReport(trigger: ServicesStatusTrigger) 
     checks.push({ key: 'stripe', ok: false, title: 'Stripe', summary: 'Stripe ERROR', detail: err?.message || 'Error consultando Stripe' });
   }
 
-  // Config checks (presence only, never leak values)
-  const nextAuthOk = Boolean(String(process.env.NEXTAUTH_SECRET || '').trim());
-  checks.push({
-    key: 'nextauth_secret',
-    ok: nextAuthOk,
-    title: 'Config',
-    summary: nextAuthOk ? 'NEXTAUTH_SECRET OK' : 'NEXTAUTH_SECRET falta',
-    detail: 'Secreto requerido para sesiones seguras',
-  });
-
-  const cloudinaryConfigured = Boolean(String(process.env.CLOUDINARY_URL || '').trim()) ||
-    (Boolean(String(process.env.CLOUDINARY_CLOUD_NAME || '').trim()) &&
-      Boolean(String(process.env.CLOUDINARY_API_KEY || '').trim()) &&
-      Boolean(String(process.env.CLOUDINARY_API_SECRET || '').trim()));
-
-  checks.push({
-    key: 'cloudinary',
-    ok: true,
-    title: 'Uploads',
-    summary: `Cloudinary: ${configuredLabel(cloudinaryConfigured)}`,
-    detail: cloudinaryConfigured ? 'OK' : 'Opcional (si usas uploads en producción)',
-  });
-
-  const blobConfigured = Boolean(String(process.env.BLOB_READ_WRITE_TOKEN || '').trim());
-  checks.push({
-    key: 'vercel_blob',
-    ok: true,
-    title: 'Uploads',
-    summary: `Vercel Blob: ${configuredLabel(blobConfigured)}`,
-    detail: blobConfigured ? 'OK' : 'Opcional (alternativa a Cloudinary)',
-  });
-
   // Deployment info (not a check)
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim();
   const vercelUrl = String(process.env.VERCEL_URL || '').trim();
@@ -280,7 +244,7 @@ export async function buildServicesStatusReport(trigger: ServicesStatusTrigger) 
       author: { name: `${siteName} • Services` },
       title,
       url: siteUrl || undefined,
-      description: 'Reporte automático de estado. No comparte secretos; solo indica si están configurados.',
+      description: 'Reporte automático de estado de servicios.',
       color,
       timestamp: nowIso,
       footer: { text: siteUrl ? `${siteName} • ${new URL(siteUrl).hostname}` : siteName },
