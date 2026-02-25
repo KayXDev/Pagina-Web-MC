@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/session';
 import { UploadError, uploadImageFromFormFile } from '@/lib/uploads';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {

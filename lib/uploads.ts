@@ -78,9 +78,9 @@ export async function uploadImageFromFormFile(opts: UploadImageOpts): Promise<{ 
     return { url: blob.url };
   }
 
-  if (process.env.VERCEL) {
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
     throw new UploadError(
-      'Uploads en Vercel requieren configurar Vercel Blob. Añade BLOB_READ_WRITE_TOKEN en Variables de Entorno (o configura Cloudinary) y vuelve a intentar.',
+      'Uploads en producción requieren configurar Vercel Blob (BLOB_READ_WRITE_TOKEN) o Cloudinary. El filesystem del servidor es efímero y no persistirá entre despliegues.',
       500
     );
   }
