@@ -113,17 +113,9 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
         </button>
       </div>
 
-      {status?.online ? (
-        <div className="relative overflow-hidden border border-white/10 rounded-md p-4 mb-3 bg-black/20">
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-minecraft-grass/10 via-transparent to-minecraft-diamond/10" />
-          <div className="relative">
-            <div className="text-[11px] uppercase tracking-wider text-gray-400">
-              {lang === 'es' ? 'Mensaje del servidor' : 'Server message'}
-            </div>
-            <div className="mt-1 text-base font-semibold text-white whitespace-pre-line leading-snug">
-              {status?.motd?.trim() ? status.motd : (lang === 'es' ? '¡Te esperamos dentro!' : 'See you in-game!')}
-            </div>
-          </div>
+      {status?.online && status?.motd ? (
+        <div className="text-sm text-gray-300 bg-black/20 border border-white/10 rounded-md p-3 mb-3">
+          <div className="line-clamp-3">{status.motd}</div>
         </div>
       ) : null}
 
