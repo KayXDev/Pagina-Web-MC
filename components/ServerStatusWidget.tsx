@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { FaServer, FaUsers, FaCopy, FaCheck } from 'react-icons/fa';
-import { getServerStatus, type ServerStatus } from '@/lib/minecraft';
+import { type ServerStatus } from '@/lib/minecraft';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 
@@ -18,11 +19,25 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  const portNumber = Number.isFinite(Number(port)) ? Number(port) : 25565;
+  const serverAddress = `${host}:${portNumber}`;
+
   useEffect(() => {
     const fetchStatus = async () => {
       setLoading(true);
-      const data = await getServerStatus(host, port);
-      setStatus(data);
+      try {
+        const res = await fetch(`/api/server/status?host=${encodeURIComponent(host)}&port=${portNumber}`, {
+          cache: 'no-store',
+        });
+        const data = (await res.json().catch(() => null)) as ServerStatus | null;
+        if (res.ok && data) {
+          setStatus(data);
+        } else {
+          setStatus({ online: false, players: { online: 0, max: 0 } });
+        }
+      } catch {
+        setStatus({ online: false, players: { online: 0, max: 0 } });
+      }
       setLoading(false);
     };
 
@@ -30,10 +45,14 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
     const interval = setInterval(fetchStatus, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
-  }, [host, port]);
+  }, [host, portNumber]);
 
   const copyIP = () => {
-    navigator.clipboard.writeText(host);
+    try {
+      navigator.clipboard.writeText(serverAddress);
+    } catch {
+      // ignore
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -59,6 +78,25 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
       animate={{ opacity: 1, y: 0 }}
       className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-lg p-6"
     >
+      {(status?.motd || status?.favicon) && (
+        <div className="rounded-lg border border-gray-800 bg-black/30 p-4 mb-4">
+          <div className="flex items-start gap-3">
+            {status?.favicon ? (
+              <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
+                <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
+              </div>
+            ) : null}
+
+            <div className="min-w-0 flex-1">
+              <div className="text-xs text-gray-400">MOTD</div>
+              <div className="text-white font-medium leading-snug break-words">
+                {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className={`w-3 h-3 rounded-full ${status?.online ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
@@ -79,28 +117,23 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
       <div className="flex items-center justify-between bg-black/30 rounded-md p-3 mb-3">
         <div className="flex items-center space-x-2">
           <FaServer className="text-minecraft-grass" />
-          <span className="text-white font-mono">{host}</span>
+          <span className="text-white font-mono">{serverAddress}</span>
         </div>
         <button
+          type="button"
           onClick={copyIP}
-          className="p-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
         >
           {copied ? <FaCheck /> : <FaCopy />}
+          <span className="text-sm font-medium">
+            {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
+          </span>
         </button>
       </div>
 
       {status?.version && (
         <div className="text-sm text-gray-400">
           {t(lang, 'serverStatus.version')}: {status.version}
-        </div>
-      )}
-
-      {status?.online && status?.motd?.trim() && (
-        <div className="mt-3 rounded-md bg-black/20 border border-gray-800/60 p-3">
-          <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">MOTD</div>
-          <div className="text-sm text-gray-200 whitespace-pre-line leading-relaxed">
-            {status.motd}
-          </div>
         </div>
       )}
     </motion.div>
