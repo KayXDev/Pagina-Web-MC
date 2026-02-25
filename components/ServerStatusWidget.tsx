@@ -87,49 +87,46 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-        <div className="flex items-center justify-between gap-3 bg-black/30 rounded-md p-3 min-w-0 flex-1">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
-              {status?.favicon ? (
-                <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
-              ) : (
-                <div className="h-full w-full grid place-items-center text-minecraft-grass">
-                  <FaServer />
-                </div>
-              )}
-            </div>
-
-            <div className="min-w-0">
-              <div className="text-white font-mono break-all">{serverAddress}</div>
-              <div className="text-sm text-gray-400 mt-1 leading-snug break-words">
-                {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
+      <div className="flex items-center justify-between gap-3 bg-black/30 rounded-md p-3 mb-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
+            {status?.favicon ? (
+              <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
+            ) : (
+              <div className="h-full w-full grid place-items-center text-minecraft-grass">
+                <FaServer />
               </div>
-            </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {status?.online ? (
-              <div className="flex items-center gap-2 text-minecraft-grass px-3 py-2 rounded-md bg-minecraft-grass/10 border border-minecraft-grass/20">
-                <FaUsers />
-                <span className="font-bold">
-                  {status.players.online}/{status.players.max}
-                </span>
-              </div>
-            ) : null}
+          <div className="min-w-0">
+            <div className="text-white font-mono break-all">{serverAddress}</div>
+            <div className="text-sm text-gray-400 mt-1 leading-snug break-words">
+              {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
+            </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={copyIP}
-          className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors whitespace-nowrap"
-        >
-          {copied ? <FaCheck /> : <FaCopy />}
-          <span className="text-sm font-medium">
-            {copied ? (lang === 'es' ? 'Copiada' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
-          </span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {status?.online ? (
+            <div className="flex items-center gap-2 text-minecraft-grass px-3 py-2 rounded-md bg-minecraft-grass/10 border border-minecraft-grass/20">
+              <FaUsers />
+              <span className="font-bold">
+                {status.players.online}/{status.players.max}
+              </span>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={copyIP}
+            aria-label={copied ? (lang === 'es' ? 'IP copiada' : 'IP copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
+            title={copied ? (lang === 'es' ? 'IP copiada' : 'IP copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
+            className="inline-flex items-center justify-center p-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
+          >
+            {copied ? <FaCheck /> : <FaCopy />}
+          </button>
+        </div>
       </div>
 
       {status?.version && (
