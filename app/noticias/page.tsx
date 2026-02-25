@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FaNewspaper, FaEye, FaCalendar, FaUser, FaHeart } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
@@ -80,15 +81,19 @@ export default function NoticiasPage() {
                 <Link href={`/noticias/${post.slug}`}>
                   <Card hover className="h-full flex flex-col cursor-pointer">
                     {/* Image */}
-                    <div className="w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 overflow-hidden">
                       {post.image ? (
-                        <img 
-                          src={post.image} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover"
+                        <Image
+                          src={post.image}
+                          alt={post.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover"
                         />
                       ) : (
-                        <FaNewspaper className="text-6xl text-minecraft-grass" />
+                        <div className="w-full h-full flex items-center justify-center">
+                          <FaNewspaper className="text-6xl text-minecraft-grass" />
+                        </div>
                       )}
                     </div>
 

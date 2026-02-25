@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaShoppingCart, FaUpload } from 'react-icons/fa';
+import Image from 'next/image';
 import { Card, Button, Input, Textarea, Select, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatPrice } from '@/lib/utils';
@@ -342,11 +343,13 @@ export default function AdminProductsPage() {
 
                     {(formData as any).image ? (
                       <div className="mt-3 flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden grid place-items-center dark:border-white/10 dark:bg-white/5">
-                          <img
+                        <div className="relative h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden grid place-items-center dark:border-white/10 dark:bg-white/5">
+                          <Image
                             src={(formData as any).image}
                             alt="Preview"
-                            className="h-full w-full object-cover"
+                            fill
+                            sizes="48px"
+                            className="object-cover"
                           />
                         </div>
                         <Button
@@ -523,8 +526,8 @@ export default function AdminProductsPage() {
                   </div>
 
                   {product.image ? (
-                    <div className="h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
-                      <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                    <div className="relative h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
+                      <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" />
                     </div>
                   ) : null}
                 </div>
@@ -583,8 +586,8 @@ export default function AdminProductsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3 min-w-0">
                           {product.image ? (
-                            <div className="h-10 w-10 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
-                              <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                            <div className="relative h-10 w-10 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0 dark:border-white/10 dark:bg-white/5">
+                              <Image src={product.image} alt={product.name} fill sizes="40px" className="object-cover" />
                             </div>
                           ) : (
                             <div className="h-10 w-10 rounded-xl border border-gray-200 bg-gray-50 grid place-items-center text-gray-700 shrink-0 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">

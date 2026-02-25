@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -414,10 +415,15 @@ export default function ForoPage() {
                         {media.map((url) => (
                           <div
                             key={url}
-                            className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                            className="relative h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt="" className="w-full h-24 object-cover" />
+                            <Image
+                              src={url}
+                              alt=""
+                              fill
+                              sizes="(max-width: 640px) 50vw, 25vw"
+                              className="object-cover"
+                            />
                             <button
                               type="button"
                               className="absolute top-1 right-1 h-7 w-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/70"
@@ -502,12 +508,17 @@ export default function ForoPage() {
                       <div className="flex items-start gap-3">
                         <button
                           type="button"
-                          className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden"
+                          className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden relative"
                           onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
                         >
                           {post.authorAvatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
+                            <Image
+                              src={post.authorAvatar}
+                              alt=""
+                              fill
+                              sizes="40px"
+                              className="object-cover"
+                            />
                           ) : (
                             initial
                           )}
@@ -551,10 +562,15 @@ export default function ForoPage() {
                               {mediaUrls.slice(0, 4).map((url) => (
                                 <div
                                   key={url}
-                                  className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                                  className="relative h-24 sm:h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                                 >
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={url} alt="" className="w-full h-24 sm:h-28 object-cover" />
+                                  <Image
+                                    src={url}
+                                    alt=""
+                                    fill
+                                    sizes="(max-width: 640px) 50vw, 25vw"
+                                    className="object-cover"
+                                  />
                                 </div>
                               ))}
                             </div>

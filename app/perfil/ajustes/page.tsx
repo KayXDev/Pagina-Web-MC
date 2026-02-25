@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { Badge, Card, Input, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { useProfile } from '../_components/profile-context';
 import { FaImage, FaSignOutAlt, FaTrash, FaUpload, FaUserCircle } from 'react-icons/fa';
+
+function uuidForCrafatar(uuid: string) {
+  return String(uuid || '').replace(/-/g, '');
+}
 
 export default function PerfilAjustesPage() {
   const { update } = useSession();
@@ -32,6 +37,18 @@ export default function PerfilAjustesPage() {
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
   const [savingMinecraft, setSavingMinecraft] = useState(false);
 
+  const minecraftAvatarPrimary = minecraftResolved?.uuid
+    ? `https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=96&overlay=true`
+    : '';
+  const minecraftAvatarFallback = minecraftResolved?.username
+    ? `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/96`
+    : '';
+  const [minecraftAvatarSrc, setMinecraftAvatarSrc] = useState('');
+
+  useEffect(() => {
+    setMinecraftAvatarSrc(minecraftAvatarPrimary);
+  }, [minecraftAvatarPrimary]);
+
   useEffect(() => {
     if (session?.user?.name) setUsername(session.user.name);
   }, [session?.user?.name]);
@@ -44,8 +61,6 @@ export default function PerfilAjustesPage() {
   }, [details]);
 
   if (status !== 'authenticated' || !session) return null;
-
-  const uuidForCrafatar = (uuid: string) => String(uuid || '').replace(/-/g, '');
 
   const checkMinecraft = async () => {
     const username = minecraftUsernameInput.trim();
@@ -185,7 +200,9 @@ export default function PerfilAjustesPage() {
             <div className="mt-3 flex items-center gap-3">
               <div className="w-14 h-14 rounded-full border border-white/10 bg-gray-900 overflow-hidden flex items-center justify-center">
                 {details?.avatar ? (
-                  <img src={details.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <div className="relative w-full h-full">
+                    <Image src={details.avatar} alt="Avatar" fill sizes="56px" className="object-cover" />
+                  </div>
                 ) : (
                   <FaUserCircle className="text-3xl text-gray-400" />
                 )}
@@ -258,7 +275,15 @@ export default function PerfilAjustesPage() {
             <div className="mt-3">
               <div className="h-20 rounded-lg border border-white/10 bg-gray-900 overflow-hidden">
                 {details?.banner ? (
-                  <img src={details.banner} alt="Banner" className="w-full h-full object-cover opacity-90" />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={details.banner}
+                      alt="Banner"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 768px"
+                      className="object-cover opacity-90"
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-r from-minecraft-grass/20 via-gray-950/40 to-minecraft-diamond/20" />
                 )}
@@ -351,14 +376,19 @@ export default function PerfilAjustesPage() {
               <div className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5">
                 <div className="w-14 h-14 rounded-xl border border-white/10 bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
                   {minecraftResolved?.uuid ? (
-                    <img
-                      src={`https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=96&overlay=true`}
-                      alt={minecraftResolved.username}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/96`;
-                      }}
-                    />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={minecraftAvatarSrc || minecraftAvatarPrimary}
+                        alt={minecraftResolved.username}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                        onError={() => {
+                          if (!minecraftAvatarFallback) return;
+                          setMinecraftAvatarSrc((cur) => (cur === minecraftAvatarFallback ? cur : minecraftAvatarFallback));
+                        }}
+                      />
+                    </div>
                   ) : (
                     <FaUserCircle className="text-3xl text-gray-500" />
                   )}

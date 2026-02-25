@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { FaShoppingCart, FaCheck, FaTags } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Badge, Input } from '@/components/ui';
@@ -13,6 +14,10 @@ import { toast } from 'react-toastify';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import type { MinecraftAccountSource } from '@/lib/minecraftAccount';
+
+function uuidForCrafatar(uuid: string) {
+  return String(uuid || '').replace(/-/g, '');
+}
 
 interface Product {
   _id: string;
@@ -43,6 +48,18 @@ export default function TiendaPage() {
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
   const [savingMinecraft, setSavingMinecraft] = useState(false);
   const [shopUnlocked, setShopUnlocked] = useState(false);
+
+  const minecraftAvatarPrimary = minecraftResolved?.uuid
+    ? `https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=160&overlay=true`
+    : '';
+  const minecraftAvatarFallback = minecraftResolved?.username
+    ? `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/160`
+    : '';
+  const [minecraftAvatarSrc, setMinecraftAvatarSrc] = useState('');
+
+  useEffect(() => {
+    setMinecraftAvatarSrc(minecraftAvatarPrimary);
+  }, [minecraftAvatarPrimary]);
 
   const signOutLabel = lang === 'es' ? 'Salir' : 'Sign out';
 
@@ -255,7 +272,6 @@ export default function TiendaPage() {
     loadLinked();
   }, [status]);
 
-  const uuidForCrafatar = (uuid: string) => String(uuid || '').replace(/-/g, '');
 
   const categories = [
     { value: 'ALL', label: t(lang, 'shop.categories.all') },
@@ -377,17 +393,19 @@ export default function TiendaPage() {
                     <div className="flex items-center gap-4">
                       <div className="w-20 h-20 rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
                         {minecraftResolved?.uuid ? (
-                          <img
-                            src={`https://crafatar.com/avatars/${uuidForCrafatar(minecraftResolved.uuid)}?size=160&overlay=true`}
-                            alt={minecraftResolved.username}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              if (img.dataset.fallback === '1') return;
-                              img.dataset.fallback = '1';
-                              img.src = `https://minotar.net/avatar/${encodeURIComponent(minecraftResolved.username)}/160`;
-                            }}
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={minecraftAvatarSrc || minecraftAvatarPrimary}
+                              alt={minecraftResolved.username}
+                              fill
+                              sizes="80px"
+                              className="object-cover"
+                              onError={() => {
+                                if (!minecraftAvatarFallback) return;
+                                setMinecraftAvatarSrc((cur) => (cur === minecraftAvatarFallback ? cur : minecraftAvatarFallback));
+                              }}
+                            />
+                          </div>
                         ) : (
                           <FaTags className="text-3xl text-gray-500" />
                         )}
@@ -521,11 +539,19 @@ export default function TiendaPage() {
                   >
                     <Card className="h-full flex flex-col">
                       {/* Product Image */}
-                      <div className="w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 flex items-center justify-center">
+                      <div className="relative w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 overflow-hidden">
                         {product.image ? (
-                          <img src={product.image} alt={product.name} className="h-32 object-contain" />
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-contain p-6"
+                          />
                         ) : (
-                          <FaTags className="text-6xl text-minecraft-gold" />
+                          <div className="w-full h-full flex items-center justify-center">
+                            <FaTags className="text-6xl text-minecraft-gold" />
+                          </div>
                         )}
                       </div>
 

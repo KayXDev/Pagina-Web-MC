@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { FaArrowLeft, FaCalendar, FaUser, FaEye, FaHeart, FaRegHeart } from 'react-icons/fa';
@@ -128,11 +129,13 @@ export default function NoticiaPage() {
         <Card>
           {/* Image */}
           {post.image && (
-            <div className="w-full h-96 mb-6 rounded-lg overflow-hidden">
-              <img
+            <div className="relative w-full h-96 mb-6 rounded-lg overflow-hidden">
+              <Image
                 src={post.image}
                 alt={post.title}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
               />
             </div>
           )}

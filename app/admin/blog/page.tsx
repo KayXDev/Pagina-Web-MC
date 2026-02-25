@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaNewspaper, FaEye } from 'react-icons/fa';
+import Image from 'next/image';
 import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatDate } from '@/lib/utils';
@@ -31,6 +32,7 @@ export default function AdminBlogPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreviewOk, setImagePreviewOk] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -39,6 +41,10 @@ export default function AdminBlogPage() {
     tags: '',
     isPublished: false,
   });
+
+  useEffect(() => {
+    setImagePreviewOk(true);
+  }, [formData.image]);
 
   useEffect(() => {
     fetchPosts();
@@ -250,16 +256,15 @@ export default function AdminBlogPage() {
                   </div>
                 </div>
 
-                {formData.image?.trim() && (
-                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-xl flex items-center justify-center overflow-hidden border border-gray-200 dark:border-white/10">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                {formData.image?.trim() && imagePreviewOk && (
+                  <div className="mt-4 w-full h-56 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 rounded-xl flex items-center justify-center overflow-hidden border border-gray-200 dark:border-white/10 relative">
+                    <Image
                       src={formData.image}
                       alt={t(lang, 'admin.blog.form.previewAlt')}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                      }}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 768px"
+                      className="object-cover"
+                      onError={() => setImagePreviewOk(false)}
                     />
                   </div>
                 )}

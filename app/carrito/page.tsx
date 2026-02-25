@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { FaCreditCard, FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
@@ -441,7 +442,15 @@ export default function CartPage() {
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="w-14 h-14 rounded-2xl border border-white/10 bg-black/20 flex items-center justify-center overflow-hidden shrink-0">
                               {p?.image ? (
-                                <img src={p.image} alt={name} className="w-full h-full object-cover" />
+                                <div className="relative w-full h-full">
+                                  <Image
+                                    src={p.image}
+                                    alt={name}
+                                    fill
+                                    sizes="56px"
+                                    className="object-cover"
+                                  />
+                                </div>
                               ) : (
                                 <FaTags className="text-xl text-gray-500" />
                               )}

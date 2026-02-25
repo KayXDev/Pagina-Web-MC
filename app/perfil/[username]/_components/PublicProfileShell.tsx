@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { FaArrowLeft, FaCheckCircle, FaUser } from 'react-icons/fa';
@@ -116,7 +117,13 @@ function InnerShell({ children }: { children: React.ReactNode }) {
       <div className="rounded-xl border border-white/10 bg-gray-950/40 overflow-hidden">
         <div className="relative h-28 sm:h-36">
           {bannerUrl ? (
-            <img src={bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+            <Image
+              src={bannerUrl}
+              alt="Banner"
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover opacity-70"
+            />
           ) : null}
           <div className="absolute inset-0 bg-gradient-to-r from-minecraft-grass/20 via-gray-950/40 to-minecraft-diamond/20" />
         </div>
@@ -125,7 +132,13 @@ function InnerShell({ children }: { children: React.ReactNode }) {
           <div className="absolute -top-10 left-4 sm:left-6">
             <div className="w-20 h-20 rounded-full border-4 border-gray-950 bg-gray-900 flex items-center justify-center">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover" />
+                <Image
+                  src={avatarUrl}
+                  alt="Avatar"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-minecraft-grass/30 flex items-center justify-center">
                   <span className="text-white font-bold">{initials(profile.username)}</span>

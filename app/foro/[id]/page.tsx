@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -413,10 +414,15 @@ export default function ForoPostPage() {
               <div className="rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20">
                 <div className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
+                    <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden relative">
                       {post.authorAvatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
+                        <Image
+                          src={post.authorAvatar}
+                          alt=""
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                        />
                       ) : (
                         post.authorUsername?.slice(0, 1)?.toUpperCase() || '?'
                       )}
@@ -472,10 +478,15 @@ export default function ForoPostPage() {
                           {post.media.slice(0, 4).map((url) => (
                             <div
                               key={url}
-                              className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                              className="relative h-44 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={url} alt="" className="w-full h-44 object-cover" />
+                              <Image
+                                src={url}
+                                alt=""
+                                fill
+                                sizes="(max-width: 1024px) 50vw, 33vw"
+                                className="object-cover"
+                              />
                             </div>
                           ))}
                         </div>
@@ -544,10 +555,15 @@ export default function ForoPostPage() {
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
+                              <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden relative">
                                 {r.userAvatar ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={r.userAvatar} alt="" className="w-full h-full object-cover" />
+                                  <Image
+                                    src={r.userAvatar}
+                                    alt=""
+                                    fill
+                                    sizes="36px"
+                                    className="object-cover"
+                                  />
                                 ) : (
                                   r.username?.slice(0, 1)?.toUpperCase() || '?'
                                 )}
@@ -614,10 +630,15 @@ export default function ForoPostPage() {
                                     {r.media.slice(0, 4).map((url) => (
                                       <div
                                         key={url}
-                                        className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                                        className="relative h-36 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                                       >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={url} alt="" className="w-full h-36 object-cover" />
+                                        <Image
+                                          src={url}
+                                          alt=""
+                                          fill
+                                          sizes="(max-width: 1024px) 50vw, 33vw"
+                                          className="object-cover"
+                                        />
                                       </div>
                                     ))}
                                   </div>
@@ -656,10 +677,15 @@ export default function ForoPostPage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden">
+                        <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden relative">
                           {(session?.user as any)?.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={String((session?.user as any).avatar)} alt="" className="w-full h-full object-cover" />
+                            <Image
+                              src={String((session?.user as any).avatar)}
+                              alt=""
+                              fill
+                              sizes="40px"
+                              className="object-cover"
+                            />
                           ) : (
                             session?.user?.name?.slice(0, 1)?.toUpperCase() || '?'
                           )}
@@ -722,10 +748,15 @@ export default function ForoPostPage() {
                           {replyMedia.map((url) => (
                             <div
                               key={url}
-                              className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
+                              className="relative h-24 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20"
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={url} alt="" className="w-full h-24 object-cover" />
+                              <Image
+                                src={url}
+                                alt=""
+                                fill
+                                sizes="(max-width: 640px) 50vw, 25vw"
+                                className="object-cover"
+                              />
                               <button
                                 type="button"
                                 className="absolute top-1 right-1 h-7 w-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white hover:bg-black/70"
