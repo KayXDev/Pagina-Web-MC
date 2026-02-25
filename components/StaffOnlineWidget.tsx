@@ -82,9 +82,19 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
       {!loading && (data?.staff?.length || 0) > 0 ? (
         <div className="flex flex-wrap gap-2">
           {data!.staff.slice(0, 12).map((u) => (
-            <div key={`${u.minecraftUsername}-${u.username}`} className="relative h-7 w-7 rounded overflow-hidden bg-black border border-gray-800">
+            <div
+              key={`${u.minecraftUsername}-${u.username}`}
+              className="relative h-7 w-7 rounded overflow-hidden bg-black border border-gray-800"
+              title={u.minecraftUsername || u.username}
+              aria-label={u.minecraftUsername || u.username}
+            >
               <Image
-                src={`https://crafatar.com/renders/head/${encodeURIComponent(u.minecraftUsername)}?scale=2&overlay=true`}
+                src={(() => {
+                  const mc = String(u.minecraftUsername || '').trim();
+
+                  // Use Minotar (supports usernames). More reliable than Crafatar in some regions.
+                  return `https://minotar.net/helm/${encodeURIComponent(mc || 'Steve')}/28.png`;
+                })()}
                 alt=""
                 fill
                 sizes="28px"

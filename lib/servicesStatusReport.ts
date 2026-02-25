@@ -2,6 +2,7 @@ import Settings from '@/models/Settings';
 import dbConnect from '@/lib/mongodb';
 import { getServerStatus } from '@/lib/minecraft';
 import { getStripe } from '@/lib/stripe';
+import { getOnlinePlayersViaRcon, hasRconConfigured } from '@/lib/minecraftRcon';
 
 function isDiscordWebhookUrl(url: string) {
   return /^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\//.test(url);
@@ -162,13 +163,32 @@ export async function buildServicesStatusReport(trigger: ServicesStatusTrigger) 
     const { value, latencyMs } = await timed(async () => getServerStatus(host, port));
     const ok = Boolean(value?.online);
     const players = ok ? `${value.players.online}/${value.players.max}` : 'offline';
+
+    let onlinePlayers: string[] = Array.isArray(value?.players?.list) ? (value.players.list as string[]) : [];
+    if (ok && (value?.players?.online || 0) > 0 && onlinePlayers.length === 0 && hasRconConfigured()) {
+      const viaRcon = await getOnlinePlayersViaRcon().catch(() => null);
+      if (Array.isArray(viaRcon) && viaRcon.length > 0) onlinePlayers = viaRcon;
+    }
+
+    let onlineListText = '';
+    if (ok && (value?.players?.online || 0) > 0) {
+      if (onlinePlayers.length > 0) {
+        const maxNames = 25;
+        const shown = onlinePlayers.slice(0, maxNames);
+        const remaining = onlinePlayers.length - shown.length;
+        onlineListText = `\nOnline: ${shown.join(', ')}${remaining > 0 ? ` (+${remaining})` : ''}`;
+      } else {
+        onlineListText = `\nOnline: (lista no disponible)`;
+      }
+    }
+
     checks.push({
       key: 'minecraft',
       ok,
       title: 'Minecraft',
       summary: ok ? `Minecraft OK (${players})` : 'Minecraft OFFLINE',
       latencyMs,
-      detail: `${host}:${port}`,
+      detail: safeValue(`${host}:${port}${onlineListText}`, 1024),
     });
   } catch (err: any) {
     checks.push({ key: 'minecraft', ok: false, title: 'Minecraft', summary: 'Minecraft ERROR', detail: err?.message || 'Error consultando estado' });
