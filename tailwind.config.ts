@@ -29,6 +29,7 @@ const config: Config = {
         'float': 'float 3s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'gradient-x': 'gradient-x 7s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -38,6 +39,10 @@ const config: Config = {
         glow: {
           '0%, 100%': { boxShadow: '0 0 20px rgba(71, 209, 232, 0.5)' },
           '50%': { boxShadow: '0 0 30px rgba(71, 209, 232, 0.8)' },
+        },
+        'gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
         },
       },
       backgroundImage: {

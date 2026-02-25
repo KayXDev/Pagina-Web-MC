@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { FaMoon, FaSun } from 'react-icons/fa';
 
@@ -62,22 +62,14 @@ export default function ThemeToggle() {
       }}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-      className="h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-minecraft-grass hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
-      whileHover={{ scale: 1.06 }}
-      whileTap={{ scale: 0.94, rotate: theme === 'dark' ? -10 : 10 }}
+      className="group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-minecraft-grass hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
+      whileHover={{ scale: 1.1, y: -1, rotate: theme === 'dark' ? -10 : 10 }}
+      transition={{ type: 'spring', stiffness: 520, damping: 28 }}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={theme}
-          initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
-          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          className="inline-flex"
-        >
-          {theme === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
-        </motion.span>
-      </AnimatePresence>
+      <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+      <span className="inline-flex relative">
+        {theme === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
+      </span>
     </motion.button>
   );
 }

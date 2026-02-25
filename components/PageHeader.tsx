@@ -21,18 +21,20 @@ const PageHeader = ({ title, description, icon }: PageHeaderProps) => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="flex justify-center mb-4"
+          className="flex justify-center mb-5"
         >
-          {icon}
+          <div className="h-20 w-20 rounded-2xl grid place-items-center bg-white/80 border border-gray-200/70 shadow-sm shadow-black/5 ring-1 ring-black/5 dark:bg-white/5 dark:border-white/10 dark:ring-white/10">
+            {icon}
+          </div>
         </motion.div>
       )}
-      <h1 className="text-4xl md:text-5xl font-bold mb-4">
-        <span className="block text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-minecraft-grass dark:via-minecraft-diamond dark:to-minecraft-grass dark:bg-clip-text">
+      <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-gray-950 via-gray-800 to-gray-950 dark:from-minecraft-grass dark:via-minecraft-diamond dark:to-minecraft-grass">
           {title}
         </span>
       </h1>
       {description && (
-        <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">{description}</p>
+        <p className="text-gray-700 dark:text-gray-300/90 text-lg max-w-3xl mx-auto leading-relaxed">{description}</p>
       )}
     </motion.div>
   );

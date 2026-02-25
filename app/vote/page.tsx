@@ -143,7 +143,7 @@ export default function VotePage() {
                   {VOTE_SITES.map((site) => (
                     <div
                       key={site.name}
-                      className="rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors p-5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                      className="rounded-2xl border border-gray-200/80 bg-white/80 hover:bg-white transition-colors p-5 shadow-sm shadow-black/5 ring-1 ring-black/5 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:ring-white/10"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -164,7 +164,7 @@ export default function VotePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => recordVoteClick(site.name)}
-                          className="w-full font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-2 bg-minecraft-grass text-white hover:bg-minecraft-grass/80 shadow-lg shadow-minecraft-grass/20 px-5 py-3 text-base"
+                          className="w-full font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-2 text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 shadow-lg shadow-minecraft-diamond/20 ring-1 ring-white/10 px-5 py-3 text-base"
                         >
                           <FaExternalLinkAlt />
                           <span>{t(lang, 'vote.cta')}</span>

@@ -340,7 +340,7 @@ Sistema anti-griefing de última generación que protege todas tus construccione
 
 ## Únete Ahora
 
-Connect to: **999wrld.vps.boxtoplay.com**
+Connect to: **play.999wrldnetwork.es**
 
 ¡Te esperamos en el servidor! 🎉`,
         excerpt: 'Te damos la bienvenida oficial a 999Wrld Network. Conoce todo lo que tenemos preparado para ti en esta nueva aventura.',

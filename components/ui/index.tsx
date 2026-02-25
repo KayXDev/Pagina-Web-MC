@@ -16,7 +16,7 @@ export const Card = ({ children, className = '', hover = true, onClick }: CardPr
     <motion.div
       whileHover={hover ? { y: -5, transition: { duration: 0.2 } } : {}}
       onClick={onClick}
-      className={`rounded-xl p-6 bg-white border border-gray-200 text-gray-900 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow hover:shadow-md dark:bg-gray-900/60 dark:border-white/10 dark:text-gray-100 dark:shadow-black/30 dark:ring-white/10 ${className}`}
+      className={`relative rounded-2xl p-6 bg-white/90 border border-gray-200/80 text-gray-900 shadow-sm shadow-black/5 ring-1 ring-black/5 transition-shadow hover:shadow-md hover:shadow-black/10 dark:bg-gray-950/40 dark:border-white/10 dark:text-gray-100 dark:shadow-black/40 dark:ring-white/10 dark:hover:border-minecraft-diamond/30 dark:hover:shadow-minecraft-diamond/10 ${className}`}
     >
       {children}
     </motion.div>
@@ -42,13 +42,16 @@ export const Button = ({
   type = 'button',
   disabled = false,
 }: ButtonProps) => {
-  const baseStyles = 'font-medium rounded-md transition-all duration-200 flex items-center justify-center space-x-2';
+  const baseStyles =
+    'font-semibold rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-minecraft-diamond/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950';
   
   const variants = {
-    primary: 'bg-minecraft-grass text-white hover:bg-minecraft-grass/80 shadow-lg shadow-minecraft-grass/20',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-100 dark:hover:bg-white/15',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
-    success: 'bg-green-600 text-white hover:bg-green-700',
+    primary:
+      'text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 shadow-lg shadow-minecraft-diamond/20 ring-1 ring-white/10',
+    secondary:
+      'bg-white/80 text-gray-900 hover:bg-white border border-gray-200/80 shadow-sm shadow-black/5 dark:bg-white/5 dark:text-gray-100 dark:border-white/10 dark:hover:bg-white/10',
+    danger: 'bg-red-600 text-white hover:bg-red-700 ring-1 ring-white/10',
+    success: 'bg-green-600 text-white hover:bg-green-700 ring-1 ring-white/10',
   };
 
   const sizes = {
@@ -81,15 +84,15 @@ interface BadgeProps {
 
 export const Badge = ({ children, variant = 'default', className = '' }: BadgeProps) => {
   const variants = {
-    default: 'bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-gray-200',
-    success: 'bg-green-600/15 text-green-700 dark:bg-green-600/20 dark:text-green-400',
-    warning: 'bg-yellow-600/15 text-yellow-800 dark:bg-yellow-600/20 dark:text-yellow-400',
-    danger: 'bg-red-600/15 text-red-700 dark:bg-red-600/20 dark:text-red-400',
-    info: 'bg-blue-600/15 text-blue-700 dark:bg-blue-600/20 dark:text-blue-400',
+    default: 'bg-gray-200/80 text-gray-800 border border-black/5 dark:bg-white/10 dark:text-gray-200 dark:border-white/10',
+    success: 'bg-green-600/15 text-green-700 border border-green-600/20 dark:bg-green-600/20 dark:text-green-400 dark:border-green-400/20',
+    warning: 'bg-yellow-600/15 text-yellow-900 border border-yellow-600/20 dark:bg-yellow-600/20 dark:text-yellow-400 dark:border-yellow-400/20',
+    danger: 'bg-red-600/15 text-red-700 border border-red-600/20 dark:bg-red-600/20 dark:text-red-400 dark:border-red-400/20',
+    info: 'bg-blue-600/15 text-blue-700 border border-blue-600/20 dark:bg-blue-600/20 dark:text-blue-400 dark:border-blue-400/20',
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]} ${className}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${variants[variant]} ${className}`}>
       {children}
     </span>
   );
@@ -104,7 +107,7 @@ export const Input = ({ className = '', disabled = false, ...props }: InputProps
     <input
       disabled={disabled}
       {...props}
-      className={`w-full px-4 py-2.5 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-minecraft-grass focus:border-transparent transition-all duration-200 dark:bg-black/20 dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-400 ${
+      className={`w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-400 ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${className}`}
     />
@@ -147,7 +150,7 @@ export const Textarea = ({
       disabled={disabled}
       minLength={minLength}
       maxLength={maxLength}
-      className={`w-full px-4 py-2.5 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-minecraft-grass focus:border-transparent transition-all duration-200 resize-none dark:bg-black/20 dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-400 ${
+      className={`w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 resize-none dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-400 ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${className}`}
     />
@@ -180,7 +183,7 @@ export const Select = ({
       name={name}
       required={required}
       disabled={disabled}
-      className={`w-full px-4 py-2.5 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-grass focus:border-transparent transition-all duration-200 dark:bg-black/20 dark:border-white/10 dark:text-gray-100 ${
+      className={`w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100 ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${className}`}
     >

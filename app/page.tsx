@@ -16,7 +16,7 @@ export default function HomePage() {
   const [staffForm, setStaffForm] = useState({ username: '', discord: '', about: '' });
   const [sendingStaff, setSendingStaff] = useState(false);
 
-  const serverHost = process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || '999wrld.vps.boxtoplay.com';
+  const serverHost = process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || 'play.999wrldnetwork.es';
   const serverPort = Number(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_PORT || 25565);
   const serverAddress = `${serverHost}:${Number.isFinite(serverPort) ? serverPort : 25565}`;
 
@@ -155,9 +155,10 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black"></div>
+        <div aria-hidden className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black"></div>
+          <div className="absolute -top-40 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/18 blur-3xl"></div>
+          <div className="absolute -bottom-48 left-1/3 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-grass/14 blur-3xl"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 text-center">
@@ -166,10 +167,10 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-gold bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 bg-clip-text text-transparent">
               999Wrld Network
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
               {t(lang, 'home.hero.subtitle')}
             </p>
           </motion.div>
