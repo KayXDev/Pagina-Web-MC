@@ -308,23 +308,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
 
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="px-3 py-2 rounded-lg bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10">
-                <div className="text-xs text-gray-600 dark:text-gray-400 leading-none">{t(lang, 'user.adminPanel')}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="text-sm text-gray-900 dark:text-gray-200 max-w-[240px] truncate">{userName}</div>
-                  {role && (
-                    <Badge variant={role === 'OWNER' ? 'success' : role === 'ADMIN' ? 'info' : 'default'}>{role}</Badge>
-                  )}
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                aria-label={t(lang, 'nav.home')}
+                className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
               >
                 <FaHome />
-                <span>{t(lang, 'nav.home')}</span>
               </Link>
+
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="px-3 py-2 rounded-lg bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 leading-none">{t(lang, 'user.adminPanel')}</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="text-sm text-gray-900 dark:text-gray-200 max-w-[240px] truncate">{userName}</div>
+                    {role && (
+                      <Badge variant={role === 'OWNER' ? 'success' : role === 'ADMIN' ? 'info' : 'default'}>{role}</Badge>
+                    )}
+                  </div>
+                </div>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                >
+                  <FaHome />
+                  <span>{t(lang, 'nav.home')}</span>
+                </Link>
+              </div>
             </div>
           </div>
         </header>
