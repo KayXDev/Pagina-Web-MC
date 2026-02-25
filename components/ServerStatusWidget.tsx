@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaServer, FaUsers, FaCopy, FaCheck } from 'react-icons/fa';
-import Image from 'next/image';
 import { getServerStatus, type ServerStatus } from '@/lib/minecraft';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
@@ -19,8 +18,6 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const address = `${host}${port && port !== 25565 ? `:${port}` : ''}`;
-
   useEffect(() => {
     const fetchStatus = async () => {
       setLoading(true);
@@ -35,14 +32,10 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
     return () => clearInterval(interval);
   }, [host, port]);
 
-  const copyIP = async () => {
-    try {
-      await navigator.clipboard.writeText(address);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore
-    }
+  const copyIP = () => {
+    navigator.clipboard.writeText(host);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) {
@@ -85,39 +78,16 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
 
       <div className="flex items-center justify-between bg-black/30 rounded-md p-3 mb-3">
         <div className="flex items-center space-x-2">
-          {status?.favicon ? (
-            <span className="relative h-6 w-6 rounded-md overflow-hidden bg-black/30 border border-white/10 shrink-0">
-              <Image
-                src={status.favicon}
-                alt=""
-                fill
-                sizes="24px"
-                className="object-cover"
-                unoptimized
-              />
-            </span>
-          ) : (
-            <FaServer className="text-minecraft-grass" />
-          )}
-          <span className="text-white font-mono">{address}</span>
+          <FaServer className="text-minecraft-grass" />
+          <span className="text-white font-mono">{host}</span>
         </div>
         <button
           onClick={copyIP}
-          type="button"
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
-          aria-label={lang === 'es' ? 'Copiar IP' : 'Copy IP'}
-          title={lang === 'es' ? 'Copiar IP' : 'Copy IP'}
+          className="p-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
         >
           {copied ? <FaCheck /> : <FaCopy />}
-          <span className="text-sm font-semibold">{copied ? (lang === 'es' ? 'Copiado' : 'Copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}</span>
         </button>
       </div>
-
-      {status?.online && status?.motd ? (
-        <div className="text-sm text-gray-300 bg-black/20 border border-white/10 rounded-md p-3 mb-3">
-          <div className="line-clamp-3">{status.motd}</div>
-        </div>
-      ) : null}
 
       {status?.version && (
         <div className="text-sm text-gray-400">
