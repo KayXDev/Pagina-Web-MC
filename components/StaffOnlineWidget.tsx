@@ -9,9 +9,9 @@ import { useClientLang } from '@/lib/useClientLang';
 type StaffOnlineItem = {
   username: string;
   role: string;
-  minecraftUsername: string;
-  minecraftUuid: string;
   avatar: string;
+  verified?: boolean;
+  lastLogin?: string | null;
 };
 
 type StaffOnlineResponse = {
@@ -71,7 +71,7 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 text-white font-medium">
           <FaUsers className="text-minecraft-grass" />
-          <span>{lang === 'es' ? 'Staff online' : 'Staff online'}</span>
+          <span>{lang === 'es' ? 'Staff' : 'Staff'}</span>
         </div>
 
         <div className="text-xs text-gray-400">
@@ -83,20 +83,26 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
         <div className="flex flex-wrap gap-2">
           {data!.staff.slice(0, 12).map((u) => (
             <div
-              key={`${u.minecraftUsername}-${u.username}`}
+              key={u.username}
               className="flex items-center gap-2 rounded-md border border-gray-800 bg-black/30 px-2 py-1"
             >
               <div className="relative h-6 w-6 rounded overflow-hidden bg-black border border-gray-800">
-                <Image
-                  src={`https://crafatar.com/renders/head/${encodeURIComponent(u.minecraftUsername)}?scale=2&overlay=true`}
-                  alt=""
-                  fill
-                  sizes="24px"
-                  className="object-cover"
-                />
+                {u.avatar ? (
+                  <Image
+                    src={u.avatar}
+                    alt=""
+                    fill
+                    sizes="24px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full grid place-items-center bg-gray-900 text-[10px] text-gray-200">
+                    {String(u.username || '?').slice(0, 1).toUpperCase()}
+                  </div>
+                )}
               </div>
               <div className="min-w-0">
-                <div className="text-xs text-white leading-none truncate max-w-[10rem]">{u.minecraftUsername}</div>
+                <div className="text-xs text-white leading-none truncate max-w-[10rem]">{u.username}</div>
                 <div className="text-[10px] text-gray-400 leading-none">{u.role}</div>
               </div>
             </div>
@@ -104,7 +110,7 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
         </div>
       ) : (
         <div className="text-sm text-gray-400">
-          {lang === 'es' ? 'No hay staff conectado ahora mismo.' : 'No staff online right now.'}
+          {lang === 'es' ? 'No hay staff para mostrar.' : 'No staff to show.'}
         </div>
       )}
     </motion.div>
