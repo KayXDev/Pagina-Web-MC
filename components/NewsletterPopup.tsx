@@ -1,0 +1,160 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Card, Button, Input } from '@/components/ui';
+import { t } from '@/lib/i18n';
+import { useClientLang } from '@/lib/useClientLang';
+import { FaEnvelope, FaTimes } from 'react-icons/fa';
+
+const SEEN_KEY = 'newsletter_popup_seen_v1';
+const SUBSCRIBED_KEY = 'newsletter_popup_subscribed_v1';
+
+export default function NewsletterPopup() {
+  const lang = useClientLang();
+
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const seen = window.localStorage.getItem(SEEN_KEY) === 'true';
+    const subscribed = window.localStorage.getItem(SUBSCRIBED_KEY) === 'true';
+    if (seen || subscribed) return;
+
+    const tId = window.setTimeout(() => setOpen(true), 1200);
+    return () => window.clearTimeout(tId);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const close = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(SEEN_KEY, 'true');
+    }
+    setOpen(false);
+  };
+
+  const subscribe = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+
+    setLoading(true);
+    setError('');
+    setDone(false);
+
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed, source: 'popup' }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || t(lang, 'footer.newsletter.error')));
+
+      setDone(true);
+      setEmail('');
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(SUBSCRIBED_KEY, 'true');
+        window.localStorage.setItem(SEEN_KEY, 'true');
+      }
+
+      window.setTimeout(() => setOpen(false), 900);
+    } catch (e: any) {
+      setError(e?.message || t(lang, 'footer.newsletter.error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={close}
+        role="presentation"
+      />
+
+      <Card
+        hover={false}
+        className="relative w-full max-w-lg p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/70"
+      >
+        <div className="px-5 py-4 border-b border-gray-200/80 bg-gradient-to-r from-minecraft-grass/15 to-minecraft-diamond/10 dark:border-white/10 dark:from-minecraft-grass/10 dark:to-minecraft-diamond/10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-white/70 border border-gray-200 grid place-items-center text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                <FaEnvelope />
+              </div>
+              <div className="min-w-0">
+                <div className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white truncate">
+                  {t(lang, 'footer.newsletter.title')}
+                </div>
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                  {t(lang, 'footer.newsletter.subtitle')}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={close}
+              className="shrink-0 rounded-lg p-2 text-gray-700 hover:bg-black/5 dark:text-gray-200 dark:hover:bg-white/10"
+              aria-label={t(lang, 'common.close')}
+              title={t(lang, 'common.close')}
+            >
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-5 py-5">
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t(lang, 'footer.newsletter.placeholder')}
+              disabled={loading}
+            />
+            <Button type="button" onClick={subscribe} disabled={loading || !email.trim()}>
+              {loading ? t(lang, 'footer.newsletter.loading') : t(lang, 'footer.newsletter.submit')}
+            </Button>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {lang === 'es' ? 'Sin spam. Puedes darte de baja cuando quieras.' : 'No spam. Unsubscribe anytime.'}
+            </div>
+            <Button type="button" variant="secondary" size="sm" onClick={close} disabled={loading}>
+              {lang === 'es' ? 'Ahora no' : 'Not now'}
+            </Button>
+          </div>
+
+          {done ? (
+            <div className="mt-3 text-xs text-green-700 dark:text-green-400">{t(lang, 'footer.newsletter.success')}</div>
+          ) : null}
+          {error ? (
+            <div className="mt-3 text-xs text-red-700 dark:text-red-400">{error}</div>
+          ) : null}
+        </div>
+      </Card>
+    </div>
+  );
+}

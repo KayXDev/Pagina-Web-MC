@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Card, Button, Input, Badge, Textarea } from '@/components/ui';
+import { Card, Button, Input, Badge } from '@/components/ui';
 import { FaEnvelope, FaSyncAlt, FaTrash, FaBan, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { t } from '@/lib/i18n';
@@ -36,10 +36,6 @@ export default function AdminNewsletterPage() {
   const [updatingRowId, setUpdatingRowId] = useState<string | null>(null);
 
   const [settings, setSettings] = useState<SettingsObj>({});
-  const [subjectTemplate, setSubjectTemplate] = useState('');
-  const [htmlTemplate, setHtmlTemplate] = useState('');
-  const [textTemplate, setTextTemplate] = useState('');
-  const [savingTemplates, setSavingTemplates] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [totals, setTotals] = useState<{ all: number; active: number; unsubscribed: number }>({ all: 0, active: 0, unsubscribed: 0 });
 
@@ -64,10 +60,6 @@ export default function AdminNewsletterPage() {
       const settingsData = (await settingsRes.json().catch(() => ({}))) as SettingsObj;
       if (!settingsRes.ok) throw new Error(String((settingsData as any)?.error || t(lang, 'admin.settings.loadError')));
       setSettings(settingsData || {});
-
-      setSubjectTemplate(String((settingsData as any)?.newsletter_subject_template || ''));
-      setHtmlTemplate(String((settingsData as any)?.newsletter_html_template || ''));
-      setTextTemplate(String((settingsData as any)?.newsletter_text_template || ''));
 
       const subsData = (await subsRes.json().catch(() => ({}))) as SubscribersResponse;
       if (!subsRes.ok) throw new Error(String((subsData as any)?.error || (lang === 'es' ? 'Error al cargar suscriptores' : 'Error loading subscribers')));
@@ -119,30 +111,6 @@ export default function AdminNewsletterPage() {
       toast.error(e?.message || (lang === 'es' ? 'Error actualizando automático' : 'Error updating auto mode'));
     } finally {
       setTogglingAuto(false);
-    }
-  };
-
-  const saveTemplates = async () => {
-    setSavingTemplates(true);
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          newsletter_subject_template: subjectTemplate,
-          newsletter_html_template: htmlTemplate,
-          newsletter_text_template: textTemplate,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error guardando plantilla' : 'Error saving template')));
-
-      toast.success(lang === 'es' ? 'Plantilla guardada' : 'Template saved');
-      await fetchAll({ silent: true });
-    } catch (e: any) {
-      toast.error(e?.message || (lang === 'es' ? 'Error guardando plantilla' : 'Error saving template'));
-    } finally {
-      setSavingTemplates(false);
     }
   };
 
@@ -225,57 +193,6 @@ export default function AdminNewsletterPage() {
                 ? 'Gestiona suscriptores, activa/desactiva el envío semanal y envía manualmente.'
                 : 'Manage subscribers, toggle weekly auto-send, and send manually.'}
             </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Plantilla' : 'Template'}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {lang === 'es'
-                ? 'Puedes personalizar subject/HTML/texto usando placeholders.'
-                : 'Customize subject/HTML/text using placeholders.'}
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              {lang === 'es'
-                ? 'Placeholders: {{siteName}}, {{nowIso}}, {{email}}, {{postsText}}, {{postsHtml}}, {{unsubscribeUrl}}, {{baseUrl}}'
-                : 'Placeholders: {{siteName}}, {{nowIso}}, {{email}}, {{postsText}}, {{postsHtml}}, {{unsubscribeUrl}}, {{baseUrl}}'}
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="button" onClick={saveTemplates} disabled={savingTemplates}>
-              {savingTemplates ? t(lang, 'common.saving') : (lang === 'es' ? 'Guardar plantilla' : 'Save template')}
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4">
-          <div>
-            <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Subject (template)' : 'Subject (template)'}</div>
-            <Input value={subjectTemplate} onChange={(e) => setSubjectTemplate(e.target.value)} placeholder="{{siteName}} • Weekly newsletter" />
-          </div>
-
-          <div>
-            <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'HTML (template)' : 'HTML (template)'}</div>
-            <Textarea
-              value={htmlTemplate}
-              onChange={(e) => setHtmlTemplate(e.target.value)}
-              placeholder={lang === 'es' ? 'Deja vacío para usar el template por defecto.' : 'Leave empty to use the default template.'}
-              className="min-h-[220px]"
-            />
-          </div>
-
-          <div>
-            <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Texto plano (template)' : 'Plain text (template)'}</div>
-            <Textarea
-              value={textTemplate}
-              onChange={(e) => setTextTemplate(e.target.value)}
-              placeholder={lang === 'es' ? 'Deja vacío para usar el template por defecto.' : 'Leave empty to use the default template.'}
-              className="min-h-[140px]"
-            />
           </div>
         </div>
       </Card>
