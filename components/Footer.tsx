@@ -191,12 +191,7 @@ const Footer = () => {
               <span className="inline-flex items-center" aria-label="Mastercard" title="Mastercard">
                 <MastercardIcon size={28} />
               </span>
-              <span
-                className="inline-flex items-center rounded-md px-1.5 py-1"
-                style={{ backgroundColor: '#2E77BB', color: '#ffffff' }}
-                aria-label="American Express"
-                title="American Express"
-              >
+              <span className="inline-flex items-center" style={{ color: '#2E77BB' }} aria-label="American Express" title="American Express">
                 <SiAmericanexpress size={22} />
               </span>
             </div>

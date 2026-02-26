@@ -232,10 +232,13 @@ function buildNewsletterHtml(params: {
             <td align="center" bgcolor="#6a00ff" style="padding:30px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
                 <tr>
+                  <td style="vertical-align:middle;">
+                    <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
+                  </td>
                   ${
                     resolvedBannerUrl
                       ? `
-                        <td style="padding-right:12px; vertical-align:middle;">
+                        <td style="padding-left:12px; vertical-align:middle;">
                           <img
                             src="${resolvedBannerUrl}"
                             width="40"
@@ -247,9 +250,6 @@ function buildNewsletterHtml(params: {
                       `.trim()
                       : ''
                   }
-                  <td style="vertical-align:middle;">
-                    <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
-                  </td>
                 </tr>
               </table>
               <p style="color:#e0e0e0; margin-top:10px; font-size:14px;">${escapeHtml(c.headerSubtitle)}</p>
