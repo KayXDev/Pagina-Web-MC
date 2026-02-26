@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function RootShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
@@ -21,6 +22,7 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
         <div className="absolute -top-44 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/15 blur-3xl" />
         <div className="absolute -bottom-44 left-1/3 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-minecraft-grass/12 blur-3xl" />
       </div>
+      <NewsletterPopup />
       <Navbar />
       <main className="flex-grow pt-16">{children}</main>
       <Footer />

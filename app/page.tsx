@@ -8,7 +8,6 @@ import ServerStatusWidget from '@/components/ServerStatusWidget';
 import StaffOnlineWidget from '@/components/StaffOnlineWidget';
 import DiscordSupportWidget from '@/components/DiscordSupportWidget';
 import AnimatedSection from '@/components/AnimatedSection';
-import NewsletterPopup from '@/components/NewsletterPopup';
 import { Card, Button, Input, Textarea } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
@@ -156,7 +155,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <NewsletterPopup />
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div aria-hidden className="absolute inset-0 z-0">
