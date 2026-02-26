@@ -9,9 +9,39 @@ function safe(text: string, maxLen: number) {
   return t.length > maxLen ? `${t.slice(0, maxLen - 1)}…` : t;
 }
 
+function escapeHtml(input: string) {
+  return String(input || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function baseUrlFromEnv() {
   const base = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
   return base ? base.replace(/\/$/, '') : '';
+}
+
+function getServerAddress() {
+  const serverHost = String(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || process.env.MINECRAFT_SERVER_IP || 'play.999wrldnetwork.es').trim();
+  const serverPortRaw = String(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_PORT || process.env.MINECRAFT_SERVER_PORT || '').trim();
+  const serverPort = serverPortRaw ? Number(serverPortRaw) : NaN;
+
+  if (!serverHost) return 'play.999wrldnetwork.es';
+  if (Number.isFinite(serverPort) && serverPort !== 25565) return `${serverHost}:${serverPort}`;
+  return serverHost;
+}
+
+function pickThirdSocial() {
+  const twitterUrl = String((process.env.NEXT_PUBLIC_TWITTER_URL as any) || '').trim();
+  const xUrl = String((process.env.NEXT_PUBLIC_X_URL as any) || '').trim();
+  const tiktokUrl = String(process.env.NEXT_PUBLIC_TIKTOK_URL || '').trim();
+
+  const resolvedTwitter = twitterUrl || xUrl;
+  if (resolvedTwitter) return { label: 'Twitter', url: resolvedTwitter };
+  if (tiktokUrl) return { label: 'TikTok', url: tiktokUrl };
+  return { label: 'Twitter', url: '' };
 }
 
 function buildPostsText(latestPosts: any[], baseUrl: string) {
@@ -19,7 +49,7 @@ function buildPostsText(latestPosts: any[], baseUrl: string) {
   return latestPosts
     .map((p: any) => {
       const href = baseUrl && p.slug ? `${baseUrl}/noticias/${p.slug}` : '';
-      return `- ${p.title}${href ? `: ${href}` : ''}`;
+      return `- ${String(p.title || '')}${href ? `: ${href}` : ''}`;
     })
     .join('\n');
 }
@@ -27,40 +57,31 @@ function buildPostsText(latestPosts: any[], baseUrl: string) {
 function buildPostsHtml(latestPosts: any[], baseUrl: string) {
   if (!Array.isArray(latestPosts) || latestPosts.length === 0) {
     return `
-      <div style="padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 14px; background: #ffffff;">
-        <div style="font-weight: 800; color:#111827;">Esta semana no hay noticias nuevas</div>
-        <div style="margin-top: 4px; color:#6b7280; font-size: 13px;">En cuanto publiquemos algo, te lo mandamos por aquí.</div>
-      </div>
+      <ul style="color:#cccccc; font-size:14px; line-height:22px; margin: 0; padding-left: 18px;">
+        <li>✔ Esta semana no hay noticias nuevas</li>
+      </ul>
     `;
   }
 
   const items = latestPosts
     .map((p: any) => {
       const href = baseUrl && p.slug ? `${baseUrl}/noticias/${p.slug}` : '';
-      const title = safe(p.title, 120);
-      const excerpt = safe(p.excerpt || '', 180);
+      const title = escapeHtml(safe(p.title, 120));
+      const excerpt = escapeHtml(safe(p.excerpt || '', 140));
+      const titleHtml = href ? `<a href="${href}" style="color:#cccccc; text-decoration:none;"><strong>${title}</strong></a>` : `<strong>${title}</strong>`;
 
       return `
-        <div style="border: 1px solid #e5e7eb; border-radius: 14px; background: #ffffff; padding: 14px 16px; margin: 0 0 12px 0;">
-          <div style="font-size: 16px; font-weight: 800; color:#111827;">${
-            href ? `<a href="${href}" style="color:#16a34a; text-decoration:none;">${title}</a>` : title
-          }</div>
-          ${excerpt ? `<div style="margin-top: 6px; color:#6b7280; font-size: 13px;">${excerpt}</div>` : ''}
-          ${
-            href
-              ? `<div style="margin-top: 10px;"><a href="${href}" style="display:inline-block; background:#16a34a; color:#ffffff; text-decoration:none; padding: 8px 12px; border-radius: 10px; font-weight: 800; font-size: 13px;">Leer noticia</a></div>`
-              : ''
-          }
-        </div>
+        <li style="margin-bottom: 10px;">
+          ✔ ${titleHtml}${excerpt ? `<div style="margin-top: 2px; color:#9a9a9a; font-size: 12px; line-height: 18px;">${excerpt}</div>` : ''}
+        </li>
       `;
     })
     .join('');
 
   return `
-    <div style="margin-top: 14px;">
-      <div style="font-weight: 900; font-size: 14px; color:#111827; margin: 0 0 10px 0;">Novedades</div>
+    <ul style="color:#cccccc; font-size:14px; line-height:22px; margin: 0; padding-left: 18px;">
       ${items}
-    </div>
+    </ul>
   `;
 }
 
@@ -68,42 +89,174 @@ function buildNewsletterHtml(params: {
   siteName: string;
   email: string;
   nowIso: string;
-  postsHtml: string;
+  newsListHtml: string;
+  bannerUrl: string;
+  eventUrl: string;
+  shopUrl: string;
+  serverAddress: string;
+  discordUrl: string;
+  youtubeUrl: string;
+  thirdSocialLabel: string;
+  thirdSocialUrl: string;
   unsubscribeUrl: string;
 }) {
-  const { siteName, email, nowIso, postsHtml, unsubscribeUrl } = params;
+  const {
+    siteName,
+    email,
+    nowIso,
+    newsListHtml,
+    bannerUrl,
+    eventUrl,
+    shopUrl,
+    serverAddress,
+    discordUrl,
+    youtubeUrl,
+    thirdSocialLabel,
+    thirdSocialUrl,
+    unsubscribeUrl,
+  } = params;
 
-  const unsubscribeBlock = unsubscribeUrl
-    ? `<p style="margin: 10px 0 0 0; color:#6b7280; font-size: 12px;"><a href="${unsubscribeUrl}" style="color:#6b7280;">Darme de baja</a></p>`
-    : '';
+  const safeSiteName = escapeHtml(siteName);
+  const safeEmail = escapeHtml(email);
 
-  return `
-  <div style="margin:0; padding: 0; background:#f8fafc;">
-    <div style="max-width: 680px; margin: 0 auto; padding: 22px 16px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5;">
-      <div style="border-radius: 18px; overflow: hidden; border: 1px solid #e5e7eb; background: #ffffff;">
-        <div style="padding: 18px 18px 14px 18px; background: linear-gradient(90deg, #16a34a, #22c55e); color: #07110a;">
-          <div style="font-size: 12px; opacity: 0.95; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;">${siteName}</div>
-          <div style="font-size: 22px; font-weight: 900; margin-top: 2px;">Newsletter semanal</div>
-          <div style="font-size: 12px; opacity: 0.95; margin-top: 4px;">${nowIso}</div>
-        </div>
+  const resolvedEventUrl = eventUrl || shopUrl;
+  const resolvedShopUrl = shopUrl || resolvedEventUrl;
+  const resolvedBannerUrl = bannerUrl || '';
 
-        <div style="padding: 18px;">
-          <div style="color:#374151; font-size: 14px;">
-            <p style="margin: 0 0 10px 0;">Hola <b>${email}</b> 👋</p>
-            <p style="margin: 0;">Aquí tienes un resumen rápido de lo último en <b>${siteName}</b>.</p>
-          </div>
+  const resolvedDiscordUrl = discordUrl || '';
+  const resolvedYoutubeUrl = youtubeUrl || '';
+  const resolvedThirdUrl = thirdSocialUrl || '';
 
-          <div style="margin-top: 14px;">${postsHtml}</div>
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${safeSiteName} Newsletter</title>
+</head>
 
-          <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
-            <p style="margin: 0; color:#6b7280; font-size: 12px;">Recibes este email porque estás suscrito a ${siteName}.</p>
-            ${unsubscribeBlock}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  `;
+<body style="margin:0; padding:0; background-color:#0e0e0e; font-family:Arial, Helvetica, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e0e0e">
+    <tr>
+      <td align="center">
+
+        <!-- CONTENEDOR PRINCIPAL -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a1a1a" style="margin:20px 0; border-radius:8px; overflow:hidden;">
+
+          <!-- HEADER -->
+          <tr>
+            <td align="center" bgcolor="#6a00ff" style="padding:30px;">
+              <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
+              <p style="color:#e0e0e0; margin-top:10px; font-size:14px;">La mejor experiencia Minecraft empieza aquí</p>
+              <p style="color:#e0e0e0; margin:10px 0 0 0; font-size:12px; opacity:0.9;">${escapeHtml(nowIso)}</p>
+            </td>
+          </tr>
+
+          <!-- HERO -->
+          <tr>
+            <td align="center">
+              ${
+                resolvedBannerUrl
+                  ? `<img src="${resolvedBannerUrl}" width="600" style="display:block; width:100%; max-width:600px;" alt="${safeSiteName} Banner" />`
+                  : ''
+              }
+            </td>
+          </tr>
+
+          <!-- MENSAJE PRINCIPAL -->
+          <tr>
+            <td style="padding:30px; color:#ffffff;">
+              <h2 style="color:#6a00ff; margin-top:0;">🚀 ¡Novedades del Servidor!</h2>
+
+              <p style="font-size:14px; line-height:22px; color:#cccccc;">
+                Hola <strong>${safeEmail}</strong> 👋<br />
+                Tenemos nuevas actualizaciones y mejoras en <strong>${safeSiteName}</strong>.
+                Aquí te contamos lo nuevo:
+              </p>
+
+              ${newsListHtml}
+            </td>
+          </tr>
+
+          <!-- BLOQUE DESTACADO -->
+          <tr>
+            <td bgcolor="#121212" style="padding:25px;">
+              <h3 style="color:#ffffff; margin-top:0;">🏆 Evento Especial del Mes</h3>
+
+              <p style="color:#bbbbbb; font-size:14px; line-height:22px;">
+                Participa en nuestro gran evento mensual y gana recompensas exclusivas,
+                rangos temporales y premios sorpresa.
+              </p>
+
+              <div style="text-align:center; margin-top:20px;">
+                <a href="${resolvedEventUrl || '#'}" style="background-color:#6a00ff; color:#ffffff; padding:12px 25px; text-decoration:none; border-radius:4px; font-weight:bold;">
+                  Participar Ahora
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- TIENDA -->
+          <tr>
+            <td style="padding:30px;">
+              <h2 style="color:#6a00ff;">🛒 Visita Nuestra Tienda</h2>
+
+              <p style="color:#cccccc; font-size:14px; line-height:22px;">
+                Apoya el servidor adquiriendo rangos, kits y beneficios exclusivos.
+                Tu apoyo nos ayuda a seguir creciendo ❤️
+              </p>
+
+              <div style="text-align:center; margin-top:20px;">
+                <a href="${resolvedShopUrl || '#'}" style="background-color:#ffffff; color:#6a00ff; padding:12px 25px; text-decoration:none; border-radius:4px; font-weight:bold;">
+                  Ir a la Tienda
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- IP DEL SERVIDOR -->
+          <tr>
+            <td bgcolor="#6a00ff" style="padding:20px; text-align:center;">
+              <p style="color:#ffffff; font-size:16px; margin:0;">🎮 IP DEL SERVIDOR:</p>
+              <p style="color:#ffffff; font-size:20px; font-weight:bold; margin:5px 0 0 0;">${escapeHtml(serverAddress)}</p>
+            </td>
+          </tr>
+
+          <!-- REDES SOCIALES -->
+          <tr>
+            <td style="padding:25px; text-align:center;">
+
+              <p style="color:#999999; font-size:13px;">Síguenos en nuestras redes</p>
+
+              <a href="${resolvedDiscordUrl || '#'}" style="color:#6a00ff; text-decoration:none; margin:0 10px;">Discord</a>
+              <a href="${resolvedYoutubeUrl || '#'}" style="color:#6a00ff; text-decoration:none; margin:0 10px;">YouTube</a>
+              <a href="${resolvedThirdUrl || '#'}" style="color:#6a00ff; text-decoration:none; margin:0 10px;">${escapeHtml(thirdSocialLabel || 'Twitter')}</a>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td bgcolor="#111111" style="padding:20px; text-align:center;">
+              <p style="color:#666666; font-size:12px; margin:0;">© 2026 ${safeSiteName} - Todos los derechos reservados</p>
+
+              <p style="color:#666666; font-size:12px; margin-top:8px;">
+                Si no deseas recibir más correos,
+                <a href="${unsubscribeUrl || '#'}" style="color:#6a00ff; text-decoration:none;">haz clic aquí</a>.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- FIN CONTENEDOR -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>`;
 }
 
 export async function sendWeeklyNewsletter() {
@@ -111,6 +264,17 @@ export async function sendWeeklyNewsletter() {
 
   const siteName = String(process.env.SITE_NAME || '999Wrld Network').trim();
   const baseUrl = baseUrlFromEnv();
+  const serverAddress = getServerAddress();
+
+  const bannerUrlRaw = String(process.env.NEWSLETTER_BANNER_URL || '').trim();
+  const bannerUrl = bannerUrlRaw || (baseUrl ? `${baseUrl}/icon.png` : '');
+
+  const eventUrl = String(process.env.NEWSLETTER_EVENT_URL || '').trim() || (baseUrl ? `${baseUrl}/noticias` : '');
+  const shopUrl = baseUrl ? `${baseUrl}/tienda` : '';
+
+  const discordUrl = String(process.env.NEXT_PUBLIC_DISCORD_URL || '').trim();
+  const youtubeUrl = String(process.env.NEXT_PUBLIC_YOUTUBE_URL || '').trim();
+  const third = pickThirdSocial();
 
   const subscribers = await NewsletterSubscriber.find({ unsubscribedAt: null }).select('email').lean();
 
@@ -123,7 +287,7 @@ export async function sendWeeklyNewsletter() {
   const nowIso = new Date().toISOString();
 
   const postsText = buildPostsText(latestPosts as any[], baseUrl);
-  const postsHtml = buildPostsHtml(latestPosts as any[], baseUrl);
+  const newsListHtml = buildPostsHtml(latestPosts as any[], baseUrl);
 
   // Send sequentially to avoid SMTP/provider throttling
   let sent = 0;
@@ -149,7 +313,21 @@ export async function sendWeeklyNewsletter() {
       .filter(Boolean)
       .join('\n');
 
-    const html = buildNewsletterHtml({ siteName, email: to, nowIso, postsHtml, unsubscribeUrl });
+    const html = buildNewsletterHtml({
+      siteName,
+      email: to,
+      nowIso,
+      newsListHtml,
+      bannerUrl,
+      eventUrl,
+      shopUrl,
+      serverAddress,
+      discordUrl,
+      youtubeUrl,
+      thirdSocialLabel: third.label,
+      thirdSocialUrl: third.url,
+      unsubscribeUrl,
+    });
 
     await sendMail({ to, subject, text, html });
     sent += 1;
