@@ -57,6 +57,27 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, skipped: 'site-url-not-configured' });
     }
 
+    const autoSetting = await Settings.findOne({ key: 'newsletter_auto_enabled' }).lean();
+    const autoEnabled = String((autoSetting as any)?.value ?? 'true').trim() !== 'false';
+    if (!autoEnabled) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_NEWSLETTER_WEEKLY',
+        targetType: 'EMAIL',
+        targetId: 'newsletter',
+        meta: {
+          skipped: 'disabled',
+          path: '/api/cron/newsletter-weekly',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
+
+      return NextResponse.json({ success: true, skipped: 'disabled' });
+    }
+
     if (!isEmailConfigured()) {
       await AdminLog.create({
         adminId: 'system',

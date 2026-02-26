@@ -133,6 +133,8 @@ export async function middleware(request: NextRequest) {
                     ? 'blog'
                     : pathname.startsWith('/admin/postulaciones')
                       ? 'applications'
+                      : pathname.startsWith('/admin/newsletter')
+                        ? 'newsletter'
                       : pathname.startsWith('/admin/logs')
                         ? 'logs'
                         : pathname.startsWith('/admin/settings')
