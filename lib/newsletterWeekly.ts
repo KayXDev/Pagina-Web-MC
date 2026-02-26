@@ -211,7 +211,7 @@ function buildNewsletterHtml(params: {
   const resolvedThirdUrl = thirdSocialUrl || '';
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -230,30 +230,30 @@ function buildNewsletterHtml(params: {
           <!-- HEADER -->
           <tr>
             <td align="center" bgcolor="#6a00ff" style="padding:30px;">
-              <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 auto;">
+                <tr>
+                  ${
+                    resolvedBannerUrl
+                      ? `
+                        <td style="padding-right:12px; vertical-align:middle;">
+                          <img
+                            src="${resolvedBannerUrl}"
+                            width="40"
+                            height="40"
+                            style="display:block; width:40px; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1a;"
+                            alt="${safeSiteName} Icon"
+                          />
+                        </td>
+                      `.trim()
+                      : ''
+                  }
+                  <td style="vertical-align:middle;">
+                    <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
+                  </td>
+                </tr>
+              </table>
               <p style="color:#e0e0e0; margin-top:10px; font-size:14px;">${escapeHtml(c.headerSubtitle)}</p>
               <p style="color:#e0e0e0; margin:10px 0 0 0; font-size:12px; opacity:0.9;">${escapeHtml(nowIso)}</p>
-            </td>
-          </tr>
-
-          <!-- HERO -->
-          <tr>
-            <td align="center">
-              ${
-                resolvedBannerUrl
-                  ? `
-                    <div style="padding: 22px; background-color:#0f0f0f;">
-                      <img
-                        src="${resolvedBannerUrl}"
-                        width="64"
-                        height="64"
-                        style="display:block; width:64px; height:64px; border-radius:14px; border:1px solid #2a2a2a; background:#1a1a1a;"
-                        alt="${safeSiteName} Icon"
-                      />
-                    </div>
-                  `.trim()
-                  : ''
-              }
             </td>
           </tr>
 
