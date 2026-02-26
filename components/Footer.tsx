@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { FaDiscord, FaTiktok, FaYoutube, FaHeart, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaStripe } from 'react-icons/fa';
+import { FaDiscord, FaTiktok, FaYoutube, FaHeart } from 'react-icons/fa';
+import { SiStripe, SiPaypal, SiVisa, SiMastercard, SiAmericanexpress } from 'react-icons/si';
 import { useState } from 'react';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
@@ -166,21 +167,21 @@ const Footer = () => {
             <div className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               {t(lang, 'footer.payments')}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-4 text-gray-500 dark:text-gray-400">
-                <span className="inline-flex items-center text-[#635BFF]" aria-label="Stripe" title="Stripe">
-                <FaStripe size={28} />
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <span className="inline-flex items-center" style={{ color: '#635BFF' }} aria-label="Stripe" title="Stripe">
+                <SiStripe size={28} />
               </span>
-                <span className="inline-flex items-center text-[#0070E0]" aria-label="PayPal" title="PayPal">
-                <FaCcPaypal size={28} />
+              <span className="inline-flex items-center" style={{ color: '#003087' }} aria-label="PayPal" title="PayPal">
+                <SiPaypal size={28} />
               </span>
-                <span className="inline-flex items-center text-[#1A1F71]" aria-label="Visa" title="Visa">
-                <FaCcVisa size={28} />
+              <span className="inline-flex items-center" style={{ color: '#1A1F71' }} aria-label="Visa" title="Visa">
+                <SiVisa size={28} />
               </span>
-                <span className="inline-flex items-center text-[#EB001B]" aria-label="Mastercard" title="Mastercard">
-                <FaCcMastercard size={28} />
+              <span className="inline-flex items-center" style={{ color: '#EB001B' }} aria-label="Mastercard" title="Mastercard">
+                <SiMastercard size={28} />
               </span>
-                <span className="inline-flex items-center text-[#2E77BB]" aria-label="American Express" title="American Express">
-                <FaCcAmex size={28} />
+              <span className="inline-flex items-center" style={{ color: '#2E77BB' }} aria-label="American Express" title="American Express">
+                <SiAmericanexpress size={28} />
               </span>
             </div>
           </div>
