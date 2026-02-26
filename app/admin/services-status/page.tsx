@@ -10,6 +10,8 @@ import { useClientLang } from '@/lib/useClientLang';
 type ServicesStatusSettings = {
   services_status_discord_webhook: string;
   services_status_interval_minutes: string;
+  services_status_auto_enabled: string;
+  services_status_last_sent_at?: string;
 };
 
 export default function AdminServicesStatusPage() {
@@ -17,10 +19,13 @@ export default function AdminServicesStatusPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [togglingAuto, setTogglingAuto] = useState(false);
 
   const [settings, setSettings] = useState<ServicesStatusSettings>({
     services_status_discord_webhook: '',
     services_status_interval_minutes: '60',
+    services_status_auto_enabled: 'true',
+    services_status_last_sent_at: '',
   });
 
   const fetchSettings = async () => {
@@ -34,6 +39,8 @@ export default function AdminServicesStatusPage() {
         ...prev,
         services_status_discord_webhook: String(data?.services_status_discord_webhook || ''),
         services_status_interval_minutes: String(data?.services_status_interval_minutes || '60'),
+        services_status_auto_enabled: String(data?.services_status_auto_enabled ?? 'true'),
+        services_status_last_sent_at: String(data?.services_status_last_sent_at || ''),
       }));
     } catch {
       toast.error(t(lang, 'admin.settings.loadError'));
@@ -56,15 +63,45 @@ export default function AdminServicesStatusPage() {
         body: JSON.stringify({
           services_status_discord_webhook: settings.services_status_discord_webhook,
           services_status_interval_minutes: settings.services_status_interval_minutes,
+          services_status_auto_enabled: settings.services_status_auto_enabled,
         }),
       });
 
       if (!response.ok) throw new Error(t(lang, 'admin.settings.saveError'));
       toast.success(lang === 'es' ? 'Estado de servicios guardado' : 'Services status saved');
+      fetchSettings();
     } catch (err: any) {
       toast.error(err?.message || t(lang, 'admin.settings.saveError'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const toggleAuto = async () => {
+    const nextValue = autoEnabled ? 'false' : 'true';
+    setTogglingAuto(true);
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services_status_auto_enabled: nextValue }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error actualizando automático' : 'Error updating auto mode')));
+      }
+
+      setSettings((prev) => ({ ...prev, services_status_auto_enabled: nextValue }));
+      toast.success(
+        nextValue === 'true'
+          ? (lang === 'es' ? 'Automático encendido' : 'Auto mode enabled')
+          : (lang === 'es' ? 'Automático apagado' : 'Auto mode disabled')
+      );
+    } catch (err: any) {
+      toast.error(err?.message || (lang === 'es' ? 'Error actualizando automático' : 'Error updating auto mode'));
+    } finally {
+      setTogglingAuto(false);
     }
   };
 
@@ -82,6 +119,7 @@ export default function AdminServicesStatusPage() {
       }
 
       toast.success(lang === 'es' ? 'Reporte enviado a Discord' : 'Report sent to Discord');
+      fetchSettings();
     } catch (err: any) {
       toast.error(err?.message || (lang === 'es' ? 'Error enviando reporte' : 'Error sending report'));
     } finally {
@@ -90,6 +128,8 @@ export default function AdminServicesStatusPage() {
   };
 
   const webhookConfigured = Boolean(String(settings.services_status_discord_webhook || '').trim());
+  const autoEnabled = String(settings.services_status_auto_enabled ?? 'true').trim() !== 'false';
+  const lastSentText = String(settings.services_status_last_sent_at || '').trim();
 
   if (loading) {
     return (
@@ -141,19 +181,42 @@ export default function AdminServicesStatusPage() {
                   ? (lang === 'es' ? 'CONFIGURADO' : 'CONFIGURED')
                   : (lang === 'es' ? 'NO CONFIGURADO' : 'NOT CONFIGURED')}
               </Badge>
+              <Badge variant={autoEnabled ? 'success' : 'warning'}>
+                {autoEnabled ? (lang === 'es' ? 'AUTO: ON' : 'AUTO: ON') : (lang === 'es' ? 'AUTO: OFF' : 'AUTO: OFF')}
+              </Badge>
               <div className="text-xs text-gray-500">
                 {lang === 'es'
                   ? 'Se usa para enviar el embed del estado de servicios.'
                   : 'Used to send the services status embed.'}
               </div>
             </div>
+            <div className="mt-2 text-xs text-gray-500">
+              {lastSentText
+                ? (lang === 'es' ? `Último envío: ${lastSentText}` : `Last sent: ${lastSentText}`)
+                : (lang === 'es' ? 'Último envío: —' : 'Last sent: —')}
+            </div>
           </div>
 
-          <Button type="button" variant="secondary" onClick={sendNow} disabled={sending || !webhookConfigured}>
-            {sending
-              ? (lang === 'es' ? 'Enviando…' : 'Sending…')
-              : (lang === 'es' ? 'Enviar reporte ahora' : 'Send report now')}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <Button
+              type="button"
+              variant={autoEnabled ? 'danger' : 'success'}
+              onClick={toggleAuto}
+              disabled={togglingAuto}
+            >
+              {togglingAuto
+                ? (lang === 'es' ? 'Actualizando…' : 'Updating…')
+                : autoEnabled
+                  ? (lang === 'es' ? 'Apagar automático' : 'Turn off auto')
+                  : (lang === 'es' ? 'Encender automático' : 'Turn on auto')}
+            </Button>
+
+            <Button type="button" variant="secondary" onClick={sendNow} disabled={sending || !webhookConfigured}>
+              {sending
+                ? (lang === 'es' ? 'Enviando…' : 'Sending…')
+                : (lang === 'es' ? 'Enviar reporte ahora' : 'Send report now')}
+            </Button>
+          </div>
         </div>
 
         <div className="mt-4">
@@ -179,8 +242,8 @@ export default function AdminServicesStatusPage() {
           </div>
           <div className="text-xs text-gray-500 flex items-end">
             {lang === 'es'
-              ? 'El cron se ejecuta automáticamente en Vercel y respeta este intervalo.'
-              : 'The cron runs automatically on Vercel and respects this interval.'}
+              ? 'El cron se ejecuta automáticamente en Vercel. Asegúrate de tener el webhook configurado y el automático encendido.'
+              : 'The cron runs automatically on Vercel. Make sure the webhook is configured and auto is enabled.'}
           </div>
         </div>
 

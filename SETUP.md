@@ -117,6 +117,18 @@ Si vas a usar tienda/checkout:
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
    - `STRIPE_WEBHOOK_SECRET`
 
+### 4.4.1 Email (Forgot password)
+
+Para que funcione **"¿Has olvidado tu contraseña?"** en producción, configura SMTP:
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+Si no está configurado, el sistema seguirá respondiendo OK (por seguridad), pero no podrá enviar el email.
+
 ### 4.5 Worker de entregas (opcional)
 
 Si usas entregas automáticas in-game:

@@ -20,6 +20,11 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
   lastLogin?: Date;
+
+  passwordResetTokenHash?: string;
+  passwordResetExpiresAt?: Date;
+  passwordResetRequestedAt?: Date;
+  passwordResetUsedAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -95,6 +100,20 @@ const UserSchema = new Schema<IUser>(
       default: '',
     },
     lastLogin: {
+      type: Date,
+    },
+
+    passwordResetTokenHash: {
+      type: String,
+      default: '',
+    },
+    passwordResetExpiresAt: {
+      type: Date,
+    },
+    passwordResetRequestedAt: {
+      type: Date,
+    },
+    passwordResetUsedAt: {
       type: Date,
     },
   },
@@ -180,6 +199,39 @@ if (models.User) {
     if (!models.User.schema.path('minecraftLinkedAt')) {
       models.User.schema.add({
         minecraftLinkedAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('passwordResetTokenHash')) {
+      models.User.schema.add({
+        passwordResetTokenHash: {
+          type: String,
+          default: '',
+        },
+      });
+    }
+
+    if (!models.User.schema.path('passwordResetExpiresAt')) {
+      models.User.schema.add({
+        passwordResetExpiresAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('passwordResetRequestedAt')) {
+      models.User.schema.add({
+        passwordResetRequestedAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('passwordResetUsedAt')) {
+      models.User.schema.add({
+        passwordResetUsedAt: {
           type: Date,
         },
       });

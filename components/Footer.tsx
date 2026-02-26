@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaDiscord, FaTiktok, FaYoutube, FaHeart } from 'react-icons/fa';
+import { FaDiscord, FaTiktok, FaYoutube, FaHeart, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaStripe } from 'react-icons/fa';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 
@@ -108,6 +108,29 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <div className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
+              {t(lang, 'footer.payments')}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-gray-500 dark:text-gray-400">
+              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Stripe" title="Stripe">
+                <FaStripe size={28} />
+              </span>
+              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="PayPal" title="PayPal">
+                <FaCcPaypal size={28} />
+              </span>
+              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Visa" title="Visa">
+                <FaCcVisa size={28} />
+              </span>
+              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Mastercard" title="Mastercard">
+                <FaCcMastercard size={28} />
+              </span>
+              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="American Express" title="American Express">
+                <FaCcAmex size={28} />
+              </span>
+            </div>
+          </div>
+
           <p className="text-center text-gray-600 dark:text-gray-400 text-sm flex items-center justify-center">
             © {currentYear} 999Wrld Network. {t(lang, 'footer.madeWith')}{' '}
             <FaHeart className="mx-1 text-red-500" /> {t(lang, 'footer.forCommunity')}

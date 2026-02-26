@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/session';
+import dbConnect from '@/lib/mongodb';
 import Settings from '@/models/Settings';
 import AdminLog from '@/models/AdminLog';
 import { sendServicesStatusReport } from '@/lib/servicesStatusReport';
@@ -14,6 +15,8 @@ function getRequestIp(request: Request) {
 export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
+
+    await dbConnect();
 
     const webhookSetting = await Settings.findOne({ key: 'services_status_discord_webhook' }).lean();
     const webhookUrl = String(webhookSetting?.value || '').trim();

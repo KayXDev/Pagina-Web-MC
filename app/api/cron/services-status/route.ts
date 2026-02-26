@@ -42,9 +42,44 @@ export async function GET(request: Request) {
 
     await dbConnect();
 
+    const autoEnabledSetting = await Settings.findOne({ key: 'services_status_auto_enabled' }).lean();
+    const autoEnabled = String(autoEnabledSetting?.value ?? 'true').trim() !== 'false';
+    if (!autoEnabled) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_SERVICES_STATUS_REPORT_SKIPPED',
+        targetType: 'SETTINGS',
+        targetId: 'services_status_auto_enabled',
+        meta: {
+          reason: 'disabled',
+          path: '/api/cron/services-status',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
+
+      return NextResponse.json({ success: true, skipped: 'disabled' });
+    }
+
     const webhookSetting = await Settings.findOne({ key: 'services_status_discord_webhook' }).lean();
     const webhookUrl = String(webhookSetting?.value || '').trim();
     if (!webhookUrl) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_SERVICES_STATUS_REPORT_SKIPPED',
+        targetType: 'SETTINGS',
+        targetId: 'services_status_discord_webhook',
+        meta: {
+          reason: 'no-webhook',
+          path: '/api/cron/services-status',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
       return NextResponse.json({ success: true, skipped: 'no-webhook' });
     }
 
@@ -58,6 +93,22 @@ export async function GET(request: Request) {
 
     const now = Date.now();
     if (Number.isFinite(lastSentAt) && now - lastSentAt < intervalMs - 5_000) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_SERVICES_STATUS_REPORT_SKIPPED',
+        targetType: 'SETTINGS',
+        targetId: 'services_status_last_sent_at',
+        meta: {
+          reason: 'not-due',
+          intervalMinutes,
+          lastSentAt: lastSentIso,
+          path: '/api/cron/services-status',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
       return NextResponse.json({ success: true, skipped: 'not-due', intervalMinutes, lastSentAt: lastSentIso });
     }
 

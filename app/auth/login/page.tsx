@@ -96,6 +96,11 @@ export default function LoginPage() {
                   required
                 />
               </div>
+              <div className="mt-2 text-right">
+                <Link href="/auth/forgot-password" className="text-xs text-gray-400 hover:text-white transition-colors">
+                  {t(lang, 'auth.login.forgot')}
+                </Link>
+              </div>
             </div>
 
             <Button
