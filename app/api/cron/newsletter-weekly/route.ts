@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Settings from '@/models/Settings';
 import AdminLog from '@/models/AdminLog';
 import { sendWeeklyNewsletter } from '@/lib/newsletterWeekly';
+import { isEmailConfigured } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -35,6 +36,45 @@ export async function GET(request: Request) {
     }
 
     await dbConnect();
+
+    const baseUrl = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
+    if (!baseUrl) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_NEWSLETTER_WEEKLY',
+        targetType: 'EMAIL',
+        targetId: 'newsletter',
+        meta: {
+          skipped: 'site-url-not-configured',
+          path: '/api/cron/newsletter-weekly',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
+
+      return NextResponse.json({ success: true, skipped: 'site-url-not-configured' });
+    }
+
+    if (!isEmailConfigured()) {
+      await AdminLog.create({
+        adminId: 'system',
+        adminUsername: 'cron',
+        action: 'AUTO_NEWSLETTER_WEEKLY',
+        targetType: 'EMAIL',
+        targetId: 'newsletter',
+        meta: {
+          skipped: 'smtp-not-configured',
+          path: '/api/cron/newsletter-weekly',
+          method: 'GET',
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      });
+
+      return NextResponse.json({ success: true, skipped: 'smtp-not-configured' });
+    }
 
     const lastSentSetting = await Settings.findOne({ key: 'newsletter_last_sent_at' }).lean();
     const lastSentIso = String(lastSentSetting?.value || '').trim();
