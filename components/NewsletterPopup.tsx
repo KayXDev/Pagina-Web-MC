@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, Button, Input } from '@/components/ui';
 import { t, type Lang } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
-import { FaEnvelope, FaTimes, FaCheckCircle, FaBolt, FaGift } from 'react-icons/fa';
+import { FaEnvelope, FaTimes, FaCheckCircle, FaBolt, FaGift, FaGlobe, FaCheck } from 'react-icons/fa';
 
 const SEEN_KEY = 'newsletter_popup_seen_v1';
 const SUBSCRIBED_KEY = 'newsletter_popup_subscribed_v1';
@@ -13,6 +13,8 @@ export default function NewsletterPopup() {
   const lang = useClientLang();
 
   const [newsletterLang, setNewsletterLang] = useState<Lang>('es');
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -35,6 +37,29 @@ export default function NewsletterPopup() {
     // Default to Spanish as requested (site default is ES), but let the user override.
     setNewsletterLang('es');
   }, []);
+
+  useEffect(() => {
+    if (!langMenuOpen) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const el = langMenuRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && !el.contains(e.target)) {
+        setLangMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLangMenuOpen(false);
+    };
+
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [langMenuOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -119,15 +144,63 @@ export default function NewsletterPopup() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={close}
-              className="shrink-0 rounded-lg p-2 text-gray-700 hover:bg-black/5 dark:text-gray-200 dark:hover:bg-white/10"
-              aria-label={t(lang, 'common.close')}
-              title={t(lang, 'common.close')}
-            >
-              <FaTimes />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <div ref={langMenuRef} className="relative flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setLangMenuOpen((v) => !v)}
+                  aria-label={lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
+                  aria-haspopup="menu"
+                  aria-expanded={langMenuOpen}
+                  className="group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-[color,background-color,border-color,transform] duration-200 hover:scale-[1.08] hover:-translate-y-0.5"
+                >
+                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+                  <FaGlobe aria-hidden="true" size={18} className="relative transition-transform duration-200 group-hover:rotate-12" />
+                </button>
+
+                {langMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-label={lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
+                    className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-200 dark:bg-black/95 dark:border-minecraft-grass/20 rounded-md overflow-hidden shadow-lg"
+                  >
+                    <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-minecraft-grass/10">
+                      {lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
+                    </div>
+                    <div className="py-1">
+                      {([
+                        { value: 'es' as const, label: 'Español' },
+                        { value: 'en' as const, label: 'English' },
+                      ] as const).map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setNewsletterLang(opt.value);
+                            setLangMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/10 flex items-center justify-between"
+                        >
+                          <span>{opt.label}</span>
+                          {newsletterLang === opt.value ? <FaCheck className="text-minecraft-grass" aria-hidden="true" /> : <span className="w-4" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={close}
+                className="rounded-lg p-2 text-gray-700 hover:bg-black/5 dark:text-gray-200 dark:hover:bg-white/10"
+                aria-label={t(lang, 'common.close')}
+                title={t(lang, 'common.close')}
+              >
+                <FaTimes />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -136,21 +209,6 @@ export default function NewsletterPopup() {
             {lang === 'es'
               ? 'Recibe un resumen semanal con novedades, eventos y cambios importantes del servidor.'
               : 'Get a weekly summary with news, events, and important server updates.'}
-          </div>
-
-          <div className="mt-4">
-            <div className="text-xs text-gray-500 mb-2">
-              {lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
-            </div>
-            <select
-              value={newsletterLang}
-              onChange={(e) => setNewsletterLang((e.target.value as Lang) === 'en' ? 'en' : 'es')}
-              className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
-              aria-label={lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
-            >
-              <option value="es">Español</option>
-              <option value="en">English</option>
-            </select>
           </div>
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">

@@ -26,7 +26,6 @@ const Footer = () => {
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterDone, setNewsletterDone] = useState(false);
   const [newsletterError, setNewsletterError] = useState('');
-  const [amexSvgOk, setAmexSvgOk] = useState(true);
 
   const subscribeNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,22 +191,14 @@ const Footer = () => {
               <span className="inline-flex items-center" aria-label="Mastercard" title="Mastercard">
                 <MastercardIcon size={28} />
               </span>
-              {amexSvgOk ? (
-                <span className="inline-flex items-center" aria-label="American Express" title="American Express">
-                  <img
-                    src="/payments/amex.svg"
-                    alt="American Express"
-                    width={44}
-                    height={28}
-                    className="h-7 w-auto"
-                    onError={() => setAmexSvgOk(false)}
-                  />
-                </span>
-              ) : (
-                <span className="inline-flex items-center" style={{ color: '#2E77BB' }} aria-label="American Express" title="American Express">
-                  <SiAmericanexpress size={22} />
-                </span>
-              )}
+              <span
+                className="inline-flex items-center rounded-md px-1.5 py-1"
+                style={{ backgroundColor: '#2E77BB', color: '#ffffff' }}
+                aria-label="American Express"
+                title="American Express"
+              >
+                <SiAmericanexpress size={22} />
+              </span>
             </div>
           </div>
 
