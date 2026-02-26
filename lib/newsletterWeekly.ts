@@ -158,7 +158,17 @@ function buildNewsletterHtml(params: {
             <td align="center">
               ${
                 resolvedBannerUrl
-                  ? `<img src="${resolvedBannerUrl}" width="600" style="display:block; width:100%; max-width:600px;" alt="${safeSiteName} Banner" />`
+                  ? `
+                    <div style="padding: 22px; background-color:#0f0f0f;">
+                      <img
+                        src="${resolvedBannerUrl}"
+                        width="120"
+                        height="120"
+                        style="display:block; width:120px; height:120px; border-radius:18px; border:1px solid #2a2a2a; background:#1a1a1a;"
+                        alt="${safeSiteName} Icon"
+                      />
+                    </div>
+                  `.trim()
                   : ''
               }
             </td>
@@ -266,8 +276,7 @@ export async function sendWeeklyNewsletter() {
   const baseUrl = baseUrlFromEnv();
   const serverAddress = getServerAddress();
 
-  const bannerUrlRaw = String(process.env.NEWSLETTER_BANNER_URL || '').trim();
-  const bannerUrl = bannerUrlRaw || (baseUrl ? `${baseUrl}/icon.png` : '');
+  const bannerUrl = baseUrl ? `${baseUrl}/icon.png` : '';
 
   const eventUrl = String(process.env.NEWSLETTER_EVENT_URL || '').trim() || (baseUrl ? `${baseUrl}/noticias` : '');
   const shopUrl = baseUrl ? `${baseUrl}/tienda` : '';
