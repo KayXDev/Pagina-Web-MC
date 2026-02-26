@@ -3,6 +3,8 @@ import NewsletterSubscriber from '@/models/NewsletterSubscriber';
 import BlogPost from '@/models/BlogPost';
 import { sendMail } from '@/lib/email';
 import { createUnsubscribeToken } from '@/lib/newsletterTokens';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 function safe(text: string, maxLen: number) {
   const t = String(text || '');
@@ -16,6 +18,26 @@ function escapeHtml(input: string) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function escapeHtmlAndBreakAutolink(input: string) {
+  // Many email clients auto-link domains/IPs. Adding zero-width spaces usually prevents detection.
+  return escapeHtml(input).replace(/\./g, '.&#8203;').replace(/:/g, ':&#8203;');
+}
+
+async function getNewsletterIconAttachment() {
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'icon.png');
+    const content = await readFile(filePath);
+    return {
+      filename: 'icon.png',
+      content,
+      cid: 'site-icon@999wrld',
+      contentType: 'image/png',
+    };
+  } catch {
+    return null;
+  }
 }
 
 function baseUrlFromEnv() {
@@ -118,6 +140,7 @@ function buildNewsletterHtml(params: {
 
   const safeSiteName = escapeHtml(siteName);
   const safeEmail = escapeHtml(email);
+  const safeServerAddress = escapeHtmlAndBreakAutolink(serverAddress);
 
   const resolvedEventUrl = eventUrl || shopUrl;
   const resolvedShopUrl = shopUrl || resolvedEventUrl;
@@ -229,7 +252,7 @@ function buildNewsletterHtml(params: {
           <tr>
             <td bgcolor="#6a00ff" style="padding:20px; text-align:center;">
               <p style="color:#ffffff; font-size:16px; margin:0;">🎮 IP DEL SERVIDOR:</p>
-              <p style="color:#ffffff; font-size:20px; font-weight:bold; margin:5px 0 0 0;">${escapeHtml(serverAddress)}</p>
+              <p style="color:#ffffff; font-size:20px; font-weight:bold; margin:5px 0 0 0; text-decoration:none;">${safeServerAddress}</p>
             </td>
           </tr>
 
@@ -276,7 +299,8 @@ export async function sendWeeklyNewsletter() {
   const baseUrl = baseUrlFromEnv();
   const serverAddress = getServerAddress();
 
-  const bannerUrl = baseUrl ? `${baseUrl}/icon.png` : '';
+  const iconAttachment = await getNewsletterIconAttachment();
+  const bannerUrl = iconAttachment ? `cid:${iconAttachment.cid}` : (baseUrl ? `${baseUrl}/icon.png` : '');
 
   const eventUrl = String(process.env.NEWSLETTER_EVENT_URL || '').trim() || (baseUrl ? `${baseUrl}/noticias` : '');
   const shopUrl = baseUrl ? `${baseUrl}/tienda` : '';
@@ -338,7 +362,7 @@ export async function sendWeeklyNewsletter() {
       unsubscribeUrl,
     });
 
-    await sendMail({ to, subject, text, html });
+    await sendMail({ to, subject, text, html, attachments: iconAttachment ? [iconAttachment] : undefined });
     sent += 1;
   }
 

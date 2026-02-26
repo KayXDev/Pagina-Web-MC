@@ -1,12 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { FaDiscord, FaTiktok, FaYoutube, FaHeart } from 'react-icons/fa';
-import { SiStripe, SiPaypal, SiVisa, SiMastercard, SiAmericanexpress } from 'react-icons/si';
+import { FaDiscord, FaTiktok, FaYoutube, FaHeart, FaStripe } from 'react-icons/fa';
+import { SiPaypal, SiVisa, SiAmericanexpress } from 'react-icons/si';
 import { useState } from 'react';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { Input, Button } from '@/components/ui';
+
+function MastercardIcon({ size = 28 }: { size?: number }) {
+  const s = size;
+  return (
+    <svg width={s} height={s} viewBox="0 0 64 40" role="img" aria-label="Mastercard">
+      <circle cx="24" cy="20" r="18" fill="#EB001B" />
+      <circle cx="40" cy="20" r="18" fill="#F79E1B" />
+      <circle cx="32" cy="20" r="18" fill="#FF5F00" opacity="0.95" />
+    </svg>
+  );
+}
 
 const Footer = () => {
   const lang = useClientLang();
@@ -169,7 +180,7 @@ const Footer = () => {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <span className="inline-flex items-center" style={{ color: '#635BFF' }} aria-label="Stripe" title="Stripe">
-                <SiStripe size={28} />
+                <FaStripe size={28} />
               </span>
               <span className="inline-flex items-center" style={{ color: '#003087' }} aria-label="PayPal" title="PayPal">
                 <SiPaypal size={28} />
@@ -177,11 +188,16 @@ const Footer = () => {
               <span className="inline-flex items-center" style={{ color: '#1A1F71' }} aria-label="Visa" title="Visa">
                 <SiVisa size={28} />
               </span>
-              <span className="inline-flex items-center" style={{ color: '#EB001B' }} aria-label="Mastercard" title="Mastercard">
-                <SiMastercard size={28} />
+              <span className="inline-flex items-center" aria-label="Mastercard" title="Mastercard">
+                <MastercardIcon size={28} />
               </span>
-              <span className="inline-flex items-center" style={{ color: '#2E77BB' }} aria-label="American Express" title="American Express">
-                <SiAmericanexpress size={28} />
+              <span
+                className="inline-flex items-center rounded-md px-1.5 py-1"
+                style={{ backgroundColor: '#2E77BB', color: '#ffffff' }}
+                aria-label="American Express"
+                title="American Express"
+              >
+                <SiAmericanexpress size={22} />
               </span>
             </div>
           </div>
