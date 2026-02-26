@@ -19,6 +19,9 @@ function clampInt(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, Math.trunc(n)));
 }
 
+const FIXED_SEND_HOUR_UTC = 10;
+const FIXED_SEND_MINUTE_UTC = 0;
+
 // Returns the scheduled DateTime (UTC) for the current week (week starts Monday) at the given weekday/time.
 // weekday: 0(Sun) .. 6(Sat)
 function scheduledUtcForCurrentWeek(now: Date, weekday: number, hourUtc: number, minuteUtc: number) {
@@ -122,17 +125,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, skipped: 'smtp-not-configured' });
     }
 
-    const [scheduleDowSetting, scheduleHourSetting, scheduleMinuteSetting, lastAutoSlotSetting] = await Promise.all([
+    const [scheduleDowSetting, lastAutoSlotSetting] = await Promise.all([
       Settings.findOne({ key: 'newsletter_schedule_dow' }).lean(),
-      Settings.findOne({ key: 'newsletter_schedule_hour_utc' }).lean(),
-      Settings.findOne({ key: 'newsletter_schedule_minute_utc' }).lean(),
       Settings.findOne({ key: 'newsletter_last_auto_scheduled_at' }).lean(),
     ]);
 
     const weekday = clampInt(parseIntSetting((scheduleDowSetting as any)?.value, 1), 0, 6); // default Monday (1)
-    const hourUtc = clampInt(parseIntSetting((scheduleHourSetting as any)?.value, 10), 0, 23);
-    const minuteUtc = clampInt(parseIntSetting((scheduleMinuteSetting as any)?.value, 0), 0, 59);
     const lastAutoSlotIso = String((lastAutoSlotSetting as any)?.value || '').trim();
+
+    const hourUtc = FIXED_SEND_HOUR_UTC;
+    const minuteUtc = FIXED_SEND_MINUTE_UTC;
 
     const now = new Date();
     const scheduledSlot = scheduledUtcForCurrentWeek(now, weekday, hourUtc, minuteUtc);
@@ -142,7 +144,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         success: true,
         skipped: 'not-time-yet',
-        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
+        schedule: { weekday, scheduledSlotIso },
       });
     }
 
@@ -150,7 +152,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         success: true,
         skipped: 'already-sent-for-slot',
-        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
+        schedule: { weekday, scheduledSlotIso },
       });
     }
 
@@ -178,7 +180,7 @@ export async function GET(request: Request) {
       meta: {
         sent: result.sent,
         subscribers: result.subscribers,
-        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
+        schedule: { weekday, scheduledSlotIso },
         path: '/api/cron/newsletter-weekly',
         method: 'GET',
         userAgent: request.headers.get('user-agent') || undefined,

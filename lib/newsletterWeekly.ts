@@ -5,7 +5,7 @@ import { sendMail } from '@/lib/email';
 import { createUnsubscribeToken } from '@/lib/newsletterTokens';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { normalizeLang, type Lang } from '@/lib/i18n';
+import { type Lang } from '@/lib/i18n';
 
 function safe(text: string, maxLen: number) {
   const t = String(text || '');
@@ -78,7 +78,7 @@ function buildPostsText(latestPosts: any[], baseUrl: string) {
 }
 
 function buildPostsHtml(latestPosts: any[], baseUrl: string) {
-  return buildPostsHtmlForLang('es', latestPosts, baseUrl);
+  return buildPostsHtmlForLang('en', latestPosts, baseUrl);
 }
 
 function buildPostsHtmlForLang(lang: Lang, latestPosts: any[], baseUrl: string) {
@@ -367,7 +367,7 @@ export async function sendWeeklyNewsletter() {
   const youtubeUrl = String(process.env.NEXT_PUBLIC_YOUTUBE_URL || '').trim();
   const third = pickThirdSocial();
 
-  const subscribers = await NewsletterSubscriber.find({ unsubscribedAt: null }).select('email lang').lean();
+  const subscribers = await NewsletterSubscriber.find({ unsubscribedAt: null }).select('email').lean();
 
   const latestPosts = await BlogPost.find({ isPublished: true })
     .sort({ publishedAt: -1, createdAt: -1 })
@@ -385,7 +385,7 @@ export async function sendWeeklyNewsletter() {
     const to = String((sub as any).email || '').trim();
     if (!to) continue;
 
-    const subLang = normalizeLang(String((sub as any).lang || ''));
+    const subLang: Lang = 'en';
     const c = copyForNewsletter(subLang);
     const newsListHtml = buildPostsHtmlForLang(subLang, latestPosts as any[], baseUrl);
 
@@ -394,7 +394,7 @@ export async function sendWeeklyNewsletter() {
 
     const subject = c.subject(siteName);
     const text = [
-      subLang === 'en' ? `Hello ${to}!` : `Hola ${to}!`,
+      `Hello ${to}!`,
       '',
       c.textIntro(siteName),
       '',

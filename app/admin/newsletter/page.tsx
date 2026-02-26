@@ -48,8 +48,6 @@ export default function AdminNewsletterPage() {
   const lastSent = String(settings?.newsletter_last_sent_at || '').trim();
 
   const [scheduleDow, setScheduleDow] = useState<number>(1);
-  const [scheduleHourUtc, setScheduleHourUtc] = useState<number>(10);
-  const [scheduleMinuteUtc, setScheduleMinuteUtc] = useState<number>(0);
   const [savingSchedule, setSavingSchedule] = useState(false);
 
   const fetchAll = async (opts?: { silent?: boolean }) => {
@@ -86,11 +84,7 @@ export default function AdminNewsletterPage() {
   useEffect(() => {
     if (!Object.keys(settings || {}).length) return;
     const dow = Number(String(settings?.newsletter_schedule_dow ?? '1'));
-    const hour = Number(String(settings?.newsletter_schedule_hour_utc ?? '10'));
-    const minute = Number(String(settings?.newsletter_schedule_minute_utc ?? '0'));
     if (Number.isFinite(dow)) setScheduleDow(Math.max(0, Math.min(6, Math.trunc(dow))));
-    if (Number.isFinite(hour)) setScheduleHourUtc(Math.max(0, Math.min(23, Math.trunc(hour))));
-    if (Number.isFinite(minute)) setScheduleMinuteUtc(Math.max(0, Math.min(59, Math.trunc(minute))));
   }, [settings]);
 
   useEffect(() => {
@@ -157,8 +151,6 @@ export default function AdminNewsletterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           newsletter_schedule_dow: String(scheduleDow),
-          newsletter_schedule_hour_utc: String(scheduleHourUtc),
-          newsletter_schedule_minute_utc: String(scheduleMinuteUtc),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -167,8 +159,6 @@ export default function AdminNewsletterPage() {
       setSettings((prev) => ({
         ...prev,
         newsletter_schedule_dow: String(scheduleDow),
-        newsletter_schedule_hour_utc: String(scheduleHourUtc),
-        newsletter_schedule_minute_utc: String(scheduleMinuteUtc),
       }));
 
       toast.success(lang === 'es' ? 'Horario guardado' : 'Schedule saved');
@@ -248,8 +238,8 @@ export default function AdminNewsletterPage() {
             <div className="text-gray-900 dark:text-white font-semibold mb-2">{lang === 'es' ? 'Horario semanal' : 'Weekly schedule'}</div>
             <div className="text-xs text-gray-500">
               {lang === 'es'
-                ? 'Se usa hora UTC. El cron corre cada 5 minutos y enviará cuando llegue el slot programado.'
-                : 'Uses UTC time. Cron runs every 5 minutes and will send when the scheduled slot is reached.'}
+                ? 'Solo eliges el día. El envío automático se hará ese día (hora interna fija).'
+                : 'Pick only the day. Auto-send will run that day (fixed internal time).'}
             </div>
 
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -267,39 +257,6 @@ export default function AdminNewsletterPage() {
                   <option value={5}>{lang === 'es' ? 'Viernes' : 'Friday'}</option>
                   <option value={6}>{lang === 'es' ? 'Sábado' : 'Saturday'}</option>
                   <option value={0}>{lang === 'es' ? 'Domingo' : 'Sunday'}</option>
-                </select>
-              </div>
-
-              <div>
-                <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Hora (UTC)' : 'Hour (UTC)'}</div>
-                <select
-                  value={scheduleHourUtc}
-                  onChange={(e) => setScheduleHourUtc(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
-                >
-                  {Array.from({ length: 24 }).map((_, h) => (
-                    <option key={h} value={h}>
-                      {String(h).padStart(2, '0')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Minuto (UTC)' : 'Minute (UTC)'}</div>
-                <select
-                  value={scheduleMinuteUtc}
-                  onChange={(e) => setScheduleMinuteUtc(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
-                >
-                  {Array.from({ length: 12 }).map((_, i) => {
-                    const m = i * 5;
-                    return (
-                      <option key={m} value={m}>
-                        {String(m).padStart(2, '0')}
-                      </option>
-                    );
-                  })}
                 </select>
               </div>
             </div>
