@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/services-status",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/newsletter-weekly",
+      "schedule": "0 10 * * 1"
     }
   ]
 }

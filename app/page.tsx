@@ -335,11 +335,6 @@ export default function HomePage() {
                 <FaPlay />
                 <span>{t(lang, 'home.cta.startPlaying')}</span>
               </Button>
-              <Link href="/auth/register">
-                <Button variant="secondary" size="lg">
-                  {t(lang, 'home.cta.createAccount')}
-                </Button>
-              </Link>
             </div>
           </Card>
         </section>

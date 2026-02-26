@@ -2,12 +2,43 @@
 
 import Link from 'next/link';
 import { FaDiscord, FaTiktok, FaYoutube, FaHeart, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaStripe } from 'react-icons/fa';
+import { useState } from 'react';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { Input, Button } from '@/components/ui';
 
 const Footer = () => {
   const lang = useClientLang();
   const currentYear = new Date().getFullYear();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterDone, setNewsletterDone] = useState(false);
+  const [newsletterError, setNewsletterError] = useState('');
+
+  const subscribeNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewsletterError('');
+    setNewsletterDone(false);
+    setNewsletterLoading(true);
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail, source: 'footer' }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String((data as any)?.error || t(lang, 'footer.newsletter.error')));
+      }
+
+      setNewsletterDone(true);
+      setNewsletterEmail('');
+    } catch (err: any) {
+      setNewsletterError(err?.message || t(lang, 'footer.newsletter.error'));
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   return (
     <footer className="bg-white/80 dark:bg-gray-950/70 backdrop-blur-md border-t border-minecraft-diamond/20 mt-20">
@@ -104,6 +135,29 @@ const Footer = () => {
                 <FaYoutube size={24} />
               </a>
             </div>
+
+            <div className="mt-6">
+              <div className="text-gray-900 dark:text-white font-semibold text-sm mb-2">{t(lang, 'footer.newsletter.title')}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">{t(lang, 'footer.newsletter.subtitle')}</div>
+              <form onSubmit={subscribeNewsletter} className="space-y-2">
+                <Input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder={t(lang, 'footer.newsletter.placeholder')}
+                  disabled={newsletterLoading}
+                />
+                <Button type="submit" variant="secondary" className="w-full" disabled={newsletterLoading || !newsletterEmail.trim()}>
+                  {newsletterLoading ? t(lang, 'footer.newsletter.loading') : t(lang, 'footer.newsletter.submit')}
+                </Button>
+              </form>
+              {newsletterDone ? (
+                <div className="mt-2 text-xs text-green-600 dark:text-green-400">{t(lang, 'footer.newsletter.success')}</div>
+              ) : null}
+              {newsletterError ? (
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400">{newsletterError}</div>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -113,19 +167,19 @@ const Footer = () => {
               {t(lang, 'footer.payments')}
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4 text-gray-500 dark:text-gray-400">
-              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Stripe" title="Stripe">
+                <span className="inline-flex items-center text-[#635BFF]" aria-label="Stripe" title="Stripe">
                 <FaStripe size={28} />
               </span>
-              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="PayPal" title="PayPal">
+                <span className="inline-flex items-center text-[#0070E0]" aria-label="PayPal" title="PayPal">
                 <FaCcPaypal size={28} />
               </span>
-              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Visa" title="Visa">
+                <span className="inline-flex items-center text-[#1A1F71]" aria-label="Visa" title="Visa">
                 <FaCcVisa size={28} />
               </span>
-              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="Mastercard" title="Mastercard">
+                <span className="inline-flex items-center text-[#EB001B]" aria-label="Mastercard" title="Mastercard">
                 <FaCcMastercard size={28} />
               </span>
-              <span className="inline-flex items-center hover:text-gray-900 dark:hover:text-white transition-colors" aria-label="American Express" title="American Express">
+                <span className="inline-flex items-center text-[#2E77BB]" aria-label="American Express" title="American Express">
                 <FaCcAmex size={28} />
               </span>
             </div>

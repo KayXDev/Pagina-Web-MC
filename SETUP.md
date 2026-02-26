@@ -129,6 +129,18 @@ Para que funcione **"¿Has olvidado tu contraseña?"** en producción, configura
 
 Si no está configurado, el sistema seguirá respondiendo OK (por seguridad), pero no podrá enviar el email.
 
+### 4.4.2 Newsletter (semanal)
+
+La newsletter se envía automáticamente por cron desde:
+
+- `/api/cron/newsletter-weekly`
+
+Notas:
+
+- Requiere SMTP (sección anterior).
+- Asegúrate de tener `SITE_URL` configurado en producción para que el enlace de desuscripción funcione.
+- (Opcional) Puedes proteger endpoints de cron con `CRON_SECRET`.
+
 ### 4.5 Worker de entregas (opcional)
 
 Si usas entregas automáticas in-game:
