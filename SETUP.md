@@ -129,6 +129,28 @@ Para que funcione **"¿Has olvidado tu contraseña?"** en producción, configura
 
 Si no está configurado, el sistema seguirá respondiendo OK (por seguridad), pero no podrá enviar el email.
 
+#### Configurar SMTP en Vercel (paso a paso)
+
+1) Ve a tu proyecto en Vercel → **Settings** → **Environment Variables**.
+2) Añade (mínimo): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SITE_URL`, `NEXTAUTH_URL`.
+3) Marca al menos **Production** (y si quieres también Preview).
+4) Redeploy (o “Redeploy” el último deployment) para que coja las variables.
+
+Notas:
+
+- `SMTP_PORT=587` suele ser lo normal (STARTTLS). `SMTP_PORT=465` suele ser SSL directo.
+- En Vercel, pon `SMTP_FROM` **sin comillas**, por ejemplo: `Mi Servidor <no-reply@tudominio.com>`.
+- `SITE_URL` y `NEXTAUTH_URL` deberían ser tu dominio público (por ejemplo `https://tudominio.com`) y sin `/` al final.
+
+#### Ejemplos por proveedor (rápidos)
+
+- **Brevo (Sendinblue)**: `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, `SMTP_USER=tu-email`, `SMTP_PASS=tu-smtp-key`.
+- **SendGrid**: `SMTP_HOST=smtp.sendgrid.net`, `SMTP_PORT=587`, `SMTP_USER=apikey`, `SMTP_PASS=<TU_API_KEY>`.
+- **Mailgun**: `SMTP_HOST=smtp.mailgun.org`, `SMTP_PORT=587`, `SMTP_USER=postmaster@tu-dominio`, `SMTP_PASS=<password>`.
+- **Gmail/Google Workspace**: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587` (o `465`), `SMTP_USER=tu-email`, `SMTP_PASS=<app password>`.
+
+Entregabilidad (opcional pero recomendado): configura SPF/DKIM en tu dominio si el proveedor te lo ofrece.
+
 ### 4.4.2 Newsletter (semanal)
 
 La newsletter se envía automáticamente por cron desde:
@@ -140,6 +162,16 @@ Notas:
 - Requiere SMTP (sección anterior).
 - Asegúrate de tener `SITE_URL` configurado en producción para que el enlace de desuscripción funcione.
 - (Opcional) Puedes proteger endpoints de cron con `CRON_SECRET`.
+
+#### Probar el cron manualmente
+
+Recomendado: define `CRON_SECRET` y prueba así:
+
+```bash
+curl -i "https://TU_DOMINIO/api/cron/newsletter-weekly?secret=TU_CRON_SECRET"
+```
+
+Si NO defines `CRON_SECRET`, el endpoint solo acepta requests con `User-Agent: vercel-cron/1.0`.
 
 ### 4.5 Worker de entregas (opcional)
 
