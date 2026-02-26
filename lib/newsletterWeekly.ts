@@ -243,7 +243,7 @@ function buildNewsletterHtml(params: {
                             src="${resolvedBannerUrl}"
                             width="40"
                             height="40"
-                            style="display:block; width:40px; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,0.25); background:#1a1a1a;"
+                            style="display:block; width:40px; height:40px; border-radius:10px;"
                             alt="${safeSiteName} Icon"
                           />
                         </td>
