@@ -89,6 +89,9 @@ export async function PATCH(request: Request) {
       'services_status_interval_minutes',
       'services_status_auto_enabled',
       'newsletter_auto_enabled',
+      'newsletter_subject_template',
+      'newsletter_html_template',
+      'newsletter_text_template',
       'staff_applications_open',
     ]);
 
