@@ -5,6 +5,7 @@ import { sendMail } from '@/lib/email';
 import { createUnsubscribeToken } from '@/lib/newsletterTokens';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { normalizeLang, type Lang } from '@/lib/i18n';
 
 function safe(text: string, maxLen: number) {
   const t = String(text || '');
@@ -77,10 +78,14 @@ function buildPostsText(latestPosts: any[], baseUrl: string) {
 }
 
 function buildPostsHtml(latestPosts: any[], baseUrl: string) {
+  return buildPostsHtmlForLang('es', latestPosts, baseUrl);
+}
+
+function buildPostsHtmlForLang(lang: Lang, latestPosts: any[], baseUrl: string) {
   if (!Array.isArray(latestPosts) || latestPosts.length === 0) {
     return `
       <ul style="color:#cccccc; font-size:14px; line-height:22px; margin: 0; padding-left: 18px;">
-        <li>✔ Esta semana no hay noticias nuevas</li>
+        <li>✔ ${lang === 'en' ? 'No news this week' : 'Esta semana no hay noticias nuevas'}</li>
       </ul>
     `;
   }
@@ -107,7 +112,60 @@ function buildPostsHtml(latestPosts: any[], baseUrl: string) {
   `;
 }
 
+function copyForNewsletter(lang: Lang) {
+  if (lang === 'en') {
+    return {
+      headerSubtitle: 'The best Minecraft experience starts here',
+      newsTitle: '🚀 Server Updates!',
+      helloLine: 'Hello',
+      newsIntroA: 'We have new updates and improvements in',
+      newsIntroB: "Here's what's new:",
+      eventTitle: '🏆 Special Event',
+      eventBody: 'Join our featured event and win exclusive rewards, temporary ranks, and surprise prizes.',
+      eventCta: 'Join now',
+      shopTitle: '🛒 Visit our Store',
+      shopBody: 'Support the server with ranks, kits, and exclusive perks. Your support helps us grow ❤️',
+      shopCta: 'Go to the Store',
+      ipLabel: '🎮 SERVER IP:',
+      socials: 'Follow us on our socials',
+      unsubscribeLead: "If you don't want to receive more emails,",
+      unsubscribeCta: 'click here',
+      rights: 'All rights reserved',
+      subject: (siteName: string) => `${siteName} • Weekly newsletter`,
+      textIntro: (siteName: string) => `Here are the latest updates from ${siteName}.`,
+      textNoNews: 'No news this week.',
+      textUnsub: 'Unsubscribe:',
+      textSent: 'Sent:',
+    };
+  }
+
+  return {
+    headerSubtitle: 'La mejor experiencia Minecraft empieza aquí',
+    newsTitle: '🚀 ¡Novedades del Servidor!',
+    helloLine: 'Hola',
+    newsIntroA: 'Tenemos nuevas actualizaciones y mejoras en',
+    newsIntroB: 'Aquí te contamos lo nuevo:',
+    eventTitle: '🏆 Evento Especial del Mes',
+    eventBody: 'Participa en nuestro evento destacado y gana recompensas exclusivas, rangos temporales y premios sorpresa.',
+    eventCta: 'Participar Ahora',
+    shopTitle: '🛒 Visita Nuestra Tienda',
+    shopBody: 'Apoya el servidor adquiriendo rangos, kits y beneficios exclusivos. Tu apoyo nos ayuda a seguir creciendo ❤️',
+    shopCta: 'Ir a la Tienda',
+    ipLabel: '🎮 IP DEL SERVIDOR:',
+    socials: 'Síguenos en nuestras redes',
+    unsubscribeLead: 'Si no deseas recibir más correos,',
+    unsubscribeCta: 'haz clic aquí',
+    rights: 'Todos los derechos reservados',
+    subject: (siteName: string) => `${siteName} • Newsletter semanal`,
+    textIntro: (siteName: string) => `Aquí tienes las novedades de ${siteName}.`,
+    textNoNews: 'Esta semana no hay noticias nuevas.',
+    textUnsub: 'Darte de baja:',
+    textSent: 'Enviado:',
+  };
+}
+
 function buildNewsletterHtml(params: {
+  lang: Lang;
   siteName: string;
   email: string;
   nowIso: string;
@@ -123,6 +181,7 @@ function buildNewsletterHtml(params: {
   unsubscribeUrl: string;
 }) {
   const {
+    lang,
     siteName,
     email,
     nowIso,
@@ -141,6 +200,7 @@ function buildNewsletterHtml(params: {
   const safeSiteName = escapeHtml(siteName);
   const safeEmail = escapeHtml(email);
   const safeServerAddress = escapeHtmlAndBreakAutolink(serverAddress);
+  const c = copyForNewsletter(lang);
 
   const resolvedEventUrl = eventUrl || shopUrl;
   const resolvedShopUrl = shopUrl || resolvedEventUrl;
@@ -171,7 +231,7 @@ function buildNewsletterHtml(params: {
           <tr>
             <td align="center" bgcolor="#6a00ff" style="padding:30px;">
               <h1 style="color:#ffffff; margin:0; font-size:28px; letter-spacing:1px;">🔥 ${safeSiteName}</h1>
-              <p style="color:#e0e0e0; margin-top:10px; font-size:14px;">La mejor experiencia Minecraft empieza aquí</p>
+              <p style="color:#e0e0e0; margin-top:10px; font-size:14px;">${escapeHtml(c.headerSubtitle)}</p>
               <p style="color:#e0e0e0; margin:10px 0 0 0; font-size:12px; opacity:0.9;">${escapeHtml(nowIso)}</p>
             </td>
           </tr>
@@ -185,9 +245,9 @@ function buildNewsletterHtml(params: {
                     <div style="padding: 22px; background-color:#0f0f0f;">
                       <img
                         src="${resolvedBannerUrl}"
-                        width="120"
-                        height="120"
-                        style="display:block; width:120px; height:120px; border-radius:18px; border:1px solid #2a2a2a; background:#1a1a1a;"
+                        width="64"
+                        height="64"
+                        style="display:block; width:64px; height:64px; border-radius:14px; border:1px solid #2a2a2a; background:#1a1a1a;"
                         alt="${safeSiteName} Icon"
                       />
                     </div>
@@ -200,12 +260,12 @@ function buildNewsletterHtml(params: {
           <!-- MENSAJE PRINCIPAL -->
           <tr>
             <td style="padding:30px; color:#ffffff;">
-              <h2 style="color:#6a00ff; margin-top:0;">🚀 ¡Novedades del Servidor!</h2>
+              <h2 style="color:#6a00ff; margin-top:0;">${escapeHtml(c.newsTitle)}</h2>
 
               <p style="font-size:14px; line-height:22px; color:#cccccc;">
-                Hola <strong>${safeEmail}</strong> 👋<br />
-                Tenemos nuevas actualizaciones y mejoras en <strong>${safeSiteName}</strong>.
-                Aquí te contamos lo nuevo:
+                ${escapeHtml(c.helloLine)} <strong>${safeEmail}</strong> 👋<br />
+                ${escapeHtml(c.newsIntroA)} <strong>${safeSiteName}</strong>.<br />
+                ${escapeHtml(c.newsIntroB)}
               </p>
 
               ${newsListHtml}
@@ -215,16 +275,15 @@ function buildNewsletterHtml(params: {
           <!-- BLOQUE DESTACADO -->
           <tr>
             <td bgcolor="#121212" style="padding:25px;">
-              <h3 style="color:#ffffff; margin-top:0;">🏆 Evento Especial del Mes</h3>
+              <h3 style="color:#ffffff; margin-top:0;">${escapeHtml(c.eventTitle)}</h3>
 
               <p style="color:#bbbbbb; font-size:14px; line-height:22px;">
-                Participa en nuestro gran evento mensual y gana recompensas exclusivas,
-                rangos temporales y premios sorpresa.
+                ${escapeHtml(c.eventBody)}
               </p>
 
               <div style="text-align:center; margin-top:20px;">
                 <a href="${resolvedEventUrl || '#'}" style="background-color:#6a00ff; color:#ffffff; padding:12px 25px; text-decoration:none; border-radius:4px; font-weight:bold;">
-                  Participar Ahora
+                  ${escapeHtml(c.eventCta)}
                 </a>
               </div>
             </td>
@@ -233,16 +292,15 @@ function buildNewsletterHtml(params: {
           <!-- TIENDA -->
           <tr>
             <td style="padding:30px;">
-              <h2 style="color:#6a00ff;">🛒 Visita Nuestra Tienda</h2>
+              <h2 style="color:#6a00ff;">${escapeHtml(c.shopTitle)}</h2>
 
               <p style="color:#cccccc; font-size:14px; line-height:22px;">
-                Apoya el servidor adquiriendo rangos, kits y beneficios exclusivos.
-                Tu apoyo nos ayuda a seguir creciendo ❤️
+                ${escapeHtml(c.shopBody)}
               </p>
 
               <div style="text-align:center; margin-top:20px;">
                 <a href="${resolvedShopUrl || '#'}" style="background-color:#ffffff; color:#6a00ff; padding:12px 25px; text-decoration:none; border-radius:4px; font-weight:bold;">
-                  Ir a la Tienda
+                  ${escapeHtml(c.shopCta)}
                 </a>
               </div>
             </td>
@@ -251,7 +309,7 @@ function buildNewsletterHtml(params: {
           <!-- IP DEL SERVIDOR -->
           <tr>
             <td bgcolor="#6a00ff" style="padding:20px; text-align:center;">
-              <p style="color:#ffffff; font-size:16px; margin:0;">🎮 IP DEL SERVIDOR:</p>
+              <p style="color:#ffffff; font-size:16px; margin:0;">${escapeHtml(c.ipLabel)}</p>
               <p style="color:#ffffff; font-size:20px; font-weight:bold; margin:5px 0 0 0; text-decoration:none;">${safeServerAddress}</p>
             </td>
           </tr>
@@ -260,7 +318,7 @@ function buildNewsletterHtml(params: {
           <tr>
             <td style="padding:25px; text-align:center;">
 
-              <p style="color:#999999; font-size:13px;">Síguenos en nuestras redes</p>
+              <p style="color:#999999; font-size:13px;">${escapeHtml(c.socials)}</p>
 
               <a href="${resolvedDiscordUrl || '#'}" style="color:#6a00ff; text-decoration:none; margin:0 10px;">Discord</a>
               <a href="${resolvedYoutubeUrl || '#'}" style="color:#6a00ff; text-decoration:none; margin:0 10px;">YouTube</a>
@@ -272,11 +330,11 @@ function buildNewsletterHtml(params: {
           <!-- FOOTER -->
           <tr>
             <td bgcolor="#111111" style="padding:20px; text-align:center;">
-              <p style="color:#666666; font-size:12px; margin:0;">© 2026 ${safeSiteName} - Todos los derechos reservados</p>
+              <p style="color:#666666; font-size:12px; margin:0;">© 2026 ${safeSiteName} - ${escapeHtml(c.rights)}</p>
 
               <p style="color:#666666; font-size:12px; margin-top:8px;">
-                Si no deseas recibir más correos,
-                <a href="${unsubscribeUrl || '#'}" style="color:#6a00ff; text-decoration:none;">haz clic aquí</a>.
+                ${escapeHtml(c.unsubscribeLead)}
+                <a href="${unsubscribeUrl || '#'}" style="color:#6a00ff; text-decoration:none;">${escapeHtml(c.unsubscribeCta)}</a>.
               </p>
             </td>
           </tr>
@@ -309,7 +367,7 @@ export async function sendWeeklyNewsletter() {
   const youtubeUrl = String(process.env.NEXT_PUBLIC_YOUTUBE_URL || '').trim();
   const third = pickThirdSocial();
 
-  const subscribers = await NewsletterSubscriber.find({ unsubscribedAt: null }).select('email').lean();
+  const subscribers = await NewsletterSubscriber.find({ unsubscribedAt: null }).select('email lang').lean();
 
   const latestPosts = await BlogPost.find({ isPublished: true })
     .sort({ publishedAt: -1, createdAt: -1 })
@@ -320,7 +378,6 @@ export async function sendWeeklyNewsletter() {
   const nowIso = new Date().toISOString();
 
   const postsText = buildPostsText(latestPosts as any[], baseUrl);
-  const newsListHtml = buildPostsHtml(latestPosts as any[], baseUrl);
 
   // Send sequentially to avoid SMTP/provider throttling
   let sent = 0;
@@ -328,25 +385,30 @@ export async function sendWeeklyNewsletter() {
     const to = String((sub as any).email || '').trim();
     if (!to) continue;
 
+    const subLang = normalizeLang(String((sub as any).lang || ''));
+    const c = copyForNewsletter(subLang);
+    const newsListHtml = buildPostsHtmlForLang(subLang, latestPosts as any[], baseUrl);
+
     const token = createUnsubscribeToken(to);
     const unsubscribeUrl = baseUrl ? `${baseUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}` : '';
 
-    const subject = `${siteName} • Newsletter semanal`;
+    const subject = c.subject(siteName);
     const text = [
-      `Hola ${to}!`,
+      subLang === 'en' ? `Hello ${to}!` : `Hola ${to}!`,
       '',
-      `Aquí tienes las novedades de ${siteName}.`,
+      c.textIntro(siteName),
       '',
-      postsText || (latestPosts.length ? '' : 'Esta semana no hay noticias nuevas.'),
+      postsText || (latestPosts.length ? '' : c.textNoNews),
       '',
-      unsubscribeUrl ? `Darte de baja: ${unsubscribeUrl}` : '',
+      unsubscribeUrl ? `${c.textUnsub} ${unsubscribeUrl}` : '',
       '',
-      `Enviado: ${nowIso}`,
+      `${c.textSent} ${nowIso}`,
     ]
       .filter(Boolean)
       .join('\n');
 
     const html = buildNewsletterHtml({
+      lang: subLang,
       siteName,
       email: to,
       nowIso,

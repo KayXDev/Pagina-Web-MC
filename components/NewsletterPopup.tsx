@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, Button, Input } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
-import { FaEnvelope, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaTimes, FaCheckCircle, FaBolt, FaGift } from 'react-icons/fa';
 
 const SEEN_KEY = 'newsletter_popup_seen_v1';
 const SUBSCRIBED_KEY = 'newsletter_popup_subscribed_v1';
@@ -60,7 +60,7 @@ export default function NewsletterPopup() {
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed, source: 'popup' }),
+        body: JSON.stringify({ email: trimmed, source: 'popup', lang }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -94,7 +94,7 @@ export default function NewsletterPopup() {
 
       <Card
         hover={false}
-        className="relative w-full max-w-lg p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/70"
+        className="relative w-full max-w-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/70"
       >
         <div className="px-5 py-4 border-b border-gray-200/80 bg-gradient-to-r from-minecraft-grass/15 to-minecraft-diamond/10 dark:border-white/10 dark:from-minecraft-grass/10 dark:to-minecraft-diamond/10">
           <div className="flex items-start justify-between gap-3">
@@ -125,7 +125,43 @@ export default function NewsletterPopup() {
         </div>
 
         <div className="px-5 py-5">
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+          <div className="text-sm text-gray-700 dark:text-gray-200">
+            {lang === 'es'
+              ? 'Recibe un resumen semanal con novedades, eventos y cambios importantes del servidor.'
+              : 'Get a weekly summary with news, events, and important server updates.'}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+              <div className="flex items-center gap-2 font-bold">
+                <FaBolt className="text-minecraft-diamond" />
+                <span>{lang === 'es' ? 'Novedades' : 'Updates'}</span>
+              </div>
+              <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {lang === 'es' ? 'Lo último del servidor y la web.' : 'Latest server & site news.'}
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+              <div className="flex items-center gap-2 font-bold">
+                <FaGift className="text-minecraft-grass" />
+                <span>{lang === 'es' ? 'Eventos' : 'Events'}</span>
+              </div>
+              <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {lang === 'es' ? 'Fechas, premios y avisos.' : 'Dates, rewards, and notices.'}
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+              <div className="flex items-center gap-2 font-bold">
+                <FaCheckCircle className="text-minecraft-grass" />
+                <span>{lang === 'es' ? 'Sin spam' : 'No spam'}</span>
+              </div>
+              <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {lang === 'es' ? 'Baja con 1 clic.' : 'Unsubscribe with 1 click.'}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
             <Input
               type="email"
               value={email}
@@ -140,7 +176,9 @@ export default function NewsletterPopup() {
 
           <div className="mt-3 flex items-center justify-between gap-3">
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {lang === 'es' ? 'Sin spam. Puedes darte de baja cuando quieras.' : 'No spam. Unsubscribe anytime.'}
+              {lang === 'es'
+                ? 'Te enviaremos como máximo 1 email por semana. Puedes darte de baja cuando quieras.'
+                : 'We will send at most 1 email per week. Unsubscribe anytime.'}
             </div>
             <Button type="button" variant="secondary" size="sm" onClick={close} disabled={loading}>
               {lang === 'es' ? 'Ahora no' : 'Not now'}

@@ -36,7 +36,7 @@ const Footer = () => {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: newsletterEmail, source: 'footer' }),
+        body: JSON.stringify({ email: newsletterEmail, source: 'footer', lang }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {

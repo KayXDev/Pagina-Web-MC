@@ -3,6 +3,7 @@ import mongoose, { Schema, models } from 'mongoose';
 export interface INewsletterSubscriber {
   _id: string;
   email: string;
+  lang?: 'es' | 'en';
   subscribedAt: Date;
   unsubscribedAt?: Date | null;
   source?: string;
@@ -23,6 +24,11 @@ const NewsletterSubscriberSchema = new Schema<INewsletterSubscriber>(
       type: Date,
       required: true,
       default: () => new Date(),
+    },
+    lang: {
+      type: String,
+      enum: ['es', 'en'],
+      default: 'es',
     },
     unsubscribedAt: {
       type: Date,
