@@ -20,6 +20,35 @@ cat .env | grep -E "MONGODB_URI|NEXTAUTH"
 npm run dev
 ```
 
+## Problema: "La página arranca pero no carga nada" (pantalla en blanco)
+
+### Síntomas típicos
+
+- En la terminal ves `GET / 200`, pero en el navegador no aparece el contenido.
+- En `Network` (F12) aparecen 404 para archivos como:
+   - `/_next/static/chunks/main-app.js`
+   - `/_next/static/chunks/app-pages-internals.js`
+   - `/_next/static/chunks/app/error.js`
+
+### Causa más común
+
+La caché/build local de Next (carpeta `.next`) quedó corrupta o desincronizada, y el servidor ya no sirve algunos chunks necesarios para hidratar el cliente.
+
+### Solución
+
+```bash
+rm -rf .next
+npm run dev
+```
+
+Si sigue pasando, prueba también:
+
+```bash
+rm -rf .next node_modules
+npm install
+npm run dev
+```
+
 ### Solución Paso a Paso
 
 #### 1. Verifica MongoDB
