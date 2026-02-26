@@ -238,8 +238,8 @@ export default function AdminNewsletterPage() {
             <div className="text-gray-900 dark:text-white font-semibold mb-2">{lang === 'es' ? 'Horario semanal' : 'Weekly schedule'}</div>
             <div className="text-xs text-gray-500">
               {lang === 'es'
-                ? 'Solo eliges el día. El envío automático se hará ese día (hora interna fija).'
-                : 'Pick only the day. Auto-send will run that day (fixed internal time).'}
+                ? 'Solo eliges el día. En Vercel Hobby el cron corre 1 vez al día y solo enviará en el día seleccionado.'
+                : 'Pick only the day. On Vercel Hobby cron runs once per day and will only send on the selected day.'}
             </div>
 
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">

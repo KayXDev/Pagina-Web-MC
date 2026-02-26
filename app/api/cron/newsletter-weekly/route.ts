@@ -137,6 +137,17 @@ export async function GET(request: Request) {
     const minuteUtc = FIXED_SEND_MINUTE_UTC;
 
     const now = new Date();
+
+    // Vercel Hobby cron can run only once per day. We call this endpoint daily and only send
+    // on the configured weekday.
+    if (now.getUTCDay() !== weekday) {
+      return NextResponse.json({
+        success: true,
+        skipped: 'wrong-day',
+        schedule: { weekday },
+      });
+    }
+
     const scheduledSlot = scheduledUtcForCurrentWeek(now, weekday, hourUtc, minuteUtc);
     const scheduledSlotIso = scheduledSlot.toISOString();
 
