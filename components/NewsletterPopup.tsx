@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, Button, Input } from '@/components/ui';
-import { t } from '@/lib/i18n';
+import { t, type Lang } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { FaEnvelope, FaTimes, FaCheckCircle, FaBolt, FaGift } from 'react-icons/fa';
 
@@ -11,6 +11,8 @@ const SUBSCRIBED_KEY = 'newsletter_popup_subscribed_v1';
 
 export default function NewsletterPopup() {
   const lang = useClientLang();
+
+  const [newsletterLang, setNewsletterLang] = useState<Lang>('es');
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -27,6 +29,11 @@ export default function NewsletterPopup() {
 
     const tId = window.setTimeout(() => setOpen(true), 1200);
     return () => window.clearTimeout(tId);
+  }, []);
+
+  useEffect(() => {
+    // Default to Spanish as requested (site default is ES), but let the user override.
+    setNewsletterLang('es');
   }, []);
 
   useEffect(() => {
@@ -60,7 +67,7 @@ export default function NewsletterPopup() {
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed, source: 'popup', lang }),
+        body: JSON.stringify({ email: trimmed, source: 'popup', lang: newsletterLang }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -129,6 +136,21 @@ export default function NewsletterPopup() {
             {lang === 'es'
               ? 'Recibe un resumen semanal con novedades, eventos y cambios importantes del servidor.'
               : 'Get a weekly summary with news, events, and important server updates.'}
+          </div>
+
+          <div className="mt-4">
+            <div className="text-xs text-gray-500 mb-2">
+              {lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
+            </div>
+            <select
+              value={newsletterLang}
+              onChange={(e) => setNewsletterLang((e.target.value as Lang) === 'en' ? 'en' : 'es')}
+              className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+              aria-label={lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
           </div>
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">

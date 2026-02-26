@@ -47,6 +47,11 @@ export default function AdminNewsletterPage() {
   const autoEnabled = String(settings?.newsletter_auto_enabled ?? 'true').trim() !== 'false';
   const lastSent = String(settings?.newsletter_last_sent_at || '').trim();
 
+  const [scheduleDow, setScheduleDow] = useState<number>(1);
+  const [scheduleHourUtc, setScheduleHourUtc] = useState<number>(10);
+  const [scheduleMinuteUtc, setScheduleMinuteUtc] = useState<number>(0);
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
   const fetchAll = async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setRefreshing(true);
     try {
@@ -77,6 +82,16 @@ export default function AdminNewsletterPage() {
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!Object.keys(settings || {}).length) return;
+    const dow = Number(String(settings?.newsletter_schedule_dow ?? '1'));
+    const hour = Number(String(settings?.newsletter_schedule_hour_utc ?? '10'));
+    const minute = Number(String(settings?.newsletter_schedule_minute_utc ?? '0'));
+    if (Number.isFinite(dow)) setScheduleDow(Math.max(0, Math.min(6, Math.trunc(dow))));
+    if (Number.isFinite(hour)) setScheduleHourUtc(Math.max(0, Math.min(23, Math.trunc(hour))));
+    if (Number.isFinite(minute)) setScheduleMinuteUtc(Math.max(0, Math.min(59, Math.trunc(minute))));
+  }, [settings]);
 
   useEffect(() => {
     if (loading) return;
@@ -131,6 +146,36 @@ export default function AdminNewsletterPage() {
       toast.error(e?.message || (lang === 'es' ? 'Error enviando newsletter' : 'Error sending newsletter'));
     } finally {
       setSending(false);
+    }
+  };
+
+  const saveSchedule = async () => {
+    setSavingSchedule(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newsletter_schedule_dow: String(scheduleDow),
+          newsletter_schedule_hour_utc: String(scheduleHourUtc),
+          newsletter_schedule_minute_utc: String(scheduleMinuteUtc),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error guardando horario' : 'Error saving schedule')));
+
+      setSettings((prev) => ({
+        ...prev,
+        newsletter_schedule_dow: String(scheduleDow),
+        newsletter_schedule_hour_utc: String(scheduleHourUtc),
+        newsletter_schedule_minute_utc: String(scheduleMinuteUtc),
+      }));
+
+      toast.success(lang === 'es' ? 'Horario guardado' : 'Schedule saved');
+    } catch (e: any) {
+      toast.error(e?.message || (lang === 'es' ? 'Error guardando horario' : 'Error saving schedule'));
+    } finally {
+      setSavingSchedule(false);
     }
   };
 
@@ -193,6 +238,77 @@ export default function AdminNewsletterPage() {
                 ? 'Gestiona suscriptores, activa/desactiva el envío semanal y envía manualmente.'
                 : 'Manage subscribers, toggle weekly auto-send, and send manually.'}
             </p>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="flex-1">
+            <div className="text-gray-900 dark:text-white font-semibold mb-2">{lang === 'es' ? 'Horario semanal' : 'Weekly schedule'}</div>
+            <div className="text-xs text-gray-500">
+              {lang === 'es'
+                ? 'Se usa hora UTC. El cron corre cada 5 minutos y enviará cuando llegue el slot programado.'
+                : 'Uses UTC time. Cron runs every 5 minutes and will send when the scheduled slot is reached.'}
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Día de la semana' : 'Weekday'}</div>
+                <select
+                  value={scheduleDow}
+                  onChange={(e) => setScheduleDow(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+                >
+                  <option value={1}>{lang === 'es' ? 'Lunes' : 'Monday'}</option>
+                  <option value={2}>{lang === 'es' ? 'Martes' : 'Tuesday'}</option>
+                  <option value={3}>{lang === 'es' ? 'Miércoles' : 'Wednesday'}</option>
+                  <option value={4}>{lang === 'es' ? 'Jueves' : 'Thursday'}</option>
+                  <option value={5}>{lang === 'es' ? 'Viernes' : 'Friday'}</option>
+                  <option value={6}>{lang === 'es' ? 'Sábado' : 'Saturday'}</option>
+                  <option value={0}>{lang === 'es' ? 'Domingo' : 'Sunday'}</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Hora (UTC)' : 'Hour (UTC)'}</div>
+                <select
+                  value={scheduleHourUtc}
+                  onChange={(e) => setScheduleHourUtc(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+                >
+                  {Array.from({ length: 24 }).map((_, h) => (
+                    <option key={h} value={h}>
+                      {String(h).padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-500 mb-2">{lang === 'es' ? 'Minuto (UTC)' : 'Minute (UTC)'}</div>
+                <select
+                  value={scheduleMinuteUtc}
+                  onChange={(e) => setScheduleMinuteUtc(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+                >
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const m = i * 5;
+                    return (
+                      <option key={m} value={m}>
+                        {String(m).padStart(2, '0')}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" onClick={saveSchedule} disabled={savingSchedule}>
+              {savingSchedule ? (lang === 'es' ? 'Guardando…' : 'Saving…') : (lang === 'es' ? 'Guardar horario' : 'Save schedule')}
+            </Button>
           </div>
         </div>
       </Card>

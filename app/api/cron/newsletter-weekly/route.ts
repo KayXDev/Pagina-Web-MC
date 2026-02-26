@@ -9,6 +9,31 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const runtime = 'nodejs';
 
+function parseIntSetting(value: unknown, fallback: number) {
+  const n = Number(String(value ?? '').trim());
+  return Number.isFinite(n) ? Math.trunc(n) : fallback;
+}
+
+function clampInt(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, Math.trunc(n)));
+}
+
+// Returns the scheduled DateTime (UTC) for the current week (week starts Monday) at the given weekday/time.
+// weekday: 0(Sun) .. 6(Sat)
+function scheduledUtcForCurrentWeek(now: Date, weekday: number, hourUtc: number, minuteUtc: number) {
+  const day = now.getUTCDay();
+  const daysSinceMonday = (day + 6) % 7;
+  const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  startOfWeek.setUTCDate(startOfWeek.getUTCDate() - daysSinceMonday);
+
+  const weekdayOffsetFromMonday = (weekday + 6) % 7;
+  const scheduled = new Date(startOfWeek);
+  scheduled.setUTCDate(scheduled.getUTCDate() + weekdayOffsetFromMonday);
+  scheduled.setUTCHours(hourUtc, minuteUtc, 0, 0);
+  return scheduled;
+}
+
 function getRequestIp(request: Request) {
   const xff = request.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0].trim();
@@ -97,22 +122,52 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, skipped: 'smtp-not-configured' });
     }
 
-    const lastSentSetting = await Settings.findOne({ key: 'newsletter_last_sent_at' }).lean();
-    const lastSentIso = String(lastSentSetting?.value || '').trim();
-    const lastSentAt = lastSentIso ? Date.parse(lastSentIso) : NaN;
+    const [scheduleDowSetting, scheduleHourSetting, scheduleMinuteSetting, lastAutoSlotSetting] = await Promise.all([
+      Settings.findOne({ key: 'newsletter_schedule_dow' }).lean(),
+      Settings.findOne({ key: 'newsletter_schedule_hour_utc' }).lean(),
+      Settings.findOne({ key: 'newsletter_schedule_minute_utc' }).lean(),
+      Settings.findOne({ key: 'newsletter_last_auto_scheduled_at' }).lean(),
+    ]);
 
-    // Prevent accidental duplicates (e.g., retries): 6 days cooldown
-    if (Number.isFinite(lastSentAt) && Date.now() - lastSentAt < 6 * 24 * 60 * 60_000) {
-      return NextResponse.json({ success: true, skipped: 'recently-sent', lastSentAt: lastSentIso });
+    const weekday = clampInt(parseIntSetting((scheduleDowSetting as any)?.value, 1), 0, 6); // default Monday (1)
+    const hourUtc = clampInt(parseIntSetting((scheduleHourSetting as any)?.value, 10), 0, 23);
+    const minuteUtc = clampInt(parseIntSetting((scheduleMinuteSetting as any)?.value, 0), 0, 59);
+    const lastAutoSlotIso = String((lastAutoSlotSetting as any)?.value || '').trim();
+
+    const now = new Date();
+    const scheduledSlot = scheduledUtcForCurrentWeek(now, weekday, hourUtc, minuteUtc);
+    const scheduledSlotIso = scheduledSlot.toISOString();
+
+    if (now.getTime() < scheduledSlot.getTime()) {
+      return NextResponse.json({
+        success: true,
+        skipped: 'not-time-yet',
+        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
+      });
+    }
+
+    if (lastAutoSlotIso && lastAutoSlotIso === scheduledSlotIso) {
+      return NextResponse.json({
+        success: true,
+        skipped: 'already-sent-for-slot',
+        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
+      });
     }
 
     const result = await sendWeeklyNewsletter();
 
-    await Settings.findOneAndUpdate(
-      { key: 'newsletter_last_sent_at' },
-      { key: 'newsletter_last_sent_at', value: result.nowIso, updatedAt: new Date() },
-      { upsert: true, new: true }
-    );
+    await Promise.all([
+      Settings.findOneAndUpdate(
+        { key: 'newsletter_last_sent_at' },
+        { key: 'newsletter_last_sent_at', value: result.nowIso, updatedAt: new Date() },
+        { upsert: true, new: true }
+      ),
+      Settings.findOneAndUpdate(
+        { key: 'newsletter_last_auto_scheduled_at' },
+        { key: 'newsletter_last_auto_scheduled_at', value: scheduledSlotIso, updatedAt: new Date() },
+        { upsert: true, new: true }
+      ),
+    ]);
 
     await AdminLog.create({
       adminId: 'system',
@@ -123,6 +178,7 @@ export async function GET(request: Request) {
       meta: {
         sent: result.sent,
         subscribers: result.subscribers,
+        schedule: { weekday, hourUtc, minuteUtc, scheduledSlotIso },
         path: '/api/cron/newsletter-weekly',
         method: 'GET',
         userAgent: request.headers.get('user-agent') || undefined,
