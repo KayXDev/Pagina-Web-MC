@@ -3,6 +3,12 @@
 > *This document tracks **notable** changes (features, fixes, and behavior changes).*  
 > Format inspired by **Keep a Changelog**.
 
+**Conventions**
+
+- Entries are ordered newest → oldest.
+- Each dated entry uses an ISO 8601 timestamp (with seconds), e.g. `2026-02-27T12:48:33+01:00`.
+- The most recent entry is marked with **🆕 Latest**.
+
 ## [Unreleased] 🚧
 
 ### ✨ Added
@@ -19,7 +25,8 @@
 
 ---
 
-## 2026-02-27 ✅
+
+## 2026-02-27T12:48:33+01:00 ✅ 🆕 Latest
 
 > *Stability + operations update (Vercel + background jobs) + docs polish.*
 
