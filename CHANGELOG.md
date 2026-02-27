@@ -8,6 +8,7 @@
 - Entries are ordered newest → oldest.
 - Each dated entry uses an ISO 8601 timestamp (with seconds), e.g. `2026-02-27T12:48:33+01:00`.
 - The most recent entry is marked with **🆕 Latest**.
+- Older entries can be moved into [changelog/archive](changelog/archive) (e.g. `changelog/archive/2026.md`) to keep this file short.
 
 ## [Unreleased] 🚧
 
