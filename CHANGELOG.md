@@ -28,57 +28,57 @@
 
 ## 2026-02-27 ✅ 🆕 Latest
 
-> *Resumen del día: identidad social (`@username` + nombre visible), verificación por código (OTP), estados de presencia, sistema de badges administrable y varias mejoras de newsletter/legal/SEO.*
+> *Day summary: social identity (`@username` + display name), code-based email verification (OTP), presence statuses, admin-managed badges, plus several newsletter/legal/SEO improvements.*
 
 ### ✨ Added
 
-- 🏷️ **Campo `displayName`** para usuario (editable en Ajustes de perfil).
-- 🧭 **Navbar + cabeceras de perfil** muestran `@username` y el nombre visible.
-- 🏷️ **Sistema de badges dinámico** (sin hardcode) con:
+- 🏷️ **User `displayName` field** (editable in Profile Settings).
+- 🧭 **Navbar + profile headers** show `@username` and the display name.
+- 🏷️ **Dynamic badges system** (no hardcoding) with:
 
-  - CRUD en admin.
-  - API pública para listar/mostrar.
-  - Subida de iconos.
+  - Admin CRUD.
+  - Public API for listing/rendering.
+  - Icon upload.
 
-- 🟢🟠⚫ **Sistema de presencia/estado**:
-  - Estados: `ONLINE` / `BUSY` / `INVISIBLE`.
-  - Ping periódico + `lastSeenAt`.
-  - Indicador tipo Discord (bolita) sobre el avatar (en perfil propio y público).
+- 🟢🟠⚫ **Presence/status system**:
+  - Statuses: `ONLINE` / `BUSY` / `INVISIBLE`.
+  - Periodic ping + `lastSeenAt`.
+  - Discord-style dot indicator on the avatar (private + public profile).
 
-- ✉️✅ **Verificación de email por código (OTP)** con flujo “sin crear cuenta hasta verificar”:
-  - Registro crea `PendingUser` temporal (TTL) y envía código.
-  - Verificación por código crea el `User` definitivo.
+- ✉️✅ **Email verification via OTP** with “don’t create the account until verified” flow:
+  - Registration creates a temporary `PendingUser` (TTL) and sends a code.
+  - OTP verification creates the final `User`.
 
-- 🧾 **Newsletter mejorada**:
-  - Popup localizado (idioma) y copy mejorado.
-  - Programación configurable del envío.
-  - Endpoint de test-send en admin.
+- 🧾 **Improved newsletter**:
+  - Localized popup (language) + better copy.
+  - Configurable sending schedule.
+  - Admin test-send endpoint.
 
-- 🍪 **Consentimiento de cookies**:
-  - Preferencias/reapertura de consentimiento.
-  - Bloqueo de analítica hasta consentimiento.
+- 🍪 **Cookie consent**:
+  - Preferences and “reopen consent” support.
+  - Blocks analytics until consent.
 
-- ⚖️ **Legal e i18n**:
-  - Rediseño de Privacidad/Términos + página de Cookies.
-  - Detección automática de idioma y traducción de legales.
+- ⚖️ **Legal + i18n**:
+  - Redesigned Privacy/Terms + Cookies page.
+  - Automatic language detection and legal-page translations.
 
-- 🛡️ **Documentación de seguridad** y mejoras de documentación (SECURITY/CHANGELOG).
+- 🛡️ **Security docs** and documentation improvements (SECURITY/CHANGELOG).
 
 ### 🔧 Changed
 
-- 🔐 **NextAuth**: el payload de sesión expone `username` y `displayName` (mantiene `session.user.name` como `username` por compatibilidad).
-- 🧾 Registro: formulario más claro separando “Nombre” (display) y “Nombre de usuario”.
-- 🔑 Login: el botón de reenvío de verificación se muestra solo cuando aplica.
-- 👤 Perfil: se elimina la línea textual `Estado: ...` bajo el `@username` (se mantiene la bolita de estado).
-- 🔎 SEO: ajustes en metadata/copy (incluido cambio de defaults a EN en metadatos).
-- ⏱️ Newsletter cron: varios ajustes a la programación (compatibilidad y frecuencia).
+- 🔐 **NextAuth**: session payload now exposes `username` and `displayName` (keeps `session.user.name` as `username` for compatibility).
+- 🧾 Registration: clearer form separating “Name” (display) and “Username”.
+- 🔑 Login: the “resend verification” action only shows when applicable.
+- 👤 Profile: removed the textual `Estado: ...` line under `@username` (status dot remains).
+- 🔎 SEO: metadata/copy tweaks (including switching default metadata to EN).
+- ⏱️ Newsletter cron: several scheduling adjustments (compatibility/frequency).
 
 ### 🐛 Fixed
 
-- 🏷️ Badges: URLs de iconos y comportamiento en Vercel.
-- 🏷️ Badges: caché en `/api/badges` en Vercel.
-- 🗃️ Mongoose: ajustes por deprecations y consolidación de cron en Vercel.
+- 🏷️ Badges: icon URLs and Vercel behavior.
+- 🏷️ Badges: caching behavior in `/api/badges` on Vercel.
+- 🗃️ Mongoose: deprecation fixes and Vercel cron consolidation.
 
 ### 🔁 Reverted
 
-- 🎨 Rediseño visual “neon brand” (se probó y **se revirtió** el mismo día; no queda como cambio final).
+- 🎨 “Neon brand” visual redesign (tested and **reverted** the same day; not part of the final changes).
