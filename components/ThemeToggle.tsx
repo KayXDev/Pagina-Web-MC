@@ -48,12 +48,12 @@ export default function ThemeToggle({ variant = 'default' }: { variant?: ThemeTo
   const baseClassName =
     variant === 'floating'
       ? 'group relative h-12 w-12 rounded-full bg-white border border-gray-200 text-gray-900 grid place-items-center hover:bg-gray-50 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/15 transition-colors'
-      : 'group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-minecraft-grass hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors';
+      : 'group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-brand-accent hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors';
 
   const hoverGlowClassName =
     variant === 'floating'
-      ? 'pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10'
-      : 'pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10';
+      ? 'pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-neon/10 to-brand-accent/10'
+      : 'pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-neon/10 to-brand-accent/10';
 
   if (!mounted) {
     return (

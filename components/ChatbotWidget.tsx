@@ -407,7 +407,7 @@ export default function ChatbotWidget() {
                 <div
                   className={
                     m.role === 'user'
-                      ? 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-minecraft-grass text-white border border-minecraft-grass/20'
+                      ? 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gradient-to-r from-brand-accent to-brand-electric text-white border border-brand-accent/25'
                       : 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-gray-100 border border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-gray-100'
                   }
                 >

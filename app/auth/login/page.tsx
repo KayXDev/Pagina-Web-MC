@@ -124,7 +124,7 @@ export default function LoginPage() {
                         toast.success(t(lang, 'auth.login.resendVerifySent'));
                       }
                     }}
-                    className="text-xs text-minecraft-grass hover:text-minecraft-grass/80 font-medium"
+                    className="text-xs text-brand-accent hover:text-brand-accent/80 font-medium"
                   >
                     {t(lang, 'auth.login.resendVerify')}
                   </button>
@@ -151,7 +151,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               {t(lang, 'auth.login.noAccount')}{' '}
-              <Link href="/auth/register" className="text-minecraft-grass hover:text-minecraft-grass/80 font-medium">
+              <Link href="/auth/register" className="text-brand-accent hover:text-brand-accent/80 font-medium">
                 {t(lang, 'auth.login.registerLink')}
               </Link>
             </p>

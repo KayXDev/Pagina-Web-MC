@@ -277,7 +277,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               {t(lang, 'auth.register.haveAccount')}{' '}
-              <Link href="/auth/login" className="text-minecraft-grass hover:text-minecraft-grass/80 font-medium">
+              <Link href="/auth/login" className="text-brand-accent hover:text-brand-accent/80 font-medium">
                 {t(lang, 'auth.register.loginLink')}
               </Link>
             </p>

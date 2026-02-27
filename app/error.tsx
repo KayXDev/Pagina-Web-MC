@@ -17,7 +17,7 @@ export default function ErrorPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="rounded-lg border border-minecraft-grass/20 bg-black/30 backdrop-blur-sm p-6">
+      <div className="rounded-lg border border-white/10 bg-black/30 backdrop-blur-sm p-6">
         <h2 className="text-2xl font-bold text-white">Algo se ha roto en esta página</h2>
         <p className="mt-2 text-gray-300">
           Esto suele pasar por un error de JavaScript o una petición que falla. Pulsa reintentar.
@@ -27,7 +27,7 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={reset}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-minecraft-grass text-white hover:bg-minecraft-grass/80 transition-colors"
+            className="px-4 py-2 rounded-md text-sm font-medium text-white border border-brand-accent/30 bg-gradient-to-r from-brand-accent to-brand-electric hover:opacity-95 transition-opacity"
           >
             Reintentar
           </button>

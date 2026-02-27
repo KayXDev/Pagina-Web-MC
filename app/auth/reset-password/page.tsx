@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
           {!token ? (
             <div className="space-y-4">
               <p className="text-gray-300 text-sm">{t(lang, 'auth.reset.invalidLink')}</p>
-              <Link href="/auth/forgot-password" className="text-minecraft-grass hover:text-minecraft-grass/80 font-medium">
+              <Link href="/auth/forgot-password" className="text-brand-accent hover:text-brand-accent/80 font-medium">
                 {t(lang, 'auth.reset.requestNew')}
               </Link>
             </div>

@@ -303,7 +303,7 @@ const Navbar = () => {
             animate={{ x: 0 }}
             exit={{ x: -360 }}
             transition={{ type: 'tween', duration: 0.2 }}
-            className="absolute inset-y-0 left-0 w-[80vw] max-w-[340px] bg-gray-950/95 backdrop-blur-sm border-r border-minecraft-diamond/15 shadow-xl"
+            className="absolute inset-y-0 left-0 w-[80vw] max-w-[340px] bg-brand-bg/95 backdrop-blur-sm border-r border-white/10 shadow-xl"
           >
             <div className="h-full flex flex-col">
               <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between gap-3">
@@ -317,7 +317,7 @@ const Navbar = () => {
                 >
                   <div
                     className={`w-9 h-9 rounded-md flex items-center justify-center overflow-hidden relative ${
-                      brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-minecraft-grass'
+                      brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-brand-neon'
                     }`}
                   >
                     {brandIconStatus !== 'error' && (
@@ -360,7 +360,7 @@ const Navbar = () => {
                         }}
                         className={`block px-4 py-3 rounded-md text-base font-medium flex items-center space-x-3 ${
                           isActive(item.href)
-                            ? 'bg-gradient-to-r from-minecraft-grass to-minecraft-diamond text-white'
+                            ? 'bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent text-white'
                             : 'text-gray-300 hover:bg-white/10 hover:text-white'
                         }`}
                       >
@@ -381,7 +381,7 @@ const Navbar = () => {
                             setIsOpen(false);
                             setNotifOpenMobile(false);
                           }}
-                          className="block px-4 py-3 rounded-md text-base font-medium bg-minecraft-diamond/15 text-minecraft-diamond border border-minecraft-diamond/20 flex items-center space-x-3"
+                          className="block px-4 py-3 rounded-md text-base font-medium bg-brand-accent/10 text-brand-accent border border-brand-accent/20 flex items-center space-x-3"
                         >
                           <FaCog />
                           <span>{t(lang, 'user.adminPanel')}</span>
@@ -455,7 +455,7 @@ const Navbar = () => {
                                             {n.href && (
                                               <Link
                                                 href={n.href}
-                                                className="inline-block mt-2 text-xs text-minecraft-grass hover:text-minecraft-grass/80"
+                                                className="inline-block mt-2 text-xs text-brand-accent hover:text-brand-neon"
                                                 onClick={() => {
                                                   markOneRead(n._id);
                                                   setIsOpen(false);
@@ -518,7 +518,7 @@ const Navbar = () => {
                         setIsOpen(false);
                         setNotifOpenMobile(false);
                       }}
-                      className="block px-4 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 ring-1 ring-white/10 text-center"
+                      className="block px-4 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 shadow-lg shadow-brand-accent/20 ring-1 ring-white/10 text-center"
                     >
                       {t(lang, 'user.login')}
                     </Link>
@@ -534,14 +534,14 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-950/60 backdrop-blur-sm border-b border-gray-200 dark:border-minecraft-diamond/20 shadow-sm shadow-black/10 dark:shadow-black/30">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-brand-bg/55 backdrop-blur-sm border-b border-gray-200 dark:border-white/10 shadow-sm shadow-black/10 dark:shadow-black/30">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <div
               className={`w-10 h-10 rounded-md flex items-center justify-center overflow-hidden relative ${
-                brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-minecraft-grass'
+                brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-brand-neon'
               }`}
             >
               {brandIconStatus !== 'error' && (
@@ -570,7 +570,7 @@ const Navbar = () => {
                   href={item.href}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                     isActive(item.href)
-                      ? 'bg-gradient-to-r from-minecraft-grass to-minecraft-diamond text-white'
+                      ? 'bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent text-white'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'
                   }`}
                 >
@@ -589,7 +589,7 @@ const Navbar = () => {
                   {(session.user.role === 'ADMIN' || session.user.role === 'STAFF' || session.user.role === 'OWNER') && (
                     <Link
                       href="/admin"
-                          className="px-3 py-2 rounded-md text-sm font-medium bg-minecraft-diamond/15 text-minecraft-diamond border border-minecraft-diamond/20 hover:bg-minecraft-diamond/20 transition-all duration-200 flex items-center space-x-2"
+                          className="px-3 py-2 rounded-md text-sm font-medium bg-brand-accent/10 text-brand-accent border border-brand-accent/20 hover:bg-brand-accent/15 transition-all duration-200 flex items-center space-x-2"
                     >
                       <FaCog />
                       <span>{t(lang, 'user.admin')}</span>
@@ -617,7 +617,7 @@ const Navbar = () => {
               ) : (
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 shadow-lg shadow-minecraft-diamond/20 ring-1 ring-white/10 transition-all duration-200 flex items-center space-x-2"
+                  className="px-4 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 shadow-lg shadow-brand-accent/20 ring-1 ring-white/10 transition-all duration-200 flex items-center space-x-2"
                 >
                   <FaSignInAlt />
                   <span>{t(lang, 'user.login')}</span>
@@ -645,12 +645,12 @@ const Navbar = () => {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 520, damping: 28, rotate: { duration: 0.45, ease: 'easeInOut' } }}
                 >
-                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-neon/10 to-brand-accent/10" />
                   <span className="relative">
                     <FaShoppingCart />
                   </span>
                   {cartTotalQty > 0 && (
-                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-minecraft-grass text-white text-[10px] font-bold">
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-brand-accent text-gray-950 text-[10px] font-bold">
                       {cartTotalQty > 99 ? '99+' : cartTotalQty}
                     </span>
                   )}
@@ -662,7 +662,7 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
-                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden"
+                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-brand-surface/75 backdrop-blur-sm shadow-xl overflow-hidden"
                     >
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
                         <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
@@ -711,7 +711,7 @@ const Navbar = () => {
                         </div>
                         <Link
                           href="/carrito"
-                          className="px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 ring-1 ring-white/10 transition-all duration-200"
+                          className="px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 ring-1 ring-white/10 transition-all duration-200"
                           onClick={() => setCartOpenDesktop(false)}
                         >
                           {lang === 'es' ? 'Ver carrito' : 'View cart'}
@@ -739,7 +739,7 @@ const Navbar = () => {
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 520, damping: 28, x: { duration: 0.35, ease: 'easeInOut' } }}
                   >
-                    <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
+                    <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-accent/10 to-brand-neon/10" />
                     <span className="relative">
                       <FaBell />
                     </span>
@@ -785,7 +785,7 @@ const Navbar = () => {
                                       {n.href && (
                                         <Link
                                           href={n.href}
-                                          className="inline-block mt-2 text-xs text-minecraft-grass hover:text-minecraft-grass/80"
+                                          className="inline-block mt-2 text-xs text-brand-accent hover:text-brand-neon"
                                           onClick={() => {
                                             markOneRead(n._id);
                                             setNotifOpenDesktop(false);
@@ -851,12 +851,12 @@ const Navbar = () => {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 520, damping: 28, rotate: { duration: 0.45, ease: 'easeInOut' } }}
               >
-                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-neon/10 to-brand-accent/10" />
                 <span className="relative">
                   <FaShoppingCart size={20} />
                 </span>
                 {cartTotalQty > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-minecraft-grass text-white text-[10px] font-bold">
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-brand-accent text-gray-950 text-[10px] font-bold">
                     {cartTotalQty > 99 ? '99+' : cartTotalQty}
                   </span>
                 )}
@@ -868,7 +868,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-xl border border-gray-200 dark:border-minecraft-diamond/20 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden z-50"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-brand-surface/75 backdrop-blur-sm shadow-xl overflow-hidden z-50"
                   >
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
                       <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
@@ -917,7 +917,7 @@ const Navbar = () => {
                       </div>
                       <Link
                         href="/carrito"
-                        className="px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 ring-1 ring-white/10 transition-all duration-200"
+                        className="px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-brand-primary via-brand-neon to-brand-accent bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 ring-1 ring-white/10 transition-all duration-200"
                         onClick={() => setCartOpenMobile(false)}
                       >
                         {lang === 'es' ? 'Ver carrito' : 'View cart'}
@@ -935,7 +935,7 @@ const Navbar = () => {
                 aria-label={t(lang, 'nav.notifications')}
                 title={t(lang, 'nav.notifications')}
               >
-                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
+                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-accent/10 to-brand-neon/10" />
                 <span className="relative">
                   <FaBell size={20} />
                 </span>
