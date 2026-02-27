@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const lang = useClientLang();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    displayName: '',
     username: '',
     email: '',
     password: '',
@@ -36,6 +37,7 @@ export default function RegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          displayName: formData.displayName,
           username: formData.username,
           email: formData.email,
           password: formData.password,
@@ -73,6 +75,22 @@ export default function RegisterPage() {
 
         <Card>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t(lang, 'auth.fields.name')}
+              </label>
+              <div className="relative">
+                <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder={t(lang, 'auth.fields.namePlaceholder')}
+                  value={formData.displayName}
+                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 {t(lang, 'auth.fields.username')}

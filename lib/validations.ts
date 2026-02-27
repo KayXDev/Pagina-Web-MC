@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 export const registerSchema = z.object({
+  displayName: z
+    .string()
+    .max(40, 'El nombre no puede exceder 40 caracteres')
+    .optional()
+    .or(z.literal('')),
   username: z
     .string()
     .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')

@@ -129,12 +129,14 @@ const DICT = {
     },
     auth: {
       fields: {
+        name: 'Nombre',
         username: 'Nombre de usuario',
         email: 'Email',
         password: 'Contraseña',
         confirmPassword: 'Confirmar contraseña',
         emailPlaceholder: 'tu@email.com',
-        usernamePlaceholder: 'TuNombre',
+        namePlaceholder: 'Tu nombre',
+        usernamePlaceholder: 'tu_usuario',
       },
       login: {
         title: 'Iniciar sesión',
@@ -1098,12 +1100,14 @@ const DICT = {
     },
     auth: {
       fields: {
+        name: 'Name',
         username: 'Username',
         email: 'Email',
         password: 'Password',
         confirmPassword: 'Confirm password',
         emailPlaceholder: 'you@email.com',
-        usernamePlaceholder: 'YourName',
+        namePlaceholder: 'Your name',
+        usernamePlaceholder: 'your_username',
       },
       login: {
         title: 'Sign in',
