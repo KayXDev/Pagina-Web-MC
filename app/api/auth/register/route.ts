@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
+import PendingUser from '@/models/PendingUser';
 import { registerSchema } from '@/lib/validations';
-import { isEmailConfigured, sendEmailVerificationEmail } from '@/lib/email';
+import { isEmailConfigured, sendEmailVerificationCodeEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,10 +19,8 @@ function getPepper() {
   return p || 'no-pepper';
 }
 
-function getBaseUrl(request: Request) {
-  const explicit = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
-  if (explicit) return explicit.replace(/\/$/, '');
-  return new URL(request.url).origin;
+function makeCode() {
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 }
 
 export async function POST(request: Request) {
@@ -49,6 +48,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const requireOtp = isEmailConfigured() && String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() !== 'false';
+    if (!requireOtp) {
+      return NextResponse.json(
+        { error: 'La verificación por email está deshabilitada o SMTP no está configurado' },
+        { status: 500 }
+      );
+    }
     
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 12);
@@ -57,49 +64,70 @@ export async function POST(request: Request) {
       typeof (validatedData as any).displayName === 'string'
         ? String((validatedData as any).displayName).trim()
         : '';
-    
-    // Create user
+
     const emailLower = validatedData.email.toLowerCase();
-    const requireEmailVerification = isEmailConfigured() && String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() !== 'false';
 
-    const verificationToken = requireEmailVerification ? crypto.randomBytes(32).toString('hex') : '';
-    const verificationTokenHash = requireEmailVerification ? sha256(`${verificationToken}.${getPepper()}`) : '';
-    const verificationExpiresAt = requireEmailVerification ? new Date(Date.now() + 24 * 60 * 60_000) : undefined; // 24h
+    // Prevent reserving usernames/emails already in pending state (case-insensitive)
+    const [pendingByEmail, pendingByUsername] = await Promise.all([
+      PendingUser.findOne({ email: emailLower }).select('_id requestedAt expiresAt').lean(),
+      PendingUser.findOne({ username: { $regex: new RegExp(`^${validatedData.username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } })
+        .select('_id')
+        .lean(),
+    ]);
 
-    const user = await User.create({
-      username: validatedData.username,
-      displayName,
-      email: emailLower,
-      password: hashedPassword,
-      role: 'USER',
-      emailVerifiedAt: requireEmailVerification ? null : new Date(),
-      emailVerificationTokenHash: verificationTokenHash,
-      emailVerificationExpiresAt: verificationExpiresAt,
-      emailVerificationRequestedAt: requireEmailVerification ? new Date() : undefined,
-    });
+    if (pendingByUsername) {
+      return NextResponse.json(
+        { error: 'El nombre de usuario ya está en uso' },
+        { status: 400 }
+      );
+    }
 
-    if (requireEmailVerification) {
-      const verifyUrl = `${getBaseUrl(request)}/auth/verify-email?token=${encodeURIComponent(verificationToken)}`;
-      try {
-        await sendEmailVerificationEmail({ to: emailLower, verifyUrl });
-      } catch (e) {
-        // Avoid creating accounts that cannot be verified.
-        await User.deleteOne({ _id: user._id });
-        throw e;
+    // Rate limit resend: 1 per 2 minutes for same email
+    if (pendingByEmail) {
+      const lastReq = pendingByEmail.requestedAt ? Date.parse(String(pendingByEmail.requestedAt)) : NaN;
+      if (Number.isFinite(lastReq) && Date.now() - lastReq < 2 * 60_000) {
+        return NextResponse.json({ verificationRequired: true, ok: true });
       }
     }
+
+    const code = makeCode();
+    const codeHash = sha256(`${emailLower}.${code}.${getPepper()}`);
+    const expiresAt = new Date(Date.now() + 10 * 60_000); // 10 min
+    const requestedAt = new Date();
+
+    const pending = await PendingUser.findOneAndUpdate(
+      { email: emailLower },
+      {
+        $set: {
+          username: validatedData.username,
+          displayName,
+          email: emailLower,
+          passwordHash: hashedPassword,
+          codeHash,
+          expiresAt,
+          requestedAt,
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    try {
+      await sendEmailVerificationCodeEmail({ to: emailLower, code });
+    } catch (e) {
+      await PendingUser.deleteOne({ _id: (pending as any)._id });
+      throw e;
+    }
     
+    // Create user
     return NextResponse.json(
       { 
-        message: requireEmailVerification
-          ? 'Cuenta creada. Revisa tu correo para verificarla.'
-          : 'Usuario registrado exitosamente',
-        verificationRequired: requireEmailVerification,
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-        }
+        message: 'Código enviado. Revisa tu correo para continuar.',
+        verificationRequired: true,
+        pending: {
+          email: emailLower,
+          username: validatedData.username,
+          expiresAt: expiresAt.toISOString(),
+        },
       },
       { status: 201 }
     );

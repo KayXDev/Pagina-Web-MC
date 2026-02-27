@@ -14,6 +14,9 @@ export default function RegisterPage() {
   const router = useRouter();
   const lang = useClientLang();
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'form' | 'code' | 'done'>('form');
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
   const [formData, setFormData] = useState({
     displayName: '',
     username: '',
@@ -53,12 +56,44 @@ export default function RegisterPage() {
       }
 
       const verificationRequired = Boolean((data as any)?.verificationRequired);
-      toast.success(verificationRequired ? t(lang, 'auth.register.verifySent') : t(lang, 'auth.register.success'));
-      router.push('/auth/login');
+      if (verificationRequired) {
+        toast.success(t(lang, 'auth.register.verifySent'));
+        setStep('code');
+        setCode('');
+      } else {
+        toast.success(t(lang, 'auth.register.success'));
+        setStep('done');
+      }
     } catch (error) {
       toast.error(t(lang, 'auth.register.error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verifyCode = async () => {
+    const email = formData.email.trim().toLowerCase();
+    const c = code.trim();
+    if (!email || c.length < 4) {
+      toast.error(t(lang, 'auth.verifyEmail.error'));
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const res = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: c }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || t(lang, 'auth.verifyEmail.error'));
+      toast.success(t(lang, 'auth.register.verifiedDone'));
+      setStep('done');
+    } catch (err: any) {
+      toast.error(err?.message || t(lang, 'auth.verifyEmail.error'));
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -75,7 +110,8 @@ export default function RegisterPage() {
         </div>
 
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {step === 'form' ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 {t(lang, 'auth.fields.name')}
@@ -174,7 +210,69 @@ export default function RegisterPage() {
                 </>
               )}
             </Button>
-          </form>
+            </form>
+          ) : step === 'code' ? (
+            <div className="space-y-6">
+              <div>
+                <div className="text-white font-semibold">{t(lang, 'auth.register.codeTitle')}</div>
+                <div className="text-sm text-gray-400 mt-1">{t(lang, 'auth.register.codeSubtitle')}</div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {t(lang, 'auth.register.codeLabel')}
+                </label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder={t(lang, 'auth.register.codePlaceholder')}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="tracking-[0.4em] text-center"
+                />
+              </div>
+
+              <Button className="w-full" disabled={verifying} onClick={verifyCode}>
+                {verifying ? (
+                  <span>{t(lang, 'auth.register.verifying')}</span>
+                ) : (
+                  <span>{t(lang, 'auth.register.verifyCode')}</span>
+                )}
+              </Button>
+
+              <Button
+                variant="secondary"
+                className="w-full"
+                disabled={verifying}
+                onClick={async () => {
+                  try {
+                    await fetch('/api/auth/resend-verification', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: formData.email }),
+                    });
+                    toast.success(t(lang, 'auth.register.resendSent'));
+                  } catch {
+                    toast.success(t(lang, 'auth.register.resendSent'));
+                  }
+                }}
+              >
+                <span>{t(lang, 'auth.register.resendCode')}</span>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-gray-200">{t(lang, 'auth.register.success')}</div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  router.push('/auth/login');
+                }}
+              >
+                <span>{t(lang, 'auth.register.loginLink')}</span>
+              </Button>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-gray-400">

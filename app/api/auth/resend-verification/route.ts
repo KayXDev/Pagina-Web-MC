@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import { isEmailConfigured, sendEmailVerificationEmail } from '@/lib/email';
+import PendingUser from '@/models/PendingUser';
+import { isEmailConfigured, sendEmailVerificationCodeEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,10 +17,8 @@ function getPepper() {
   return p || 'no-pepper';
 }
 
-function getBaseUrl(request: Request) {
-  const explicit = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
-  if (explicit) return explicit.replace(/\/$/, '');
-  return new URL(request.url).origin;
+function makeCode() {
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 }
 
 export async function POST(request: Request) {
@@ -38,43 +37,47 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const user: any = await User.findOne({ email }).select(
-      '_id email emailVerifiedAt emailVerificationRequestedAt'
-    );
+    const code = makeCode();
+    const codeHash = sha256(`${email}.${code}.${getPepper()}`);
+    const expiresAt = new Date(Date.now() + 10 * 60_000); // 10 min
 
-    if (!user) {
+    const pending: any = await PendingUser.findOne({ email }).select('_id requestedAt expiresAt').lean();
+    if (pending) {
+      const lastReq = pending.requestedAt ? Date.parse(String(pending.requestedAt)) : NaN;
+      if (Number.isFinite(lastReq) && Date.now() - lastReq < 2 * 60_000) {
+        return NextResponse.json({ ok: true });
+      }
+
+      await PendingUser.updateOne(
+        { _id: pending._id },
+        { $set: { codeHash, expiresAt, requestedAt: new Date() } }
+      );
+      await sendEmailVerificationCodeEmail({ to: email, code });
       return NextResponse.json({ ok: true });
     }
 
-    if (user.emailVerifiedAt) {
+    const user: any = await User.findOne({ email }).select('_id emailVerifiedAt emailVerificationRequestedAt');
+    if (!user || user.emailVerifiedAt) {
       return NextResponse.json({ ok: true });
     }
 
-    const lastReq = user.emailVerificationRequestedAt
-      ? Date.parse(String(user.emailVerificationRequestedAt))
-      : NaN;
+    const lastReq = user.emailVerificationRequestedAt ? Date.parse(String(user.emailVerificationRequestedAt)) : NaN;
     if (Number.isFinite(lastReq) && Date.now() - lastReq < 2 * 60_000) {
       return NextResponse.json({ ok: true });
     }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const tokenHash = sha256(`${token}.${getPepper()}`);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60_000);
 
     await User.updateOne(
       { _id: user._id },
       {
         $set: {
-          emailVerificationTokenHash: tokenHash,
+          emailVerificationTokenHash: codeHash,
           emailVerificationExpiresAt: expiresAt,
           emailVerificationRequestedAt: new Date(),
         },
       }
     );
 
-    const verifyUrl = `${getBaseUrl(request)}/auth/verify-email?token=${encodeURIComponent(token)}`;
-    await sendEmailVerificationEmail({ to: email, verifyUrl });
-
+    await sendEmailVerificationCodeEmail({ to: email, code });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Resend verification error:', error);
