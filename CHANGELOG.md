@@ -29,6 +29,19 @@
 
 ## 2026-02-27 ✅ 🆕 Latest
 
+> *Cookies/consent update (analytics gated by user choice).* 
+
+### ✨ Added
+
+- 📊 **Consent-gated analytics** component to load Vercel Analytics only after consent.
+
+### 🔧 Changed
+
+- 🍪 **Cookie consent flow** now broadcasts an event so optional features can enable immediately after “Accept”.
+
+
+## 2026-02-27 ✅
+
 > *Stability + operations update (Vercel + background jobs) + docs polish.*
 
 ### ✨ Added

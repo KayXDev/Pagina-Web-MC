@@ -89,6 +89,7 @@ export default function CookieConsent() {
                 variant="secondary"
                 onClick={() => {
                   setCookie('cookie_consent', 'rejected', 60 * 60 * 24 * 180);
+                  window.dispatchEvent(new Event('cookie-consent-updated'));
                   setVisible(false);
                 }}
                 className="whitespace-nowrap"
@@ -98,6 +99,7 @@ export default function CookieConsent() {
               <Button
                 onClick={() => {
                   setCookie('cookie_consent', 'accepted', 60 * 60 * 24 * 180);
+                  window.dispatchEvent(new Event('cookie-consent-updated'));
                   setVisible(false);
                 }}
                 className="whitespace-nowrap"

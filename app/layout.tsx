@@ -9,7 +9,7 @@ import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { normalizeLang } from '@/lib/i18n';
-import { Analytics } from '@vercel/analytics/react';
+import ConsentAnalytics from '@/components/ConsentAnalytics';
 
 const rajdhani = Rajdhani({ 
   subsets: ['latin'],
@@ -83,7 +83,7 @@ export default function RootLayout({
             theme="dark"
           />
         </Providers>
-        <Analytics />
+        <ConsentAnalytics />
       </body>
     </html>
   );
