@@ -17,6 +17,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const lang = useClientLang();
   const [loading, setLoading] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,7 +39,12 @@ export default function LoginPage() {
 
       if (result?.error) {
         toast.error(result.error);
+        setShowResendVerification(
+          String(result.error || '').toLowerCase().includes('verificar') ||
+            String(result.error || '').toLowerCase().includes('verify')
+        );
       } else {
+        setShowResendVerification(false);
         toast.success(t(lang, 'auth.login.success'));
         router.push(callbackUrl);
         router.refresh();
@@ -101,27 +107,29 @@ export default function LoginPage() {
                   {t(lang, 'auth.login.forgot')}
                 </Link>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <span className="text-xs text-gray-500">{t(lang, 'auth.login.resendVerifyHint')}</span>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await fetch('/api/auth/resend-verification', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: formData.email }),
-                      });
-                      toast.success(t(lang, 'auth.login.resendVerifySent'));
-                    } catch {
-                      toast.success(t(lang, 'auth.login.resendVerifySent'));
-                    }
-                  }}
-                  className="text-xs text-minecraft-grass hover:text-minecraft-grass/80 font-medium"
-                >
-                  {t(lang, 'auth.login.resendVerify')}
-                </button>
-              </div>
+              {showResendVerification ? (
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <span className="text-xs text-gray-500">{t(lang, 'auth.login.resendVerifyHint')}</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await fetch('/api/auth/resend-verification', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: formData.email }),
+                        });
+                        toast.success(t(lang, 'auth.login.resendVerifySent'));
+                      } catch {
+                        toast.success(t(lang, 'auth.login.resendVerifySent'));
+                      }
+                    }}
+                    className="text-xs text-minecraft-grass hover:text-minecraft-grass/80 font-medium"
+                  >
+                    {t(lang, 'auth.login.resendVerify')}
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             <Button
