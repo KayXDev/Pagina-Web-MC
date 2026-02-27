@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
+import { isEmailConfigured } from '@/lib/email';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -27,6 +28,13 @@ export const authOptions: NextAuthOptions = {
 
         if (user.isBanned) {
           throw new Error(`Usuario baneado: ${user.bannedReason || 'Sin razón especificada'}`);
+        }
+
+        const requireEmailVerification =
+          isEmailConfigured() && String(process.env.REQUIRE_EMAIL_VERIFICATION || '').toLowerCase() !== 'false';
+
+        if (requireEmailVerification && !(user as any).emailVerifiedAt) {
+          throw new Error('Debes verificar tu email antes de iniciar sesión');
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);

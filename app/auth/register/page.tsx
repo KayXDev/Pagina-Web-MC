@@ -52,7 +52,8 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success(t(lang, 'auth.register.success'));
+      const verificationRequired = Boolean((data as any)?.verificationRequired);
+      toast.success(verificationRequired ? t(lang, 'auth.register.verifySent') : t(lang, 'auth.register.success'));
       router.push('/auth/login');
     } catch (error) {
       toast.error(t(lang, 'auth.register.error'));

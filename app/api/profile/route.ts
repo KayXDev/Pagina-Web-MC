@@ -35,7 +35,7 @@ export async function GET() {
     await dbConnect();
 
     const user = await User.findById(currentUser.id).select(
-      '_id username displayName email role tags badges balance followersCountOverride followingCountOverride avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
+      '_id username displayName email role tags badges balance followersCountOverride followingCountOverride avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin presenceStatus lastSeenAt'
     );
 
     if (!user) {
@@ -79,6 +79,8 @@ export async function GET() {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLogin: (user as any).lastLogin || null,
+      presenceStatus: String((user as any).presenceStatus || 'ONLINE'),
+      lastSeenAt: (user as any).lastSeenAt || null,
       followersCount: finalFollowers,
       followingCount: finalFollowing,
     });
@@ -108,6 +110,9 @@ export async function PATCH(request: Request) {
 
     const nextDisplayNameRaw = typeof body?.displayName === 'string' ? body.displayName : undefined;
     const nextDisplayName = typeof nextDisplayNameRaw === 'string' ? nextDisplayNameRaw.trim() : undefined;
+
+    const nextPresenceStatusRaw = typeof body?.presenceStatus === 'string' ? body.presenceStatus : undefined;
+    const nextPresenceStatus = typeof nextPresenceStatusRaw === 'string' ? nextPresenceStatusRaw.trim().toUpperCase() : undefined;
 
 
     const updates: Record<string, any> = {};
@@ -147,6 +152,14 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Nombre demasiado largo (máx. 40)' }, { status: 400 });
       }
       updates.displayName = nextDisplayName;
+    }
+
+    if (typeof nextPresenceStatus !== 'undefined') {
+      const allowed = new Set(['ONLINE', 'BUSY', 'INVISIBLE']);
+      if (!allowed.has(nextPresenceStatus)) {
+        return NextResponse.json({ error: 'Estado inválido' }, { status: 400 });
+      }
+      updates.presenceStatus = nextPresenceStatus;
     }
 
 
@@ -210,7 +223,7 @@ export async function PATCH(request: Request) {
     }
 
     const updated = await User.findByIdAndUpdate(currentUser.id, updates, { returnDocument: 'after', runValidators: true }).select(
-      '_id username displayName avatar banner verified'
+      '_id username displayName avatar banner verified presenceStatus'
     );
 
     if (!updated) {
@@ -223,6 +236,7 @@ export async function PATCH(request: Request) {
       avatar: (updated as any).avatar || '',
       banner: (updated as any).banner || '',
       verified: Boolean((updated as any).verified),
+      presenceStatus: String((updated as any).presenceStatus || 'ONLINE'),
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

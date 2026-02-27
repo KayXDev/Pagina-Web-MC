@@ -170,6 +170,14 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const verified = Boolean((profile as any).verified);
   const displayName = String((profile as any).displayName || '');
   const titleName = displayName || profile.username;
+  const presenceStatus = String((profile as any)?.presence?.status || 'offline');
+
+  const presenceLabel =
+    presenceStatus === 'online'
+      ? t(lang, 'profile.presence.online')
+      : presenceStatus === 'busy'
+        ? t(lang, 'profile.presence.busy')
+        : t(lang, 'profile.presence.offline');
 
   return (
     <div className="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
@@ -254,6 +262,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                   </span>
                 </div>
                 <div className="mt-1 text-sm text-gray-300 truncate">@{profile.username}</div>
+                <div className="mt-1 text-xs text-gray-400">{t(lang, 'profile.presence.label')}: {presenceLabel}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(profile.role, lang)}
                   {tags.map((tag) => (

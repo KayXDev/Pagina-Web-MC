@@ -27,6 +27,14 @@ export interface IUser {
   lastLogin?: Date;
   usernameLastChangedAt?: Date;
 
+  presenceStatus?: 'ONLINE' | 'BUSY' | 'INVISIBLE';
+  lastSeenAt?: Date;
+
+  emailVerifiedAt?: Date | null;
+  emailVerificationTokenHash?: string;
+  emailVerificationExpiresAt?: Date;
+  emailVerificationRequestedAt?: Date;
+
   passwordResetTokenHash?: string;
   passwordResetExpiresAt?: Date;
   passwordResetRequestedAt?: Date;
@@ -134,6 +142,30 @@ const UserSchema = new Schema<IUser>(
       type: Date,
     },
 
+    presenceStatus: {
+      type: String,
+      enum: ['ONLINE', 'BUSY', 'INVISIBLE'],
+      default: 'ONLINE',
+    },
+    lastSeenAt: {
+      type: Date,
+    },
+
+    emailVerifiedAt: {
+      type: Date,
+      default: null,
+    },
+    emailVerificationTokenHash: {
+      type: String,
+      default: '',
+    },
+    emailVerificationExpiresAt: {
+      type: Date,
+    },
+    emailVerificationRequestedAt: {
+      type: Date,
+    },
+
     usernameLastChangedAt: {
       type: Date,
     },
@@ -210,6 +242,58 @@ if (models.User) {
           type: Number,
           default: null,
           min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('presenceStatus')) {
+      models.User.schema.add({
+        presenceStatus: {
+          type: String,
+          enum: ['ONLINE', 'BUSY', 'INVISIBLE'],
+          default: 'ONLINE',
+        },
+      });
+    }
+
+    if (!models.User.schema.path('lastSeenAt')) {
+      models.User.schema.add({
+        lastSeenAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('emailVerifiedAt')) {
+      models.User.schema.add({
+        emailVerifiedAt: {
+          type: Date,
+          default: null,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('emailVerificationTokenHash')) {
+      models.User.schema.add({
+        emailVerificationTokenHash: {
+          type: String,
+          default: '',
+        },
+      });
+    }
+
+    if (!models.User.schema.path('emailVerificationExpiresAt')) {
+      models.User.schema.add({
+        emailVerificationExpiresAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('emailVerificationRequestedAt')) {
+      models.User.schema.add({
+        emailVerificationRequestedAt: {
+          type: Date,
         },
       });
     }

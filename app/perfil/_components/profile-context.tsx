@@ -27,6 +27,8 @@ export type ProfileDetails = {
   createdAt?: string;
   updatedAt?: string;
   lastLogin?: string | null;
+  presenceStatus?: string;
+  lastSeenAt?: string | null;
   followersCount?: number;
   followingCount?: number;
 };

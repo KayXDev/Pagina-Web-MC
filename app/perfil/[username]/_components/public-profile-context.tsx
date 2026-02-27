@@ -18,6 +18,10 @@ export type PublicProfileDetails = {
   followingCount: number;
   isFollowing: boolean;
   isSelf: boolean;
+  presence?: {
+    status: 'online' | 'busy' | 'offline';
+    lastSeenAt: string | null;
+  };
 };
 
 type PublicProfileContextValue = {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { Badge, Card, Input, Button } from '@/components/ui';
+import { Badge, Card, Input, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
@@ -24,6 +24,9 @@ export default function PerfilAjustesPage() {
 
   const [displayName, setDisplayName] = useState('');
   const [savingDisplayName, setSavingDisplayName] = useState(false);
+
+  const [presenceStatus, setPresenceStatus] = useState<'ONLINE' | 'BUSY' | 'INVISIBLE'>('ONLINE');
+  const [savingPresence, setSavingPresence] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -64,6 +67,13 @@ export default function PerfilAjustesPage() {
     const dn = typeof (details as any)?.displayName === 'string' ? String((details as any).displayName).trim() : '';
     if (dn && !displayName) setDisplayName(dn);
   }, [details, displayName]);
+
+  useEffect(() => {
+    const raw = String((details as any)?.presenceStatus || 'ONLINE').toUpperCase();
+    if (raw === 'BUSY' || raw === 'INVISIBLE' || raw === 'ONLINE') {
+      setPresenceStatus(raw as any);
+    }
+  }, [details]);
 
   useEffect(() => {
     const linkedUsername = String((details as any)?.minecraftUsername || '');
@@ -203,6 +213,53 @@ export default function PerfilAjustesPage() {
       <Card hover={false}>
         <div className="text-white font-semibold mb-4">Personalización</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center gap-2 text-white font-medium">
+              <FaUserCircle className="text-minecraft-grass" />
+              <span>{t(lang, 'profile.presence.label')}</span>
+            </div>
+            <div className="text-sm text-gray-400 mt-1">{t(lang, 'profile.presence.online')} / {t(lang, 'profile.presence.busy')} / {t(lang, 'profile.presence.invisible')}</div>
+
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex-1">
+                <Select
+                  value={presenceStatus}
+                  disabled={savingPresence || loadingDetails}
+                  onChange={(e) => setPresenceStatus((String(e.target.value || 'ONLINE').toUpperCase() as any) || 'ONLINE')}
+                >
+                  <option value="ONLINE">{t(lang, 'profile.presence.online')}</option>
+                  <option value="BUSY">{t(lang, 'profile.presence.busy')}</option>
+                  <option value="INVISIBLE">{t(lang, 'profile.presence.invisible')}</option>
+                </Select>
+              </div>
+              <Button
+                variant="secondary"
+                disabled={savingPresence || loadingDetails}
+                onClick={async () => {
+                  setSavingPresence(true);
+                  try {
+                    const res = await fetch('/api/profile', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ presenceStatus }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error((data as any).error || t(lang, 'profile.presence.saveError'));
+                    await refresh();
+                    toast.success(t(lang, 'profile.presence.saved'));
+                  } catch (err: any) {
+                    toast.error(err?.message || t(lang, 'profile.presence.saveError'));
+                  } finally {
+                    setSavingPresence(false);
+                  }
+                }}
+                className="whitespace-nowrap"
+              >
+                {savingPresence ? t(lang, 'profile.saving') : t(lang, 'profile.presence.save')}
+              </Button>
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center gap-2 text-white font-medium">
               <FaUserCircle className="text-minecraft-grass" />

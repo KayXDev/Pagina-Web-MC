@@ -137,6 +137,14 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const bannerUrl = String((details as any)?.banner || (session.user as any)?.banner || '');
   const verified = Boolean((details as any)?.verified || (session.user as any)?.verified);
 
+  const prefPresence = String((details as any)?.presenceStatus || 'ONLINE').toUpperCase();
+  const prefPresenceLabel =
+    prefPresence === 'BUSY'
+      ? t(lang, 'profile.presence.busy')
+      : prefPresence === 'INVISIBLE'
+        ? t(lang, 'profile.presence.invisible')
+        : t(lang, 'profile.presence.online');
+
   const followers = loadingDetails ? null : details?.followersCount ?? 0;
   const following = loadingDetails ? null : details?.followingCount ?? 0;
 
@@ -222,6 +230,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                   </span>
                 </div>
                 <div className="mt-1 text-sm text-gray-300 truncate">@{username}</div>
+                <div className="mt-1 text-xs text-gray-400">{t(lang, 'profile.presence.label')}: {prefPresenceLabel}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(role, lang)}
                   {tags.map((tag) => (
