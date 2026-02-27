@@ -241,7 +241,6 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                   </span>
                 </div>
                 <div className="mt-1 text-sm text-gray-300 truncate">@{username}</div>
-                <div className="mt-1 text-xs text-gray-400">{t(lang, 'profile.presence.label')}: {prefPresenceLabel}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(role, lang)}
                   {tags.map((tag) => (
