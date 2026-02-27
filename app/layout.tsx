@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     template: '%s | 999Wrld Network',
   },
   description:
-    'The best Spanish Minecraft server. Join our community and enjoy multiple game modes, events, and more.',
-  keywords: ['minecraft', 'minecraft server', 'spanish minecraft server', 'survival', 'pvp', 'skyblock'],
+    'Your next Minecraft home. A Spanish-speaking community with events, updates, a forum, and an official store — join and start your adventure.',
+  keywords: ['minecraft', 'minecraft server', 'spanish minecraft community', 'survival', 'pvp', 'skyblock'],
   authors: [{ name: '999Wrld Network' }],
   alternates: {
     canonical: '/',
@@ -48,7 +48,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: '999Wrld Network - Minecraft Server',
-    description: 'The best Spanish Minecraft server.',
+    description:
+      'Your next Minecraft home — a Spanish-speaking community with events, a forum, and an official store.',
     type: 'website',
     locale: 'en_US',
     url: siteUrl,
@@ -58,7 +59,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: '999Wrld Network',
-    description: 'The best Spanish Minecraft server.',
+    description:
+      'Your next Minecraft home — a Spanish-speaking community with events, a forum, and an official store.',
     images: ['/icon.png'],
   },
   verification,
