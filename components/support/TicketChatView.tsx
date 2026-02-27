@@ -293,7 +293,7 @@ export default function TicketChatView({
           <PageHeader
             title={t(lang, 'support.ticketChat')}
             description={t(lang, 'support.ticketChatHelp')}
-            icon={<FaTicketAlt className="text-5xl text-brand-accent" />}
+            icon={<FaTicketAlt className="text-5xl text-minecraft-grass" />}
           />
 
           <div className="mb-6">
@@ -347,7 +347,7 @@ export default function TicketChatView({
               <>
                 <div className="space-y-3 max-h-[520px] overflow-y-auto">
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] bg-brand-accent/10 dark:bg-brand-accent/15 border border-brand-accent/25 rounded-md p-3">
+                    <div className="max-w-[85%] bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border border-minecraft-grass/30 rounded-md p-3">
                       <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                         {t(lang, 'support.you')} • {new Date(ticketDetails.ticket.createdAt).toLocaleString(getDateLocale(lang))}
                       </div>
@@ -361,7 +361,7 @@ export default function TicketChatView({
                         className={`max-w-[85%] rounded-md p-3 border ${
                           r.isStaff
                             ? 'bg-gray-100 border-gray-200 dark:bg-gray-900/60 dark:border-gray-700'
-                            : 'bg-brand-accent/10 dark:bg-brand-accent/15 border-brand-accent/25'
+                            : 'bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border-minecraft-grass/30'
                         }`}
                       >
                         <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">

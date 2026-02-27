@@ -115,22 +115,22 @@ export default function HomePage() {
 
   const features = [
     {
-      icon: <FaShieldAlt className="text-4xl text-brand-accent" />,
+      icon: <FaShieldAlt className="text-4xl text-minecraft-grass" />,
       title: t(lang, 'home.features.anticheat.title'),
       description: t(lang, 'home.features.anticheat.desc'),
     },
     {
-      icon: <FaFire className="text-4xl text-brand-neon" />,
+      icon: <FaFire className="text-4xl text-minecraft-redstone" />,
       title: t(lang, 'home.features.events.title'),
       description: t(lang, 'home.features.events.desc'),
     },
     {
-      icon: <FaUsers className="text-4xl text-brand-electric" />,
+      icon: <FaUsers className="text-4xl text-minecraft-diamond" />,
       title: t(lang, 'home.features.community.title'),
       description: t(lang, 'home.features.community.desc'),
     },
     {
-      icon: <FaGem className="text-4xl text-brand-accent" />,
+      icon: <FaGem className="text-4xl text-minecraft-gold" />,
       title: t(lang, 'home.features.economy.title'),
       description: t(lang, 'home.features.economy.desc'),
     },
@@ -159,10 +159,9 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div aria-hidden className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-brand-surface/25 dark:to-brand-bg"></div>
-          <div className="absolute -top-44 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-brand-neon/20 blur-3xl"></div>
-          <div className="absolute -bottom-52 left-1/3 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-brand-accent/14 blur-3xl"></div>
-          <div className="absolute top-20 -right-48 h-[28rem] w-[28rem] rounded-full bg-brand-electric/12 blur-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black"></div>
+          <div className="absolute -top-40 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/18 blur-3xl"></div>
+          <div className="absolute -bottom-48 left-1/3 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-grass/14 blur-3xl"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 text-center">
@@ -171,7 +170,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-brand-neon via-brand-accent to-brand-electric bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 bg-clip-text text-transparent">
               999Wrld Network
             </h1>
             <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -220,40 +219,38 @@ export default function HomePage() {
 
       {/* Features Section */}
       <AnimatedSection>
-        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/80 dark:bg-brand-surface/25 backdrop-blur-sm p-8 md:p-10">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.why.title')}</h2>
-              <p className="text-gray-600 dark:text-gray-300/90 text-lg">{t(lang, 'home.why.subtitle')}</p>
-            </div>
+        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.why.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.why.subtitle')}</p>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="text-center h-full">
-                    <div className="flex justify-center mb-4">{feature.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300/90">{feature.description}</p>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="text-center h-full">
+                  <div className="flex justify-center mb-4">{feature.icon}</div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </section>
       </AnimatedSection>
 
       {/* Game Modes Section */}
       <AnimatedSection>
-        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.modes.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-300/90 text-lg">{t(lang, 'home.modes.subtitle')}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.modes.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

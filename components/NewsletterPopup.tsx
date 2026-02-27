@@ -128,7 +128,7 @@ export default function NewsletterPopup() {
         hover={false}
         className="relative w-full max-w-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/70"
       >
-        <div className="px-5 py-4 border-b border-gray-200/80 bg-gradient-to-r from-brand-accent/10 to-brand-electric/10 dark:border-white/10 dark:from-brand-accent/10 dark:to-brand-electric/10">
+        <div className="px-5 py-4 border-b border-gray-200/80 bg-gradient-to-r from-minecraft-grass/15 to-minecraft-diamond/10 dark:border-white/10 dark:from-minecraft-grass/10 dark:to-minecraft-diamond/10">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-xl bg-white/70 border border-gray-200 grid place-items-center text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white">
@@ -154,7 +154,7 @@ export default function NewsletterPopup() {
                   aria-expanded={langMenuOpen}
                   className="group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-[color,background-color,border-color,transform] duration-200 hover:scale-[1.08] hover:-translate-y-0.5"
                 >
-                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-brand-accent/10 to-brand-electric/10" />
+                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
                   <FaGlobe aria-hidden="true" size={18} className="relative transition-transform duration-200 group-hover:rotate-12" />
                 </button>
 
@@ -162,9 +162,9 @@ export default function NewsletterPopup() {
                   <div
                     role="menu"
                     aria-label={lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
-                    className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-200 dark:bg-black/95 dark:border-white/10 rounded-md overflow-hidden shadow-lg"
+                    className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-200 dark:bg-black/95 dark:border-minecraft-grass/20 rounded-md overflow-hidden shadow-lg"
                   >
-                    <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-white/10">
+                    <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-minecraft-grass/10">
                       {lang === 'es' ? 'Idioma de la newsletter' : 'Newsletter language'}
                     </div>
                     <div className="py-1">
@@ -183,7 +183,7 @@ export default function NewsletterPopup() {
                           className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/10 flex items-center justify-between"
                         >
                           <span>{opt.label}</span>
-                          {newsletterLang === opt.value ? <FaCheck className="text-brand-accent" aria-hidden="true" /> : <span className="w-4" />}
+                          {newsletterLang === opt.value ? <FaCheck className="text-minecraft-grass" aria-hidden="true" /> : <span className="w-4" />}
                         </button>
                       ))}
                     </div>
@@ -214,7 +214,7 @@ export default function NewsletterPopup() {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               <div className="flex items-center gap-2 font-bold">
-                <FaBolt className="text-brand-electric" />
+                <FaBolt className="text-minecraft-diamond" />
                 <span>{lang === 'es' ? 'Novedades' : 'Updates'}</span>
               </div>
               <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
@@ -223,7 +223,7 @@ export default function NewsletterPopup() {
             </div>
             <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               <div className="flex items-center gap-2 font-bold">
-                <FaGift className="text-brand-accent" />
+                <FaGift className="text-minecraft-grass" />
                 <span>{lang === 'es' ? 'Eventos' : 'Events'}</span>
               </div>
               <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
@@ -232,7 +232,7 @@ export default function NewsletterPopup() {
             </div>
             <div className="rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               <div className="flex items-center gap-2 font-bold">
-                <FaCheckCircle className="text-brand-accent" />
+                <FaCheckCircle className="text-minecraft-grass" />
                 <span>{lang === 'es' ? 'Sin spam' : 'No spam'}</span>
               </div>
               <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">

@@ -11,15 +11,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          bg: 'rgb(var(--app-bg) / <alpha-value>)',
-          surface: 'rgb(var(--app-surface) / <alpha-value>)',
-          border: 'rgb(var(--app-border) / <alpha-value>)',
-          primary: 'rgb(var(--brand-primary) / <alpha-value>)',
-          electric: 'rgb(var(--brand-electric) / <alpha-value>)',
-          accent: 'rgb(var(--brand-accent) / <alpha-value>)',
-          neon: 'rgb(var(--brand-neon) / <alpha-value>)',
-        },
         minecraft: {
           grass: '#7BC043',
           dirt: '#8B6F47',
@@ -46,8 +37,8 @@ const config: Config = {
           '50%': { transform: 'translateY(-20px)' },
         },
         glow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(0, 229, 255, 0.35)' },
-          '50%': { boxShadow: '0 0 34px rgba(168, 85, 247, 0.55)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(71, 209, 232, 0.5)' },
+          '50%': { boxShadow: '0 0 30px rgba(71, 209, 232, 0.8)' },
         },
         'gradient-x': {
           '0%, 100%': { backgroundPosition: '0% 50%' },

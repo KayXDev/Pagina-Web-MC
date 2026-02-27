@@ -94,7 +94,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
             {status?.favicon ? (
               <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
             ) : (
-              <div className="h-full w-full grid place-items-center text-brand-accent">
+              <div className="h-full w-full grid place-items-center text-minecraft-grass">
                 <FaServer />
               </div>
             )}
@@ -110,7 +110,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
 
         <div className="flex items-center gap-2 shrink-0">
           {status?.online ? (
-            <div className="flex items-center gap-2 text-brand-accent px-3 py-2 rounded-md bg-brand-accent/10 border border-brand-accent/20">
+            <div className="flex items-center gap-2 text-minecraft-grass px-3 py-2 rounded-md bg-minecraft-grass/10 border border-minecraft-grass/20">
               <FaUsers />
               <span className="font-bold">
                 {status.players.online}/{status.players.max}
@@ -123,7 +123,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
             onClick={copyIP}
             aria-label={copied ? (lang === 'es' ? 'IP copiada' : 'IP copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
             title={copied ? (lang === 'es' ? 'IP copiada' : 'IP copied') : (lang === 'es' ? 'Copiar IP' : 'Copy IP')}
-            className="inline-flex items-center justify-center p-2 rounded-md bg-brand-accent/15 text-brand-accent hover:bg-brand-accent/25 transition-colors"
+            className="inline-flex items-center justify-center p-2 rounded-md bg-minecraft-grass/20 text-minecraft-grass hover:bg-minecraft-grass/30 transition-colors"
           >
             {copied ? <FaCheck /> : <FaCopy />}
           </button>

@@ -70,7 +70,7 @@ export default function StaffOnlineWidget({ host, port = 25565 }: StaffOnlineWid
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 text-white font-medium">
-          <FaUsers className="text-brand-accent" />
+          <FaUsers className="text-minecraft-grass" />
           <span>{lang === 'es' ? 'Admins online' : 'Admins online'}</span>
         </div>
 

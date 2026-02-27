@@ -17,11 +17,10 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col minecraft-bg relative overflow-x-clip">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gray-50 dark:bg-brand-bg" />
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white dark:from-brand-bg dark:via-brand-surface/40 dark:to-brand-bg" />
-        <div className="absolute -top-48 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-brand-neon/18 blur-3xl" />
-        <div className="absolute -bottom-52 left-1/3 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-brand-accent/14 blur-3xl" />
-        <div className="absolute top-24 -right-40 h-[26rem] w-[26rem] rounded-full bg-brand-electric/12 blur-3xl" />
+        <div className="absolute inset-0 bg-gray-50 dark:bg-gray-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950" />
+        <div className="absolute -top-44 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/15 blur-3xl" />
+        <div className="absolute -bottom-44 left-1/3 h-[26rem] w-[26rem] -translate-x-1/2 rounded-full bg-minecraft-grass/12 blur-3xl" />
       </div>
       <NewsletterPopup />
       <Navbar />

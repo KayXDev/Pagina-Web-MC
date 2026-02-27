@@ -4,23 +4,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-:root {
-  --app-bg: 248 250 252;
-  --app-surface: 255 255 255;
-  --app-border: 15 23 42;
-
-  --brand-primary: 76 29 149;
-  --brand-electric: 37 99 235;
-  --brand-accent: 34 211 238;
-  --brand-neon: 168 85 247;
-}
-
-.dark {
-  --app-bg: 5 6 12;
-  --app-surface: 11 14 23;
-  --app-border: 255 255 255;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -45,7 +28,7 @@ html {
 }
 
 .dark body {
-  @apply bg-brand-bg text-gray-100;
+  @apply bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100;
 }
 
 /* Custom scrollbar */
@@ -58,15 +41,15 @@ html {
 }
 
 .dark ::-webkit-scrollbar-track {
-  @apply bg-brand-bg;
+  @apply bg-gray-950;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-brand-accent rounded-full;
+  @apply bg-minecraft-grass rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-brand-neon/80;
+  @apply bg-minecraft-grass/80;
 }
 
 /* Minecraft block pattern background */
@@ -80,11 +63,11 @@ html {
 
 /* Glow effect */
 .glow {
-  @apply shadow-lg shadow-brand-accent/40;
+  @apply shadow-lg shadow-minecraft-grass/50;
 }
 
 .glow-blue {
-  @apply shadow-lg shadow-brand-electric/40;
+  @apply shadow-lg shadow-minecraft-diamond/50;
 }
 
 /* Smooth transitions */
@@ -125,7 +108,7 @@ html {
 }
 
 .dark .Toastify__toast {
-  @apply bg-brand-surface/80 text-white border border-white/10;
+  @apply bg-gray-900 text-white border border-gray-700;
 }
 
 .Toastify__toast--success {

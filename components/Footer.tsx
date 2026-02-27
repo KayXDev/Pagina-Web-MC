@@ -53,7 +53,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white/80 dark:bg-brand-bg/65 backdrop-blur-md border-t border-white/10 mt-20">
+    <footer className="bg-white/80 dark:bg-gray-950/70 backdrop-blur-md border-t border-minecraft-diamond/20 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
@@ -69,27 +69,27 @@ const Footer = () => {
             <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">{t(lang, 'footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'nav.home')}
                 </Link>
               </li>
               <li>
-                <Link href="/tienda" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/tienda" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'nav.shop')}
                 </Link>
               </li>
               <li>
-                <Link href="/normas" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/normas" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'nav.rules')}
                 </Link>
               </li>
               <li>
-                <Link href="/soporte" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/soporte" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'nav.support')}
                 </Link>
               </li>
               <li>
-                <Link href="/partner" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/partner" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'nav.partner')}
                 </Link>
               </li>
@@ -101,17 +101,17 @@ const Footer = () => {
             <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">{t(lang, 'footer.legal')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/terminos" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/terminos" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'footer.terms')}
                 </Link>
               </li>
               <li>
-                <Link href="/privacidad" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/privacidad" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'footer.privacy')}
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className="text-gray-600 dark:text-gray-400 hover:text-brand-accent transition-colors text-sm">
+                <Link href="/cookies" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
                   {t(lang, 'footer.cookies')}
                 </Link>
               </li>
