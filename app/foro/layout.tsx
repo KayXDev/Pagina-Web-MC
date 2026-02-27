@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Foro',
+  title: 'Forum',
   description:
-    'Foro de 999Wrld Network: dudas, trades, reportes y conversación general de la comunidad del servidor de Minecraft.',
+    '999Wrld Network forum: questions, trades, reports, and general discussion with the Minecraft server community.',
   alternates: {
     canonical: '/foro',
   },

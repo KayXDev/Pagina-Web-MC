@@ -31,11 +31,12 @@ const verification: Metadata['verification'] = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: '999Wrld Network - Servidor de Minecraft',
+    default: '999Wrld Network - Minecraft Server',
     template: '%s | 999Wrld Network',
   },
-  description: 'El mejor servidor de Minecraft en español. Únete a nuestra comunidad y disfruta de múltiples modos de juego, eventos y mucho más.',
-  keywords: ['minecraft', 'servidor', 'minecraft server', 'survival', 'pvp', 'skyblock'],
+  description:
+    'The best Spanish Minecraft server. Join our community and enjoy multiple game modes, events, and more.',
+  keywords: ['minecraft', 'minecraft server', 'spanish minecraft server', 'survival', 'pvp', 'skyblock'],
   authors: [{ name: '999Wrld Network' }],
   alternates: {
     canonical: '/',
@@ -46,10 +47,10 @@ export const metadata: Metadata = {
     apple: [{ url: '/icon.png' }],
   },
   openGraph: {
-    title: '999Wrld Network - Servidor de Minecraft',
-    description: 'El mejor servidor de Minecraft en español',
+    title: '999Wrld Network - Minecraft Server',
+    description: 'The best Spanish Minecraft server.',
     type: 'website',
-    locale: 'es_ES',
+    locale: 'en_US',
     url: siteUrl,
     siteName: '999Wrld Network',
     images: [{ url: '/icon.png' }],
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: '999Wrld Network',
-    description: 'El mejor servidor de Minecraft en español',
+    description: 'The best Spanish Minecraft server.',
     images: ['/icon.png'],
   },
   verification,

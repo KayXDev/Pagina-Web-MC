@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Partner',
   description:
-    'Programa Partner de 999Wrld Network. Colabora con la comunidad y participa en iniciativas, eventos y promociones del servidor de Minecraft.',
+    '999Wrld Network Partner Program. Collaborate with the community and join initiatives, events, and promotions.',
   alternates: {
     canonical: '/partner',
   },

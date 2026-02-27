@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Noticias',
+  title: 'News',
   description:
-    'Noticias, eventos, actualizaciones y guías de 999Wrld Network. Mantente al día con novedades del servidor de Minecraft.',
+    'News, events, updates, and guides for 999Wrld Network. Stay up to date with the Minecraft server.',
   alternates: {
     canonical: '/noticias',
   },

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Tienda',
+  title: 'Store',
   description:
-    'Tienda oficial de 999Wrld Network. Apoya al servidor de Minecraft y obtén rangos, llaves, monedas y paquetes.',
+    'Official 999Wrld Network store. Support the Minecraft server and get ranks, keys, coins, and bundles.',
   alternates: {
     canonical: '/tienda',
   },

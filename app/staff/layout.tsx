@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Staff',
   description:
-    'Conoce al staff de 999Wrld Network y cómo contactar con el equipo. Administración, moderación y soporte del servidor de Minecraft.',
+    'Meet the 999Wrld Network staff and learn how to contact the team. Administration, moderation, and support.',
   alternates: {
     canonical: '/staff',
   },

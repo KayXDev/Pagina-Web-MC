@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Votar',
+  title: 'Vote',
   description:
-    'Vota por 999Wrld Network y ayuda a que el servidor de Minecraft aparezca en los primeros resultados. Obtén recompensas por apoyar a la comunidad.',
+    'Vote for 999Wrld Network to help the Minecraft server rank higher. Get rewards for supporting the community.',
   alternates: {
     canonical: '/vote',
   },
