@@ -355,29 +355,6 @@ Additional documentation:
 
 ----
 
-## 📊 Project Statistics
-
-Current source code summary (excluding node_modules, .git, and build folders):
-
-| Language     | Files | Lines of Code |
-|-------------|--------|---------------|
-| TypeScript  | 226    | 31,862        |
-| JSON        | 5      | 8,542         |
-| JavaScript  | 10     | 1,087         |
-| Markdown    | 8      | 747           |
-| CSS         | 1      | 111           |
-
-### Totals
-
-- 📁 **250 files**
-- 💻 **42,349 lines of code**
-- 📝 376 lines of comments
-- 📄 4,279 blank lines
-
-> Medium-to-large scale project with a modular architecture primarily built in TypeScript.
-
----
-
 ## 📝 Changelog
 
 - See [CHANGELOG.md](CHANGELOG.md).
