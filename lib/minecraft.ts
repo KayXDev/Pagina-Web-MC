@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export interface ServerStatus {
   online: boolean;
   players: {
@@ -13,14 +11,35 @@ export interface ServerStatus {
   ping?: number;
 }
 
+async function fetchJsonWithTimeout(url: string, timeoutMs: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: {
+        'user-agent': '999wrld-minecraft-status/1.0',
+        accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function getServerStatus(host: string, port: number = 25565): Promise<ServerStatus> {
   try {
     // Using mcsrvstat API as a reliable fallback
-    const response = await axios.get(`https://api.mcsrvstat.us/3/${host}:${port}`, {
-      timeout: 5000,
-    });
-
-    const data = response.data;
+    const data = await fetchJsonWithTimeout(`https://api.mcsrvstat.us/3/${host}:${port}`, 5000);
 
     if (!data.online) {
       return {
@@ -45,7 +64,6 @@ export async function getServerStatus(host: string, port: number = 25565): Promi
       ping: data.debug?.ping || 0,
     };
   } catch (error) {
-    console.error('Error fetching server status:', error);
     return {
       online: false,
       players: {
