@@ -34,12 +34,18 @@ export default function CookieConsent() {
   const lang = useClientLang();
 
   useEffect(() => {
-    const existing = getCookie('cookie_consent');
-    if (existing === 'accepted' || existing === 'rejected') {
-      setVisible(false);
-      return;
-    }
-    setVisible(true);
+    const sync = () => {
+      const existing = getCookie('cookie_consent');
+      if (existing === 'accepted' || existing === 'rejected') {
+        setVisible(false);
+        return;
+      }
+      setVisible(true);
+    };
+
+    sync();
+    window.addEventListener('cookie-consent-updated', sync);
+    return () => window.removeEventListener('cookie-consent-updated', sync);
   }, []);
 
   const copy = useMemo(() => {

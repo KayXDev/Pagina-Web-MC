@@ -1,6 +1,7 @@
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card } from '@/components/ui';
+import CookiePreferencesButton from '@/components/CookiePreferencesButton';
 
 export default function PrivacyPage() {
   return (
@@ -56,6 +57,9 @@ export default function PrivacyPage() {
               <p>
                 Utilizamos cookies para mantener tu sesión y mejorar la experiencia de usuario en el sitio web.
               </p>
+              <div className="not-prose mt-3">
+                <CookiePreferencesButton />
+              </div>
 
               <h2>6. Tus Derechos</h2>
               <p>

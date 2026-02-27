@@ -29,6 +29,19 @@
 
 ## 2026-02-27 ✅ 🆕 Latest
 
+> *Cookie preferences update (allow changing consent later).* 
+
+### ✨ Added
+
+- 🔁 **Cookie preferences button** on `/privacidad` to let users change their choice.
+
+### 🔧 Changed
+
+- 🍪 **Consent banner** can be re-opened when consent is cleared.
+
+
+## 2026-02-27 ✅
+
 > *Cookies/consent update (analytics gated by user choice).* 
 
 ### ✨ Added
