@@ -29,6 +29,20 @@
 
 ## 2026-02-27 ✅ 🆕 Latest
 
+> *✨ Legal pages refresh: improved design + new Cookies page (no more 404).* 
+
+### ✨ Added
+
+- 🍪 **`/cookies`** page with a clear Cookies Policy + a button to change preferences.
+
+### 🔧 Changed
+
+- 🧾 **`/privacidad`** redesigned: better layout, table of contents, anchored sections, and a cleaner “last updated”.
+- 📜 **`/terminos`** redesigned: same improvements for readability and structure.
+
+
+## 2026-02-27 ✅
+
 > *Cookie preferences update (allow changing consent later).* 
 
 ### ✨ Added
