@@ -451,6 +451,22 @@ export default function AdminUsersPage() {
                             <span>Ver perfil</span>
                           </Link>
 
+                          <button
+                            type="button"
+                            disabled={isProtectedOwner}
+                            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                            onClick={async () => {
+                              setOpenMenuUserId(null);
+                              const input = window.prompt(t(lang, 'admin.users.usernamePrompt'), user.username);
+                              if (input === null) return;
+                              const nextUsername = input.trim().replace(/^@+/, '');
+                              if (!nextUsername) return;
+                              await updateUser(user._id, { username: nextUsername });
+                            }}
+                          >
+                            <span>{t(lang, 'admin.users.changeUsernameBtn')}</span>
+                          </button>
+
                           {canToggleVerified ? (
                             <button
                               type="button"
@@ -670,6 +686,22 @@ export default function AdminUsersPage() {
                                     <FaUser />
                                     <span>Ver perfil</span>
                                   </Link>
+
+                                  <button
+                                    type="button"
+                                    disabled={isProtectedOwner}
+                                    className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                                    onClick={async () => {
+                                      setOpenMenuUserId(null);
+                                      const input = window.prompt(t(lang, 'admin.users.usernamePrompt'), user.username);
+                                      if (input === null) return;
+                                      const nextUsername = input.trim().replace(/^@+/, '');
+                                      if (!nextUsername) return;
+                                      await updateUser(user._id, { username: nextUsername });
+                                    }}
+                                  >
+                                    <span>{t(lang, 'admin.users.changeUsernameBtn')}</span>
+                                  </button>
 
                                   {canToggleVerified ? (
                                     <button

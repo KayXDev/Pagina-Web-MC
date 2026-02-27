@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 export type PublicProfileDetails = {
   id: string;
   username: string;
+  displayName?: string;
   role: string;
   tags: string[];
   avatar?: string;

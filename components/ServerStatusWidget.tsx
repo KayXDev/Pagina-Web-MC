@@ -89,7 +89,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
 
       <div className="flex items-center justify-between gap-3 bg-black/30 rounded-md p-3 mb-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="relative h-10 w-10 rounded-md overflow-hidden border border-gray-800 bg-black shrink-0">
+          <div className="relative h-10 w-10 rounded-md overflow-hidden shrink-0">
             {status?.favicon ? (
               <Image src={status.favicon} alt="" fill sizes="40px" className="object-cover" />
             ) : (

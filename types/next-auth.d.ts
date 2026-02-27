@@ -6,6 +6,8 @@ declare module 'next-auth' {
     avatar?: string;
     banner?: string;
     verified?: boolean;
+    username?: string;
+    displayName?: string;
     tags?: string[];
     adminSections?: string[];
     adminSectionsConfigured?: boolean;
@@ -20,6 +22,8 @@ declare module 'next-auth' {
       avatar?: string;
       banner?: string;
       verified?: boolean;
+      username?: string;
+      displayName?: string;
       tags: string[];
       adminSections?: string[];
       adminSectionsConfigured?: boolean;
@@ -35,6 +39,8 @@ declare module 'next-auth/jwt' {
     banner?: string;
     verified?: boolean;
     name?: string;
+    username?: string;
+    displayName?: string;
     tags?: string[];
     adminSections?: string[];
     adminSectionsConfigured?: boolean;

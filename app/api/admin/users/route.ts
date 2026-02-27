@@ -11,6 +11,10 @@ function getRequestIp(request: Request) {
   return request.headers.get('x-real-ip') || '';
 }
 
+function escapeRegex(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -116,7 +120,7 @@ export async function PATCH(request: Request) {
     
     await dbConnect();
 
-    const existing = await User.findById(userId).select('role');
+    const existing = await User.findById(userId).select('role username');
     if (!existing) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
@@ -126,12 +130,45 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const allowedKeys = new Set(['role', 'isBanned', 'bannedReason', 'tags', 'verified']);
+    const allowedKeys = new Set(['role', 'isBanned', 'bannedReason', 'tags', 'verified', 'username']);
     const sanitizedUpdates: Record<string, any> = {};
 
     for (const [key, value] of Object.entries(updates || {})) {
       if (allowedKeys.has(key)) {
         sanitizedUpdates[key] = value;
+      }
+    }
+
+    if (typeof sanitizedUpdates.username !== 'undefined') {
+      if (typeof sanitizedUpdates.username !== 'string') {
+        return NextResponse.json({ error: 'Username inválido' }, { status: 400 });
+      }
+
+      const nextUsername = sanitizedUpdates.username.trim().replace(/^@+/, '');
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(nextUsername)) {
+        return NextResponse.json(
+          { error: 'Username inválido (3-20, letras/números/_)' },
+          { status: 400 }
+        );
+      }
+
+      const currentUsername = String((existing as any).username || '');
+      if (currentUsername.toLowerCase() === nextUsername.toLowerCase()) {
+        delete sanitizedUpdates.username;
+      } else {
+        const taken = await User.findOne({
+          _id: { $ne: userId },
+          username: { $regex: new RegExp(`^${escapeRegex(nextUsername)}$`, 'i') },
+        })
+          .select('_id')
+          .lean();
+
+        if (taken) {
+          return NextResponse.json({ error: 'Ese username ya está en uso' }, { status: 409 });
+        }
+
+        sanitizedUpdates.username = nextUsername;
+        sanitizedUpdates.usernameLastChangedAt = new Date();
       }
     }
 
@@ -174,6 +211,10 @@ export async function PATCH(request: Request) {
 
     if (typeof sanitizedUpdates.isBanned !== 'undefined') {
       sanitizedUpdates.isBanned = Boolean(sanitizedUpdates.isBanned);
+    }
+
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      return NextResponse.json({ error: 'Sin cambios' }, { status: 400 });
     }
     
     const user = await User.findByIdAndUpdate(userId, sanitizedUpdates, { returnDocument: 'after', runValidators: true })

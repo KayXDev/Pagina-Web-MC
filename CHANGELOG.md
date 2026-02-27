@@ -14,7 +14,7 @@
 
 ### ✨ Added
 
-- **Project documentation** improvements (README sections, Security Policy, Changelog).
+- *Nothing yet.*
 
 ### 🔧 Changed
 
@@ -26,17 +26,15 @@
 
 ---
 
-
 ## 2026-02-27 ✅ 🆕 Latest
 
-> *🌍 i18n + legal pages polish: auto language + improved layout + header spacing.*
+> *🪪 Social identity update: `@username` + display name.*
 
 ### ✨ Added
 
-- 🗣️ **Auto language detection** (sets `lang` from browser `Accept-Language` when missing).
-- 🌐 **ES/EN content** for `/cookies`, `/privacidad`, and `/terminos`.
+- 🏷️ **User `displayName`** field (editable in Profile Settings).
+- 🧭 **Navbar + profile headers** now show `@username` and the visible name.
 
 ### 🔧 Changed
 
-- 📐 **Header spacing**: legal pages now include top padding so titles don’t sit under the navbar.
-- 🧾 **Legal page design** refreshed again (clean stacked sections).
+- 🔐 **NextAuth session payload** now exposes `username` and `displayName` (keeps `session.user.name` as the username for compatibility).

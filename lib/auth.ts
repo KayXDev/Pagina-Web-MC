@@ -42,6 +42,8 @@ export const authOptions: NextAuthOptions = {
           id: user._id.toString(),
           email: user.email,
           name: user.username,
+          username: user.username,
+          displayName: String((user as any).displayName || ''),
           role: user.role,
           avatar: user.avatar,
           banner: (user as any).banner || '',
@@ -62,6 +64,8 @@ export const authOptions: NextAuthOptions = {
         token.banner = (user as any).banner as string;
         token.verified = Boolean((user as any).verified);
         token.name = user.name ?? undefined;
+        token.username = (user as any).username ?? user.name ?? undefined;
+        token.displayName = typeof (user as any).displayName === 'string' ? ((user as any).displayName as string) : undefined;
         token.tags = (user as any).tags || [];
         token.adminSections = (user as any).adminSections || [];
         token.adminSectionsConfigured = Boolean((user as any).adminSectionsConfigured);
@@ -69,6 +73,8 @@ export const authOptions: NextAuthOptions = {
 
       if (trigger === 'update') {
         if (typeof (session as any)?.name === 'string') token.name = (session as any).name;
+        if (typeof (session as any)?.username === 'string') token.username = (session as any).username;
+        if (typeof (session as any)?.displayName === 'string') token.displayName = (session as any).displayName;
         if (typeof (session as any)?.avatar === 'string') token.avatar = (session as any).avatar;
         if (typeof (session as any)?.banner === 'string') token.banner = (session as any).banner;
         if (typeof (session as any)?.verified === 'boolean') token.verified = (session as any).verified;
@@ -84,6 +90,8 @@ export const authOptions: NextAuthOptions = {
         session.user.banner = token.banner as string;
         session.user.verified = Boolean((token as any).verified);
         session.user.name = token.name as string;
+        (session.user as any).username = ((token as any).username as string) || (token.name as string);
+        (session.user as any).displayName = ((token as any).displayName as string) || '';
         session.user.tags = (token.tags as string[]) || [];
         session.user.adminSections = (token.adminSections as string[]) || [];
         session.user.adminSectionsConfigured = Boolean((token as any).adminSectionsConfigured);
@@ -96,11 +104,13 @@ export const authOptions: NextAuthOptions = {
         if (userId && session.user) {
           await dbConnect();
           const fresh = await User.findById(userId)
-            .select('username role avatar banner verified tags adminSections adminSectionsConfigured isBanned bannedReason')
+            .select('username displayName role avatar banner verified tags adminSections adminSectionsConfigured isBanned bannedReason')
             .lean();
 
           if (fresh) {
             session.user.name = fresh.username;
+            (session.user as any).username = fresh.username;
+            (session.user as any).displayName = String((fresh as any).displayName || '');
             session.user.role = fresh.role;
             session.user.avatar = (fresh as any).avatar;
             session.user.banner = (fresh as any).banner;

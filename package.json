@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "init-db": "node scripts/init-db.js",
-    "deliveries:worker": "node scripts/delivery-worker.js"
+    "deliveries:worker": "node scripts/delivery-worker.js",
+    "stats": "node scripts/project-stats.mjs --md"
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",

@@ -1,47 +1,59 @@
-# 🔧 Solución de Problemas de Login
+# 🔧 Troubleshooting
 
-## Problema: "El login no funciona / No inicia sesión"
+Quick diagnosis guide for common issues in local development and production (Vercel): login/auth, MongoDB, blank screen, uploads, cron/newsletter, SEO, and build.
 
-### Diagnóstico Rápido
+---
 
-Ejecuta estos comandos en orden:
+## Table of Contents
+
+- [Quick checklist](#quick-checklist)
+- [Blank screen / chunks 404](#blank-screen--chunks-404)
+- [Auth / Login](#auth--login)
+- [MongoDB Atlas](#mongodb-atlas)
+- [Vercel (deploy + env)](#vercel-deploy--env)
+- [Uploads (images)](#uploads-images)
+- [Cron / Newsletter](#cron--newsletter)
+- [SEO (sitemap/robots)](#seo-sitemaprobots)
+- [Build / Dependencies](#build--dependencies)
+- [What to share](#what-to-share)
+
+---
+
+## Quick checklist
+
+Run these commands in order (good starting point for most issues):
 
 ```bash
-# 1. Limpia la caché de Next.js
+# 1) Clear Next.js cache/build
 rm -rf .next
 
-# 2. Reinstala dependencias si es necesario
+# 2) Ensure deps
 npm install
 
-# 3. Verifica que las variables de entorno estén correctas
-cat .env | grep -E "MONGODB_URI|NEXTAUTH"
+# 3) Check minimum env vars
+cat .env | grep -E "MONGODB_URI|NEXTAUTH_URL|NEXTAUTH_SECRET" || true
 
-# 4. Inicia el servidor
+# 4) Start
 npm run dev
 ```
 
-## Problema: "La página arranca pero no carga nada" (pantalla en blanco)
+---
 
-### Síntomas típicos
+## Blank screen / chunks 404
 
-- En la terminal ves `GET / 200`, pero en el navegador no aparece el contenido.
-- En `Network` (F12) aparecen 404 para archivos como:
-   - `/_next/static/chunks/main-app.js`
-   - `/_next/static/chunks/app-pages-internals.js`
-   - `/_next/static/chunks/app/error.js`
+Typical symptoms:
 
-### Causa más común
+- Terminal shows `GET / 200` but nothing renders.
+- In `Network` (F12) you see 404s for `/_next/static/chunks/...`.
 
-La caché/build local de Next (carpeta `.next`) quedó corrupta o desincronizada, y el servidor ya no sirve algunos chunks necesarios para hidratar el cliente.
-
-### Solución
+Fix:
 
 ```bash
 rm -rf .next
 npm run dev
 ```
 
-Si sigue pasando, prueba también:
+If it persists:
 
 ```bash
 rm -rf .next node_modules
@@ -49,141 +61,140 @@ npm install
 npm run dev
 ```
 
-### Solución Paso a Paso
+---
 
-#### 1. Verifica MongoDB
+## Auth / Login
 
-Abre el archivo `.env` y asegúrate de que:
-- MONGODB_URI tiene la contraseña correcta (sin `<` `>`)
-- La URL de MongoDB es válida
+### "Login doesn’t work / can’t sign in"
 
-```env
-# ❌ MAL
-MONGODB_URI=mongodb+srv://user:<db_password>@cluster...
+Check:
 
-# ✅ BIEN  
-MONGODB_URI=mongodb+srv://user:TuPasswordReal123@cluster...
-```
+- `NEXTAUTH_URL`
+  - Local: `http://localhost:3000`
+  - Production: `https://www.999wrldnetwork.es`
+- `NEXTAUTH_SECRET` (stable, long and random; must not change between deploys)
 
-#### 2. Genera un NEXTAUTH_SECRET fuerte
-
-El NEXTAUTH_SECRET debe ser único y aleatorio:
+Generate a secret:
 
 ```bash
-# Genera uno nuevo (copia el resultado al .env)
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Pega el resultado en tu .env:
-```env
-NEXTAUTH_SECRET=el-string-generado-aqui
-```
+### Error: "Unable to find next-auth secret"
 
-#### 3. Crea el usuario administrador
+`NEXTAUTH_SECRET` is missing or invalid → set a new one and restart.
+
+### Create initial admin
 
 ```bash
 npm run init-db
 ```
 
-Esto creará el usuario admin con:
-- **Email**: el de `ADMIN_EMAIL`
-- **Password**: el de `ADMIN_PASSWORD`
+Admin login:
 
-#### 4. Verifica la Consola del Navegador
+- Email: `ADMIN_EMAIL`
+- Password: `ADMIN_PASSWORD`
 
-Abre el navegador en modo desarrollador (F12) y busca errores en:
-- **Console**: Errores de JavaScript
-- **Network**: Errores en peticiones a `/api/auth`
+---
 
-### Errores Comunes
+## MongoDB Atlas
 
-#### Error: "Unable to find next-auth secret"
+### "MongoServerError: Authentication failed"
 
-**Causa**: NEXTAUTH_SECRET no está definido o es inválido
+- Wrong password in `MONGODB_URI`.
+- If the password contains symbols, use URL-encoding.
 
-**Solución**:
+Example:
+
 ```env
-# En .env, asegúrate de tener:
-NEXTAUTH_SECRET=un-secreto-super-largo-y-aleatorio-mínimo-32-caracteres
+# ❌ WRONG
+MONGODB_URI=mongodb+srv://user:<db_password>@cluster...
+
+# ✅ RIGHT
+MONGODB_URI=mongodb+srv://user:YourRealPassword123@cluster...
 ```
 
-#### Error: "Cannot find module 'memory-pager'"
+### "Network error / Cannot connect"
 
-**Causa**: Falta dependencia de MongoDB
+- Atlas → **Network Access** → add your IP.
+- For temporary debugging: `0.0.0.0/0` (not recommended long-term).
 
-**Solución**:
+---
+
+## Vercel (deploy + env)
+
+### I changed env vars in Vercel but nothing changes
+
+- Vercel env vars apply per deployment → **Redeploy**.
+- Make sure they’re set for **Production**.
+
+### Weird behavior only in production
+
+- Confirm `SITE_URL` and `NEXTAUTH_URL` point to the final domain.
+- Check you don’t have different values between Preview and Production.
+
+---
+
+## Uploads (images)
+
+On Vercel the filesystem is ephemeral: uploading to `public/uploads` will not persist.
+
+Solutions:
+
+- Vercel Blob: set `BLOB_READ_WRITE_TOKEN`
+- Cloudinary: set `CLOUDINARY_URL` (or separate credentials)
+
+---
+
+## Cron / Newsletter
+
+### Cron returns 401/403
+
+- If `CRON_SECRET` exists, call it with `?secret=...`.
+- If not, some endpoints expect `User-Agent: vercel-cron/1.0`.
+
+### Newsletter doesn’t send
+
+- Missing SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+- Also check provider spam/bounces.
+
+---
+
+## SEO (sitemap/robots)
+
+### Sitemap/canonical uses the wrong domain
+
+- Set `SITE_URL` in production (e.g. `https://www.999wrldnetwork.es`).
+- Confirm `NEXTAUTH_URL` also points to the final domain.
+
+### Search Console verification fails
+
+- Set `GOOGLE_SITE_VERIFICATION` (and optionally `BING_SITE_VERIFICATION`) and redeploy.
+
+---
+
+## Build / Dependencies
+
+### Error: "Cannot find module 'memory-pager'"
+
 ```bash
 npm install memory-pager sparse-bitfield
 ```
 
-#### Error: "MongoServerError: Authentication failed"
+### Verify before deploying
 
-**Causa**: Contraseña incorrecta en MONGODB_URI
+```bash
+npm run lint
+npm run build
+```
 
-**Solución**:
-1. Ve a MongoDB Atlas (mongodb.com)
-2. Database Access → Crea nueva contraseña para el usuario
-3. Actualiza MONGODB_URI en .env con la nueva contraseña
+---
 
-#### Error: "Network error / Cannot connect"
+## What to share
 
-**Causa**: IP no está en whitelist de MongoDB Atlas
+If you need help, share:
 
-**Solución**:
-1. Ve a MongoDB Atlas
-2. Network Access → Add IP Address
-3. Agrega tu IP actual o usa `0.0.0.0/0` (permite todas las IPs)
-
-### Testing del Login
-
-1. Ve a: http://localhost:3000/auth/login
-2. Ingresa:
-   - Email: el de `ADMIN_EMAIL`
-   - Password: el de `ADMIN_PASSWORD`
-3. Click en "Iniciar Sesión"
-
-**Resultado Esperado**: Redirección a la página principal con tu usuario en la navbar
-
-**Si falla**: 
-- Revisa Console del navegador (F12)
-- Revisa terminal donde corre `npm run dev`
-- Busca el mensaje de error específico
-
-### Verificar Usuario en Base de Datos
-
-Si tienes MongoDB Compass instalado:
-
-1. Conecta con tu MONGODB_URI
-2. Ve a la base de datos
-3. Busca la colección `users`
-4. Debe existir un usuario con el email configurado en `ADMIN_EMAIL`
-
-### Crear Usuario Manualmente
-
-Si el script init-db no funciona, puedes crear un usuario visitando:
-
-http://localhost:3000/auth/register
-
-Y regístrate con:
-- Username: Admin
-- Email: admin@tuservidor.com
-- Password: (tu contraseña)
-
-Luego necesitarás cambiar el rol a ADMIN en la base de datos.
-
-### Aún no Funciona?
-
-Si después de seguir todos estos pasos el login aún no funciona:
-
-1. Comparte el mensaje de error exacto de la consola
-2. Verifica que todas las dependencias estén instaladas: `npm list next-auth bcryptjs mongoose`
-3. Intenta con otro navegador (Chrome/Firefox)
-4. Limpia cookies y caché del navegador
-
-## Contacto
-
-Si necesitas ayuda adicional, comparte:
-- Mensaje de error exacto
-- Versión de Node.js: `node -v`
-- Sistema operativo
-- Captura de console (F12)
+- The exact error message (terminal and/or browser console)
+- Node version: `node -v`
+- OS
+- Values (without secrets) for: `NEXTAUTH_URL` and whether `SITE_URL` is set

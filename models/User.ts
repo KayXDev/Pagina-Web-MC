@@ -3,6 +3,7 @@ import mongoose, { Schema, models } from 'mongoose';
 export interface IUser {
   _id: string;
   username: string;
+  displayName?: string;
   email: string;
   password: string;
   role: 'USER' | 'STAFF' | 'ADMIN' | 'OWNER';
@@ -20,6 +21,7 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
   lastLogin?: Date;
+  usernameLastChangedAt?: Date;
 
   passwordResetTokenHash?: string;
   passwordResetExpiresAt?: Date;
@@ -36,6 +38,12 @@ const UserSchema = new Schema<IUser>(
       trim: true,
       minlength: [3, 'Username must be at least 3 characters'],
       maxlength: [20, 'Username cannot exceed 20 characters'],
+    },
+    displayName: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: [40, 'Display name cannot exceed 40 characters'],
     },
     email: {
       type: String,
@@ -103,6 +111,10 @@ const UserSchema = new Schema<IUser>(
       type: Date,
     },
 
+    usernameLastChangedAt: {
+      type: Date,
+    },
+
     passwordResetTokenHash: {
       type: String,
       default: '',
@@ -136,6 +148,17 @@ if (models.User) {
         tags: {
           type: [String],
           default: [],
+        },
+      });
+    }
+
+    if (!models.User.schema.path('displayName')) {
+      models.User.schema.add({
+        displayName: {
+          type: String,
+          default: '',
+          trim: true,
+          maxlength: [40, 'Display name cannot exceed 40 characters'],
         },
       });
     }
@@ -232,6 +255,14 @@ if (models.User) {
     if (!models.User.schema.path('passwordResetUsedAt')) {
       models.User.schema.add({
         passwordResetUsedAt: {
+          type: Date,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('usernameLastChangedAt')) {
+      models.User.schema.add({
+        usernameLastChangedAt: {
           type: Date,
         },
       });

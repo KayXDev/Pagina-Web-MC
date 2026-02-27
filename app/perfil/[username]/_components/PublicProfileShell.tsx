@@ -111,6 +111,8 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const avatarUrl = String(profile.avatar || '');
   const bannerUrl = String((profile as any).banner || '');
   const verified = Boolean((profile as any).verified);
+  const displayName = String((profile as any).displayName || '');
+  const titleName = displayName || profile.username;
 
   return (
     <div className="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
@@ -141,7 +143,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-minecraft-grass/30 flex items-center justify-center">
-                  <span className="text-white font-bold">{initials(profile.username)}</span>
+                  <span className="text-white font-bold">{initials(titleName)}</span>
                 </div>
               )}
             </div>
@@ -171,11 +173,12 @@ function InnerShell({ children }: { children: React.ReactNode }) {
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-2xl sm:text-3xl font-bold text-white truncate inline-flex items-center gap-2">
-                  <span className="truncate">{profile.username}</span>
+                  <span className="truncate">{titleName}</span>
                   {verified ? (
                     <FaCheckCircle className="text-blue-400 shrink-0 text-lg relative top-px" title="Verificado" />
                   ) : null}
                 </div>
+                <div className="mt-1 text-sm text-gray-300 truncate">@{profile.username}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(profile.role, lang)}
                   {tags.map((tag) => (

@@ -35,7 +35,7 @@ export async function GET() {
     await dbConnect();
 
     const user = await User.findById(currentUser.id).select(
-      '_id username email role tags avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
+      '_id username displayName email role tags avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
     );
 
     if (!user) {
@@ -51,6 +51,7 @@ export async function GET() {
     return NextResponse.json({
       id: userId,
       username: user.username,
+      displayName: String((user as any).displayName || ''),
       email: user.email,
       role: user.role,
       tags: Array.isArray((user as any).tags) ? (user as any).tags : [],
@@ -84,13 +85,16 @@ export async function PATCH(request: Request) {
     const body = await request.json();
 
     const nextUsernameRaw = typeof body?.username === 'string' ? body.username : undefined;
-    const nextUsername = typeof nextUsernameRaw === 'string' ? nextUsernameRaw.trim() : undefined;
+    const nextUsername = typeof nextUsernameRaw === 'string' ? nextUsernameRaw.trim().replace(/^@+/, '') : undefined;
 
     const nextAvatarRaw = typeof body?.avatar === 'string' ? body.avatar : undefined;
     const nextAvatar = typeof nextAvatarRaw === 'string' ? nextAvatarRaw.trim() : undefined;
 
     const nextBannerRaw = typeof body?.banner === 'string' ? body.banner : undefined;
     const nextBanner = typeof nextBannerRaw === 'string' ? nextBannerRaw.trim() : undefined;
+
+    const nextDisplayNameRaw = typeof body?.displayName === 'string' ? body.displayName : undefined;
+    const nextDisplayName = typeof nextDisplayNameRaw === 'string' ? nextDisplayNameRaw.trim() : undefined;
 
     const updates: Record<string, any> = {};
 
@@ -124,6 +128,13 @@ export async function PATCH(request: Request) {
       updates.banner = nextBanner;
     }
 
+    if (typeof nextDisplayName !== 'undefined') {
+      if (nextDisplayName.length > 40) {
+        return NextResponse.json({ error: 'Nombre demasiado largo (máx. 40)' }, { status: 400 });
+      }
+      updates.displayName = nextDisplayName;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'Sin cambios' }, { status: 400 });
     }
@@ -131,18 +142,60 @@ export async function PATCH(request: Request) {
     await dbConnect();
 
     if (typeof updates.username === 'string') {
-      const existing = await User.findOne({
-        _id: { $ne: currentUser.id },
-        username: { $regex: new RegExp(`^${escapeRegex(updates.username)}$`, 'i') },
-      }).select('_id');
+      const current = await User.findById(currentUser.id).select('username role usernameLastChangedAt');
+      if (!current) {
+        return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+      }
 
-      if (existing) {
-        return NextResponse.json({ error: 'Ese username ya está en uso' }, { status: 400 });
+      const currentUsername = String((current as any).username || '');
+      const nextUsername = String(updates.username || '');
+
+      // Si no cambia realmente, no lo tratamos como cambio de username
+      if (currentUsername.toLowerCase() === nextUsername.toLowerCase()) {
+        delete updates.username;
+      } else {
+        // Solo 1 cambio cada 30 días (excepto OWNER)
+        const role = String((current as any).role || 'USER');
+        if (role !== 'OWNER') {
+          const last = (current as any).usernameLastChangedAt ? new Date((current as any).usernameLastChangedAt) : null;
+          if (last && !Number.isNaN(last.getTime())) {
+            const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+            const elapsed = Date.now() - last.getTime();
+            if (elapsed < COOLDOWN_MS) {
+              const remainingDays = Math.max(1, Math.ceil((COOLDOWN_MS - elapsed) / (24 * 60 * 60 * 1000)));
+              return NextResponse.json(
+                {
+                  error: `Solo puedes cambiar tu username una vez cada 30 días. Intenta de nuevo en ${remainingDays} día(s).`,
+                  retryAfterDays: remainingDays,
+                },
+                { status: 429 }
+              );
+            }
+          }
+        }
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return NextResponse.json({ error: 'Sin cambios' }, { status: 400 });
+      }
+
+      // Si sigue habiendo username, aquí sí es un cambio real: check de unicidad + timestamp.
+      if (typeof updates.username === 'string') {
+        const existing = await User.findOne({
+          _id: { $ne: currentUser.id },
+          username: { $regex: new RegExp(`^${escapeRegex(updates.username)}$`, 'i') },
+        }).select('_id');
+
+        if (existing) {
+          return NextResponse.json({ error: 'Ese username ya está en uso' }, { status: 400 });
+        }
+
+        updates.usernameLastChangedAt = new Date();
       }
     }
 
     const updated = await User.findByIdAndUpdate(currentUser.id, updates, { returnDocument: 'after', runValidators: true }).select(
-      '_id username avatar banner verified'
+      '_id username displayName avatar banner verified'
     );
 
     if (!updated) {
@@ -151,6 +204,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({
       username: updated.username,
+      displayName: String((updated as any).displayName || ''),
       avatar: (updated as any).avatar || '',
       banner: (updated as any).banner || '',
       verified: Boolean((updated as any).verified),

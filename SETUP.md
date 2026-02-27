@@ -1,236 +1,212 @@
-# Setup (Local + Producción)
+# Setup (Local + Production)
 
-Guía completa para levantar el proyecto en local, preparar tu `.env`, inicializar la base de datos y entender los servicios opcionales (uploads, pagos, worker de entregas).
+Practical, complete guide to run the project locally, initialize MongoDB, configure environment variables, and deploy to production.
 
 ---
 
-## 1) Requisitos
+## Table of Contents
 
-- Node.js **18.17+** (recomendado Node 20+)
+- [1) Requirements](#1-requirements)
+- [2) Local quickstart](#2-local-quickstart)
+- [3) Production (Vercel)](#3-production-vercel)
+- [4) Environment variables](#4-environment-variables)
+- [5) Uploads](#5-uploads)
+- [6) Email (Forgot password)](#6-email-forgot-password)
+- [7) Payments (PayPal/Stripe)](#7-payments-paypalstripe)
+- [8) Newsletter + Cron](#8-newsletter--cron)
+- [9) SEO + Search Console](#9-seo--search-console)
+- [10) Database (Compass)](#10-database-compass)
+- [11) Useful commands](#11-useful-commands)
+
+---
+
+## 1) Requirements
+
+- Node.js **18.17+** (Node 20+ recommended)
 - npm
-- MongoDB (recomendado MongoDB Atlas)
+- MongoDB (MongoDB Atlas recommended)
 
 ---
 
-## 2) Instalación local (paso a paso)
+## 2) Local quickstart
 
-### 2.1 Instalar dependencias
+### 2.1 Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2.2 Crear el archivo `.env`
+### 2.2 Create `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Edita `.env` y configura, como mínimo:
+Minimum required:
 
 - `MONGODB_URI`
-- `NEXTAUTH_URL` (local: `http://localhost:3000`)
+- `NEXTAUTH_URL=http://localhost:3000`
 - `NEXTAUTH_SECRET`
 
-Generar `NEXTAUTH_SECRET` (macOS/Linux):
+Generate `NEXTAUTH_SECRET`:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-### 2.3 Configurar MongoDB Atlas (si aplica)
-
-Si usas Atlas:
-
-1) Asegúrate de que el usuario/contraseña de tu URI sean correctos.
-2) En **Network Access**, agrega tu IP a la whitelist (o temporalmente `0.0.0.0/0` para pruebas).
-3) Verifica que el host de la URI sea el correcto (no es `cluster.mongodb.net`, suele ser `cluster0.xxxxx.mongodb.net`).
-
-### 2.4 Inicializar la base de datos (seed)
-
-Este comando crea/siembra contenido y el usuario admin inicial usando `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+### 2.3 Initialize database (seed + initial admin)
 
 ```bash
 npm run init-db
 ```
 
-### 2.5 Iniciar el servidor
+### 2.4 Start the server
 
 ```bash
 npm run dev
 ```
 
-Abre: http://localhost:3000
+Open: http://localhost:3000
 
----
-
-## 3) Accesos
+Entry points:
 
 - Login: `/auth/login`
 - Admin panel: `/admin`
 
-Credenciales iniciales (si ejecutaste `npm run init-db`):
+---
 
-- Email: `ADMIN_EMAIL`
-- Password: `ADMIN_PASSWORD`
+## 3) Production (Vercel)
+
+Recommended checklist:
+
+1) Set environment variables in Vercel (Production):
+   - `MONGODB_URI`
+   - `NEXTAUTH_URL=https://www.999wrldnetwork.es`
+   - `NEXTAUTH_SECRET`
+   - `SITE_NAME=999Wrld Network`
+   - `SITE_URL=https://www.999wrldnetwork.es`
+2) MongoDB Atlas:
+   - `Network Access` → allowlist your IP (or temporarily `0.0.0.0/0` for testing)
+   - Correct DB user/password
+3) Uploads in production: use **Vercel Blob** or **Cloudinary** (see section 5).
+4) Deploy.
 
 ---
 
-## 4) Variables de entorno (resumen)
+## 4) Environment variables
 
-La referencia completa está en `.env.example`. Aquí va lo esencial.
+The full reference is in `.env.example`. Summary:
 
-### 4.1 Requeridas
+### Required
 
-- `MONGODB_URI`: conexión a MongoDB.
-- `NEXTAUTH_URL`: URL base (local: `http://localhost:3000`).
-- `NEXTAUTH_SECRET`: secreto fuerte para NextAuth.
+- `MONGODB_URI`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
 
-### 4.2 Estado del servidor Minecraft
+### Recommended (production)
 
-- `MINECRAFT_SERVER_IP` / `MINECRAFT_SERVER_PORT`: status del servidor.
-- `MC_ONLINE_MODE`: `true` (online-mode, UUID real) o `false` (offline-mode, UUID offline).
+- `SITE_NAME`
+- `SITE_URL` (for SEO, email links, and sitemap)
 
-### 4.3 Uploads (imágenes)
+### Minecraft server status
 
-En desarrollo puede escribir en `public/uploads/...`.
-En producción (especialmente Vercel) el filesystem es efímero: configura un proveedor.
+- `MINECRAFT_SERVER_IP` / `MINECRAFT_SERVER_PORT`
+- `MC_ONLINE_MODE` (`true` online-mode / `false` offline-mode)
 
-Opciones soportadas (según configuración):
+---
 
-- Cloudinary (recomendado si ya lo usas)
-   - Opción A: `CLOUDINARY_URL=...`
-   - Opción B: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-- Vercel Blob
-   - `BLOB_READ_WRITE_TOKEN`
+## 5) Uploads
 
-### 4.4 Pagos (opcional)
+- Local/dev: files are written to `public/uploads/...`.
+- Vercel/prod: ephemeral filesystem → configure a provider.
 
-Si vas a usar tienda/checkout:
+Options:
 
-- PayPal:
-   - `PAYPAL_ENV` (`sandbox` | `live`)
-   - `PAYPAL_CLIENT_ID`
-   - `PAYPAL_CLIENT_SECRET`
-- Stripe:
-   - `STRIPE_SECRET_KEY`
-   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-   - `STRIPE_WEBHOOK_SECRET`
+- **Vercel Blob**: `BLOB_READ_WRITE_TOKEN`
+- **Cloudinary**: `CLOUDINARY_URL` or `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`
 
-### 4.4.1 Email (Forgot password)
+---
 
-Para que funcione **"¿Has olvidado tu contraseña?"** en producción, configura SMTP:
+## 6) Email (Forgot password)
 
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `SMTP_FROM`
+To make password reset work in production, configure SMTP:
 
-Si no está configurado, el sistema seguirá respondiendo OK (por seguridad), pero no podrá enviar el email.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 
-#### Configurar SMTP en Vercel (paso a paso)
+Notes:
 
-1) Ve a tu proyecto en Vercel → **Settings** → **Environment Variables**.
-2) Añade (mínimo): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SITE_URL`, `NEXTAUTH_URL`.
-3) Marca al menos **Production** (y si quieres también Preview).
-4) Redeploy (o “Redeploy” el último deployment) para que coja las variables.
+- If SMTP is not configured, the endpoint may still return OK but it won’t send emails.
+- In Vercel also set `SITE_URL` and `NEXTAUTH_URL` to your real domain.
 
-Notas:
+---
 
-- `SMTP_PORT=587` suele ser lo normal (STARTTLS). `SMTP_PORT=465` suele ser SSL directo.
-- En Vercel, pon `SMTP_FROM` **sin comillas**, por ejemplo: `Mi Servidor <no-reply@tudominio.com>`.
-- `SITE_URL` y `NEXTAUTH_URL` deberían ser tu dominio público (por ejemplo `https://tudominio.com`) y sin `/` al final.
+## 7) Payments (PayPal/Stripe)
 
-#### Ejemplos por proveedor (rápidos)
+Optional (if you use the store/checkout):
 
-- **Brevo (Sendinblue)**: `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, `SMTP_USER=tu-email`, `SMTP_PASS=tu-smtp-key`.
-- **SendGrid**: `SMTP_HOST=smtp.sendgrid.net`, `SMTP_PORT=587`, `SMTP_USER=apikey`, `SMTP_PASS=<TU_API_KEY>`.
-- **Mailgun**: `SMTP_HOST=smtp.mailgun.org`, `SMTP_PORT=587`, `SMTP_USER=postmaster@tu-dominio`, `SMTP_PASS=<password>`.
-- **Gmail/Google Workspace**: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587` (o `465`), `SMTP_USER=tu-email`, `SMTP_PASS=<app password>`.
+- PayPal: `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
+- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
 
-Entregabilidad (opcional pero recomendado): configura SPF/DKIM en tu dominio si el proveedor te lo ofrece.
+---
 
-### 4.4.2 Newsletter (semanal)
+## 8) Newsletter + Cron
 
-La newsletter se envía automáticamente por cron desde:
+The newsletter cron endpoint is:
 
 - `/api/cron/newsletter-weekly`
 
-Notas:
+Recommendation:
 
-- Requiere SMTP (sección anterior).
-- Asegúrate de tener `SITE_URL` configurado en producción para que el enlace de desuscripción funcione.
-- (Opcional) Puedes proteger endpoints de cron con `CRON_SECRET`.
+- Define `CRON_SECRET` for safe manual testing.
 
-#### Probar el cron manualmente
-
-Recomendado: define `CRON_SECRET` y prueba así:
+Example:
 
 ```bash
-curl -i "https://TU_DOMINIO/api/cron/newsletter-weekly?secret=TU_CRON_SECRET"
+curl -i "https://YOUR_DOMAIN/api/cron/newsletter-weekly?secret=YOUR_CRON_SECRET"
 ```
 
-Si NO defines `CRON_SECRET`, el endpoint solo acepta requests con `User-Agent: vercel-cron/1.0`.
-
-### 4.5 Worker de entregas (opcional)
-
-Si usas entregas automáticas in-game:
-
-- `DELIVERY_API_KEY` (secreto fuerte)
-- `DELIVERY_MAX_ATTEMPTS` (opcional)
-
-Arranque del worker:
-
-```bash
-npm run deliveries:worker
-```
 
 ---
 
-## 5) Comandos útiles
+## 9) SEO + Search Console
+
+Includes:
+
+- `GET /sitemap.xml`
+- `GET /robots.txt`
+- Canonical URLs + OpenGraph/Twitter
+- JSON-LD (Organization/WebSite + NewsArticle/DiscussionForumPosting)
+
+Recommended for production:
+
+1) `SITE_URL=https://www.999wrldnetwork.es`
+2) Verification:
+   - `GOOGLE_SITE_VERIFICATION`
+   - `BING_SITE_VERIFICATION`
+3) In Search Console: submit `https://www.999wrldnetwork.es/sitemap.xml`
+
+---
+
+## 10) Database (Compass)
+
+Recommended: **MongoDB Compass**
+
+1) Download: https://www.mongodb.com/try/download/compass
+2) Connect using your `MONGODB_URI`
+3) Inspect collections (`users`, `products`, `blogposts`, `forumposts`, ...)
+
+---
+
+## 11) Useful commands
 
 - Dev: `npm run dev`
 - Build: `npm run build`
-- Prod local: `npm run build && npm start`
+- Local prod: `npm run build && npm start`
 - Linter: `npm run lint`
 - Seed DB: `npm run init-db`
+- Project stats: `npm run stats`
 
----
+If something fails, check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
+Note: **HeidiSQL does not work with MongoDB** (it’s for SQL).
 
-## 6) Ver y gestionar la base de datos
-
-Recomendado: **MongoDB Compass**
-
-1) Descarga: https://www.mongodb.com/try/download/compass
-2) Conecta con tu `MONGODB_URI`.
-3) Explora colecciones (por ejemplo: `users`, `products`, `blogposts`, etc.).
-
-Nota: **HeidiSQL no funciona con MongoDB** (es para SQL).
-
----
-
-## 7) Troubleshooting
-
-### 7.1 MongoDB no conecta
-
-Revisa:
-
-- Password/usuario en `MONGODB_URI`.
-- Whitelist de IP en Atlas.
-- Que el cluster esté accesible y tu conexión estable.
-
-### 7.2 Login no funciona tras el seed
-
-1) Ejecuta `npm run init-db` de nuevo.
-2) Borra caché de Next: `rm -rf .next`
-3) Reinicia: `npm run dev`
-
-### 7.3 Error: "Cannot find module 'memory-pager'"
-
-```bash
-npm install memory-pager sparse-bitfield
-rm -rf .next
-npm run dev
-```
 

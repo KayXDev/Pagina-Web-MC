@@ -32,6 +32,7 @@ interface ForumPost {
   category: ForumCategory;
   authorId: string;
   authorUsername: string;
+  authorDisplayName?: string;
   authorAvatar?: string | null;
   authorVerified?: boolean;
   parentId?: string | null;
@@ -338,7 +339,12 @@ export default function ForoPage() {
                   <div className="lg:col-span-12 flex items-center gap-3 pb-1">
                     <div className="h-10 w-10 rounded-full bg-gray-200/60 dark:bg-white/10 shrink-0" />
                     <div className="min-w-0">
-                      <div className="text-sm text-gray-900 dark:text-white font-semibold truncate">{session?.user?.name}</div>
+                      <div className="text-sm text-gray-900 dark:text-white font-semibold truncate">
+                        {String((session?.user as any)?.displayName || '').trim() || String((session?.user as any)?.username || session?.user?.name || '').trim()}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                        @{String((session?.user as any)?.username || session?.user?.name || '').trim()}
+                      </div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'forum.contentPlaceholder')}</div>
                     </div>
                   </div>
@@ -498,6 +504,8 @@ export default function ForoPage() {
                 {filtered.map((post) => {
                   const mediaUrls = Array.isArray(post.media) ? post.media : [];
                   const initial = (post.authorUsername || '?').slice(0, 1).toUpperCase();
+                  const authorDisplayName = String(post.authorDisplayName || '').trim();
+                  const authorTitle = authorDisplayName || post.authorUsername;
 
                   return (
                     <Card
@@ -532,12 +540,13 @@ export default function ForoPage() {
                               onClick={() => router.push(`/perfil/${encodeURIComponent(post.authorUsername)}`)}
                             >
                               <span className="inline-flex items-center gap-1">
-                                {post.authorUsername}
+                                {authorTitle}
                                 {post.authorVerified ? (
                                   <FaCheckCircle className="text-blue-400 shrink-0 text-sm relative top-px" title="Verificado" />
                                 ) : null}
                               </span>
                             </button>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">@{post.authorUsername}</span>
                             <span className="text-gray-500">•</span>
                             <span className="text-gray-600 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
                             <span className="ml-auto" />

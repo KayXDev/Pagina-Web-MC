@@ -81,16 +81,17 @@ export async function GET(request: Request) {
     }));
 
     const authors = authorQueries.length
-      ? await User.find({ $or: authorQueries }).select('username avatar verified').lean()
+      ? await User.find({ $or: authorQueries }).select('username displayName avatar verified').lean()
       : [];
 
-    const authorByUsernameLower = new Map<string, { avatar: string | null; verified: boolean }>();
+    const authorByUsernameLower = new Map<string, { avatar: string | null; verified: boolean; displayName: string }>();
     for (const a of authors as any[]) {
       const uname = typeof a?.username === 'string' ? a.username : '';
       if (!uname) continue;
       authorByUsernameLower.set(uname.toLowerCase(), {
         avatar: typeof a?.avatar === 'string' ? a.avatar : null,
         verified: Boolean(a?.verified),
+        displayName: typeof (a as any)?.displayName === 'string' ? String((a as any).displayName || '') : '',
       });
     }
 
@@ -101,6 +102,7 @@ export async function GET(request: Request) {
         ...p,
         authorAvatar: meta?.avatar || null,
         authorVerified: Boolean(meta?.verified),
+        authorDisplayName: String(meta?.displayName || ''),
       };
     });
 

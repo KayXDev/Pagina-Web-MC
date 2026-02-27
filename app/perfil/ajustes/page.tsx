@@ -22,6 +22,9 @@ export default function PerfilAjustesPage() {
   const [username, setUsername] = useState('');
   const [savingUsername, setSavingUsername] = useState(false);
 
+  const [displayName, setDisplayName] = useState('');
+  const [savingDisplayName, setSavingDisplayName] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,8 +53,17 @@ export default function PerfilAjustesPage() {
   }, [minecraftAvatarPrimary]);
 
   useEffect(() => {
-    if (session?.user?.name) setUsername(session.user.name);
-  }, [session?.user?.name]);
+    const handle = String((session?.user as any)?.username || session?.user?.name || '').trim();
+    if (handle) setUsername(handle);
+
+    const dn = typeof (session?.user as any)?.displayName === 'string' ? String((session.user as any).displayName).trim() : '';
+    if (dn && !displayName) setDisplayName(dn);
+  }, [session?.user, displayName]);
+
+  useEffect(() => {
+    const dn = typeof (details as any)?.displayName === 'string' ? String((details as any).displayName).trim() : '';
+    if (dn && !displayName) setDisplayName(dn);
+  }, [details, displayName]);
 
   useEffect(() => {
     const linkedUsername = String((details as any)?.minecraftUsername || '');
@@ -181,7 +193,7 @@ export default function PerfilAjustesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-6">
       <Card hover={false}>
         <div className="text-white font-semibold">{t(lang, 'profile.nav.settings')}</div>
         <div className="text-sm text-gray-400 mt-1">Actualiza tu cuenta y seguridad</div>
@@ -467,7 +479,8 @@ export default function PerfilAjustesPage() {
                   const data = await response.json().catch(() => ({}));
                   if (!response.ok) throw new Error((data as any).error || t(lang, 'profile.usernameUpdateError'));
 
-                  await update({ name: (data as any).username || next });
+                  const saved = String((data as any).username || next);
+                  await update({ name: saved, username: saved } as any);
                   await refresh();
                   toast.success(t(lang, 'profile.usernameUpdated'));
                 } catch (err: any) {
@@ -478,6 +491,54 @@ export default function PerfilAjustesPage() {
               }}
             >
               {savingUsername ? t(lang, 'profile.saving') : t(lang, 'profile.saveUsername')}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <Card hover={false}>
+        <div className="text-white font-semibold mb-4">{lang === 'es' ? 'Nombre visible' : 'Display name'}</div>
+        <div className="space-y-3">
+          <div className="text-sm text-gray-400">
+            {lang === 'es'
+              ? 'Este es el nombre que se mostrará junto a tu @username.'
+              : 'This name is shown next to your @username.'}
+          </div>
+          <Input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={40}
+            placeholder={lang === 'es' ? 'Ej: Juan Pérez' : 'e.g. John Doe'}
+          />
+          <div>
+            <Button
+              disabled={savingDisplayName}
+              onClick={async () => {
+                const next = displayName.trim();
+
+                setSavingDisplayName(true);
+                try {
+                  const response = await fetch('/api/profile', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: next }),
+                  });
+                  const data = await response.json().catch(() => ({}));
+                  if (!response.ok) throw new Error((data as any).error || 'Error');
+
+                  const saved = String((data as any).displayName || next);
+                  await update({ displayName: saved } as any);
+                  await refresh();
+                  toast.success(lang === 'es' ? 'Nombre actualizado' : 'Name updated');
+                } catch (err: any) {
+                  toast.error(err?.message || 'Error');
+                } finally {
+                  setSavingDisplayName(false);
+                }
+              }}
+            >
+              {savingDisplayName ? t(lang, 'profile.saving') : lang === 'es' ? 'Guardar nombre' : 'Save name'}
             </Button>
           </div>
         </div>

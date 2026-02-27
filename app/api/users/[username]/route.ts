@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: { username: s
     const user = await User.findOne({
       username: { $regex: new RegExp(`^${escapeRegex(usernameParam)}$`, 'i') },
     })
-      .select('_id username role tags avatar banner verified createdAt')
+      .select('_id username displayName role tags avatar banner verified createdAt')
       .lean();
 
     if (!user) {
@@ -41,6 +41,7 @@ export async function GET(_request: Request, { params }: { params: { username: s
     return NextResponse.json({
       id: userId,
       username: user.username,
+      displayName: String((user as any).displayName || ''),
       role: user.role,
       tags: Array.isArray((user as any).tags) ? ((user as any).tags as string[]) : [],
       avatar: (user as any).avatar || '',

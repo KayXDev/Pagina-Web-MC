@@ -397,7 +397,11 @@ const Navbar = () => {
                         className="block px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:bg-white/10 flex items-center space-x-3"
                       >
                         <FaUser />
-                        <span className="truncate">{session.user.name}</span>
+                        <div className="min-w-0">
+                          <div className="truncate text-white">
+                            {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
+                          </div>
+                        </div>
                       </Link>
 
                       <button
@@ -596,7 +600,11 @@ const Navbar = () => {
                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white transition-all duration-200 flex items-center space-x-2"
                   >
                     <FaUser />
-                    <span>{session.user.name}</span>
+                    <div className="min-w-0 leading-tight">
+                      <div className="truncate">
+                        {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
+                      </div>
+                    </div>
                   </Link>
                   <button
                     onClick={() => signOut()}

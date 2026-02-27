@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 export type ProfileDetails = {
   id: string;
   username: string;
+  displayName?: string;
   email: string;
   role: string;
   tags: string[];
