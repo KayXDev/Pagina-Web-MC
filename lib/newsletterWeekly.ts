@@ -430,3 +430,76 @@ export async function sendWeeklyNewsletter() {
 
   return { sent, subscribers: subscribers.length, nowIso };
 }
+
+export async function sendWeeklyNewsletterTest(toRaw: string) {
+  await dbConnect();
+
+  const to = String(toRaw || '').trim().toLowerCase();
+  if (!to) throw new Error('Missing recipient');
+
+  const siteName = String(process.env.SITE_NAME || '999Wrld Network').trim();
+  const baseUrl = baseUrlFromEnv();
+  const serverAddress = getServerAddress();
+
+  const iconAttachment = await getNewsletterIconAttachment();
+  const bannerUrl = iconAttachment ? `cid:${iconAttachment.cid}` : (baseUrl ? `${baseUrl}/icon.png` : '');
+
+  const eventUrl = String(process.env.NEWSLETTER_EVENT_URL || '').trim() || (baseUrl ? `${baseUrl}/noticias` : '');
+  const shopUrl = baseUrl ? `${baseUrl}/tienda` : '';
+
+  const discordUrl = String(process.env.NEXT_PUBLIC_DISCORD_URL || '').trim();
+  const youtubeUrl = String(process.env.NEXT_PUBLIC_YOUTUBE_URL || '').trim();
+  const third = pickThirdSocial();
+
+  const latestPosts = await BlogPost.find({ isPublished: true })
+    .sort({ publishedAt: -1, createdAt: -1 })
+    .limit(3)
+    .select('title slug excerpt publishedAt')
+    .lean();
+
+  const nowIso = new Date().toISOString();
+  const postsText = buildPostsText(latestPosts as any[], baseUrl);
+
+  const subLang: Lang = 'en';
+  const c = copyForNewsletter(subLang);
+  const newsListHtml = buildPostsHtmlForLang(subLang, latestPosts as any[], baseUrl);
+
+  const token = createUnsubscribeToken(to);
+  const unsubscribeUrl = baseUrl ? `${baseUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}` : '';
+
+  const subject = `TEST • ${c.subject(siteName)}`;
+  const text = [
+    `Hello ${to}!`,
+    '',
+    c.textIntro(siteName),
+    '',
+    postsText || (latestPosts.length ? '' : c.textNoNews),
+    '',
+    unsubscribeUrl ? `${c.textUnsub} ${unsubscribeUrl}` : '',
+    '',
+    `${c.textSent} ${nowIso}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const html = buildNewsletterHtml({
+    lang: subLang,
+    siteName,
+    email: to,
+    nowIso,
+    newsListHtml,
+    bannerUrl,
+    eventUrl,
+    shopUrl,
+    serverAddress,
+    discordUrl,
+    youtubeUrl,
+    thirdSocialLabel: third.label,
+    thirdSocialUrl: third.url,
+    unsubscribeUrl,
+  });
+
+  await sendMail({ to, subject, text, html, attachments: iconAttachment ? [iconAttachment] : undefined });
+
+  return { sent: 1, to, nowIso };
+}
