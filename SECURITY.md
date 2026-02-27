@@ -95,5 +95,5 @@ Nos comprometemos a:
 
 - Confirmar recepción en **72h**
 - Primera evaluación en **7 días**
-
 Por favor, no publiques la vulnerabilidad hasta que exista un parche o mitigación.
+

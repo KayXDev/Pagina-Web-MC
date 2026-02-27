@@ -86,7 +86,7 @@ export async function PATCH(request: Request) {
     
     await dbConnect();
     
-    const product = await Product.findByIdAndUpdate(productId, updates, { new: true });
+    const product = await Product.findByIdAndUpdate(productId, updates, { returnDocument: 'after' });
     
     if (!product) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });

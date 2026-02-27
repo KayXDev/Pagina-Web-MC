@@ -42,7 +42,7 @@ export async function PATCH(request: Request) {
     
     await dbConnect();
     
-    const ticket = await Ticket.findByIdAndUpdate(ticketId, updates, { new: true });
+    const ticket = await Ticket.findByIdAndUpdate(ticketId, updates, { returnDocument: 'after' });
     
     if (!ticket) {
       return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });

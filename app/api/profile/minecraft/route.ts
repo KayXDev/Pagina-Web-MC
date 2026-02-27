@@ -44,7 +44,7 @@ export async function PATCH(request: Request) {
       const updated = await User.findByIdAndUpdate(
         currentUser.id,
         { $set: { minecraftUsername: '', minecraftUuid: '', minecraftLinkedAt: null } },
-        { new: true }
+        { returnDocument: 'after' }
       ).select('_id minecraftUsername minecraftUuid minecraftLinkedAt');
 
       return NextResponse.json({
@@ -85,7 +85,7 @@ export async function PATCH(request: Request) {
           minecraftLinkedAt: new Date(),
         },
       },
-      { new: true }
+      { returnDocument: 'after' }
     ).select('_id minecraftUsername minecraftUuid minecraftLinkedAt');
 
     if (!updated) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });

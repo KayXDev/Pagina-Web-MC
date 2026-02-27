@@ -9,7 +9,7 @@ export async function POST(_request: Request, { params }: { params: { id: string
     const updated = await ForumPost.findByIdAndUpdate(
       params.id,
       { $inc: { views: 1 } },
-      { new: true }
+      { returnDocument: 'after' }
     ).select('views');
 
     if (!updated) {

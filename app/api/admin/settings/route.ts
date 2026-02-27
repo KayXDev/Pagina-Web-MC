@@ -103,7 +103,7 @@ export async function PATCH(request: Request) {
       Settings.findOneAndUpdate(
         { key },
         { key, value: String(value), updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       )
     );
     

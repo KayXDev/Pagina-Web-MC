@@ -6,6 +6,7 @@ import { sendServicesStatusReport } from '@/lib/servicesStatusReport';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const runtime = 'nodejs';
 
 function getRequestIp(request: Request) {
   const xff = request.headers.get('x-forwarded-for');
@@ -20,18 +21,16 @@ function parseIntervalMinutes(raw: string): number {
 }
 
 function isAuthorizedCronRequest(request: Request) {
-  const secret = String(process.env.CRON_SECRET || '').trim();
-
-  if (secret) {
-    const headerSecret = String(request.headers.get('x-cron-secret') || '').trim();
-    const url = new URL(request.url);
-    const querySecret = String(url.searchParams.get('secret') || '').trim();
-    return headerSecret === secret || querySecret === secret;
-  }
-
-  // Fallback for Vercel Cron when CRON_SECRET isn't configured.
   const ua = String(request.headers.get('user-agent') || '');
-  return ua.includes('vercel-cron/1.0');
+  if (ua.includes('vercel-cron/1.0')) return true;
+
+  const secret = String(process.env.CRON_SECRET || '').trim();
+  if (!secret) return false;
+
+  const headerSecret = String(request.headers.get('x-cron-secret') || '').trim();
+  const url = new URL(request.url);
+  const querySecret = String(url.searchParams.get('secret') || '').trim();
+  return headerSecret === secret || querySecret === secret;
 }
 
 export async function GET(request: Request) {
@@ -117,7 +116,7 @@ export async function GET(request: Request) {
     await Settings.findOneAndUpdate(
       { key: 'services_status_last_sent_at' },
       { key: 'services_status_last_sent_at', value: report.nowIso, updatedAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     await AdminLog.create({

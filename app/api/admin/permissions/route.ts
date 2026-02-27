@@ -57,7 +57,7 @@ export async function PATCH(request: Request) {
           adminSectionsConfigured: configured,
         },
       },
-      { new: true }
+      { returnDocument: 'after' }
     )
       .select('username adminSections adminSectionsConfigured')
       .lean();

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     await Settings.findOneAndUpdate(
       { key: 'newsletter_last_sent_at' },
       { key: 'newsletter_last_sent_at', value: result.nowIso, updatedAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     await AdminLog.create({

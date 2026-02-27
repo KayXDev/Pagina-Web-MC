@@ -33,7 +33,7 @@ export async function GET(request: Request) {
         },
         $inc: { attempts: 1 },
       },
-      { sort: { createdAt: 1 }, new: true }
+      { sort: { createdAt: 1 }, returnDocument: 'after' }
     ).lean();
 
     if (!delivery) {

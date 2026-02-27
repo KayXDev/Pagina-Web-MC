@@ -14,7 +14,7 @@ export async function GET(
     const post = await BlogPost.findOneAndUpdate(
       { slug: params.slug, isPublished: true },
       { $inc: { views: 1 } },
-      { new: true }
+      { returnDocument: 'after' }
     ).select('-likedBy');
     
     if (!post) {

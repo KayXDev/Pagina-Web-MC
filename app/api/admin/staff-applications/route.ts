@@ -53,7 +53,7 @@ export async function PATCH(request: Request) {
     const updated = await StaffApplication.findByIdAndUpdate(
       id,
       { $set: { status } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
 
     if (!updated) {

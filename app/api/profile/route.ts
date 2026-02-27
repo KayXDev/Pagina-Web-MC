@@ -141,7 +141,7 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const updated = await User.findByIdAndUpdate(currentUser.id, updates, { new: true, runValidators: true }).select(
+    const updated = await User.findByIdAndUpdate(currentUser.id, updates, { returnDocument: 'after', runValidators: true }).select(
       '_id username avatar banner verified'
     );
 

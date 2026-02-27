@@ -48,7 +48,7 @@ export async function PATCH(request: Request) {
     await Settings.findOneAndUpdate(
       { key: SETTINGS_KEY },
       { key: SETTINGS_KEY, value: trimmed, updatedAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     await AdminLog.create({

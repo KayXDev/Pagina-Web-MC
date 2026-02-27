@@ -109,7 +109,7 @@ export async function PATCH(request: Request) {
     const before = await BlogPost.findById(postId).select('isPublished slug title').lean();
     const wasPublished = Boolean((before as any)?.isPublished);
     
-    const post = await BlogPost.findByIdAndUpdate(postId, updates, { new: true });
+    const post = await BlogPost.findByIdAndUpdate(postId, updates, { returnDocument: 'after' });
     
     if (!post) {
       return NextResponse.json({ error: 'Post no encontrado' }, { status: 404 });

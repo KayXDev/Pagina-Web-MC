@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     await Settings.findOneAndUpdate(
       { key: 'services_status_last_sent_at' },
       { key: 'services_status_last_sent_at', value: report.nowIso, updatedAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     await AdminLog.create({

@@ -22,6 +22,7 @@ Full website for a Minecraft server with a **community / social network** style:
 - [🤖 Chatbot (AI + Human Agent)](#-chatbot-ai--human-agent)
 - [🧯 Troubleshooting](#-troubleshooting)
 - [🔒 Security](#-security)
+- [📝 Changelog](#-changelog)
 
 ---
 
@@ -274,3 +275,10 @@ Additional documentation:
 
 - Do NOT upload `.env` to the repository.
 - If a secret leaks, rotate credentials immediately.
+- Vulnerability reporting: see `SECURITY.md`.
+
+---
+
+## 📝 Changelog
+
+- See `CHANGELOG.md`.

@@ -44,17 +44,16 @@ function getRequestIp(request: Request) {
 }
 
 function isAuthorizedCronRequest(request: Request) {
-  const secret = String(process.env.CRON_SECRET || '').trim();
-
-  if (secret) {
-    const headerSecret = String(request.headers.get('x-cron-secret') || '').trim();
-    const url = new URL(request.url);
-    const querySecret = String(url.searchParams.get('secret') || '').trim();
-    return headerSecret === secret || querySecret === secret;
-  }
-
   const ua = String(request.headers.get('user-agent') || '');
-  return ua.includes('vercel-cron/1.0');
+  if (ua.includes('vercel-cron/1.0')) return true;
+
+  const secret = String(process.env.CRON_SECRET || '').trim();
+  if (!secret) return false;
+
+  const headerSecret = String(request.headers.get('x-cron-secret') || '').trim();
+  const url = new URL(request.url);
+  const querySecret = String(url.searchParams.get('secret') || '').trim();
+  return headerSecret === secret || querySecret === secret;
 }
 
 export async function GET(request: Request) {
@@ -173,12 +172,12 @@ export async function GET(request: Request) {
       Settings.findOneAndUpdate(
         { key: 'newsletter_last_sent_at' },
         { key: 'newsletter_last_sent_at', value: result.nowIso, updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
       Settings.findOneAndUpdate(
         { key: 'newsletter_last_auto_scheduled_at' },
         { key: 'newsletter_last_auto_scheduled_at', value: scheduledSlotIso, updatedAt: new Date() },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
     ]);
 

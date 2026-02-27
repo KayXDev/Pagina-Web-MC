@@ -40,7 +40,7 @@ export async function POST(_request: Request, { params }: { params: { id: string
       ? { $pull: { likedBy: user.id }, $inc: { likesCount: -1 } }
       : { $addToSet: { likedBy: user.id }, $inc: { likesCount: 1 } };
 
-    const updated = await ForumPost.findByIdAndUpdate(params.id, update, { new: true }).select(
+    const updated = await ForumPost.findByIdAndUpdate(params.id, update, { returnDocument: 'after' }).select(
       'likesCount likedBy'
     );
 

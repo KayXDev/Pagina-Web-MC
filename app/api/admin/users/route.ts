@@ -176,7 +176,7 @@ export async function PATCH(request: Request) {
       sanitizedUpdates.isBanned = Boolean(sanitizedUpdates.isBanned);
     }
     
-    const user = await User.findByIdAndUpdate(userId, sanitizedUpdates, { new: true, runValidators: true })
+    const user = await User.findByIdAndUpdate(userId, sanitizedUpdates, { returnDocument: 'after', runValidators: true })
       .select('-password');
 
     if (!user) {

@@ -48,7 +48,7 @@ export async function PUT(request: Request) {
     await ShopCart.findOneAndUpdate(
       { userId: user.id },
       { $set: { userId: user.id, items } },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     return NextResponse.json({ ok: true, items });
