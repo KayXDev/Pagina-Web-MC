@@ -563,7 +563,7 @@ export default function CartPage() {
                       variant="secondary"
                       disabled={checkingMinecraft}
                       onClick={verifyMinecraft}
-                      className="w-full whitespace-nowrap"
+                      className="w-full"
                     >
                       <span>{verifyLabel}</span>
                     </Button>
@@ -583,7 +583,7 @@ export default function CartPage() {
                   <Button
                     onClick={checkoutStripeSession}
                     disabled={checkingOutStripe || savingCart || checkingOut || !minecraftUuid}
-                    className="w-full justify-center whitespace-nowrap"
+                    className="w-full justify-center text-center flex-wrap leading-tight"
                   >
                     <FaCreditCard />
                     <span>{stripeCheckoutLabel}</span>
@@ -593,7 +593,7 @@ export default function CartPage() {
                     onClick={checkout}
                     variant="secondary"
                     disabled={checkingOut || savingCart || checkingOutStripe || !minecraftUuid}
-                    className="w-full justify-center whitespace-nowrap"
+                    className="w-full justify-center text-center flex-wrap leading-tight"
                   >
                     <FaShoppingCart />
                     <span>{checkoutLabel}</span>
