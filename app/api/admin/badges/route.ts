@@ -4,6 +4,9 @@ import dbConnect from '@/lib/mongodb';
 import AdminLog from '@/models/AdminLog';
 import Badge from '@/models/Badge';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function getRequestIp(request: Request) {
   const xff = request.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0].trim();
@@ -50,7 +53,11 @@ export async function GET() {
     }
 
     const items = await Badge.find().sort({ createdAt: -1 }).lean();
-    return NextResponse.json(items);
+    return NextResponse.json(items, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
   } catch (error: any) {
     if (error.message === 'Unauthorized' || error.message === 'Forbidden: Admin access required') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
