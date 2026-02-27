@@ -9,6 +9,7 @@ import { FaArrowLeft, FaCheckCircle, FaUser } from 'react-icons/fa';
 import { Badge, Button } from '@/components/ui';
 import { type Lang, t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { formatSocialCount } from '@/lib/utils';
 import { PublicProfileProvider, usePublicProfile } from './public-profile-context';
 import { toast } from 'react-toastify';
 
@@ -52,24 +53,13 @@ function normalizeBadgeId(value: string) {
     .replace(/-+/g, '_');
 }
 
-function getBadgeMeta(
-  id: string,
-  lang: Lang
-): { label: string; src: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' } | null {
-  const badgeId = normalizeBadgeId(id);
-  switch (badgeId) {
-    case 'partner':
-      return { label: t(lang, 'profile.badges.partner'), src: '/badges/partner.png', variant: 'info' };
-    case 'active_developer':
-      return { label: t(lang, 'profile.badges.activeDeveloper'), src: '/badges/active_developer.png', variant: 'success' };
-    case 'bug_hunter':
-      return { label: t(lang, 'profile.badges.bugHunter'), src: '/badges/bug_hunter.png', variant: 'warning' };
-    case 'staff':
-      return { label: t(lang, 'profile.badges.staff'), src: '/badges/staff.png', variant: 'default' };
-    default:
-      return null;
-  }
-}
+type PublicBadgeItem = {
+  slug: string;
+  labelEs?: string;
+  labelEn?: string;
+  icon: string;
+  enabled: boolean;
+};
 
 function InnerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -79,6 +69,16 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const lang = useClientLang();
   const [followLoading, setFollowLoading] = useState(false);
 
+  const [badgeCatalog, setBadgeCatalog] = useState<PublicBadgeItem[]>([]);
+  const badgeBySlug = useMemo(() => {
+    const m = new Map<string, PublicBadgeItem>();
+    for (const b of badgeCatalog) {
+      const key = normalizeBadgeId(b.slug);
+      if (key) m.set(key, b);
+    }
+    return m;
+  }, [badgeCatalog]);
+
   const tabs = useMemo(
     () => [
       { href: `/perfil/${encodeURIComponent(usernameParam)}`, label: t(lang, 'profile.nav.overview') },
@@ -86,6 +86,35 @@ function InnerShell({ children }: { children: React.ReactNode }) {
     ],
     [lang, usernameParam]
   );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/badges', { cache: 'no-store' });
+        const data = await res.json().catch(() => ([]));
+        if (!res.ok) return;
+        setBadgeCatalog(Array.isArray(data) ? (data as PublicBadgeItem[]) : []);
+      } catch {
+        // ignore
+      }
+    })();
+  }, []);
+
+  const getLegacyBadgeMeta = (id: string) => {
+    const badgeId = normalizeBadgeId(id);
+    switch (badgeId) {
+      case 'partner':
+        return { label: t(lang, 'profile.badges.partner'), icon: '/badges/partner.png' };
+      case 'active_developer':
+        return { label: t(lang, 'profile.badges.activeDeveloper'), icon: '/badges/active_developer.png' };
+      case 'bug_hunter':
+        return { label: t(lang, 'profile.badges.bugHunter'), icon: '/badges/bug_hunter.png' };
+      case 'staff':
+        return { label: t(lang, 'profile.badges.staff'), icon: '/badges/staff.png' };
+      default:
+        return null;
+    }
+  };
 
   const toggleFollow = async () => {
     if (!profile) return;
@@ -205,20 +234,28 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                   {verified ? (
                     <FaCheckCircle className="text-blue-400 shrink-0 text-lg relative top-px" title="Verificado" />
                   ) : null}
+                  <span className="inline-flex items-center gap-1">
+                    {badges.map((badgeId) => {
+                      const id = normalizeBadgeId(badgeId);
+                      const fromDb = badgeBySlug.get(id);
+                      const label = fromDb ? ((lang === 'es' ? fromDb.labelEs : fromDb.labelEn) || fromDb.slug) : null;
+                      const icon = fromDb?.icon || null;
+                      const legacy = !fromDb ? getLegacyBadgeMeta(id) : null;
+                      const finalLabel = label || legacy?.label;
+                      const finalIcon = icon || legacy?.icon;
+                      if (!finalLabel || !finalIcon) return null;
+                      return (
+                        <span key={badgeId} title={finalLabel} className="inline-flex items-center justify-center">
+                          <img src={finalIcon} alt={finalLabel} width={16} height={16} className="shrink-0" />
+                          <span className="sr-only">{finalLabel}</span>
+                        </span>
+                      );
+                    })}
+                  </span>
                 </div>
                 <div className="mt-1 text-sm text-gray-300 truncate">@{profile.username}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(profile.role, lang)}
-                  {badges.map((badgeId) => {
-                    const meta = getBadgeMeta(badgeId, lang);
-                    if (!meta) return null;
-                    return (
-                      <span key={badgeId} title={meta.label} className="inline-flex items-center justify-center">
-                        <Image src={meta.src} alt={meta.label} width={16} height={16} className="shrink-0" />
-                        <span className="sr-only">{meta.label}</span>
-                      </span>
-                    );
-                  })}
                   {tags.map((tag) => (
                     <Badge key={tag} variant={getTagVariant(tag)}>
                       {tag}
@@ -230,11 +267,15 @@ function InnerShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-3">
                 <div className="rounded-lg border border-gray-800 bg-gray-900/30 px-4 py-2">
                   <div className="text-xs text-gray-400">{t(lang, 'profile.followers')}</div>
-                  <div className="text-white font-bold text-lg">{profile.followersCount ?? 0}</div>
+                  <div className="text-white font-bold text-lg">
+                    {formatSocialCount(Number(profile.followersCount ?? 0), lang === 'es' ? 'es-ES' : 'en-US')}
+                  </div>
                 </div>
                 <div className="rounded-lg border border-gray-800 bg-gray-900/30 px-4 py-2">
                   <div className="text-xs text-gray-400">{t(lang, 'profile.following')}</div>
-                  <div className="text-white font-bold text-lg">{profile.followingCount ?? 0}</div>
+                  <div className="text-white font-bold text-lg">
+                    {formatSocialCount(Number(profile.followingCount ?? 0), lang === 'es' ? 'es-ES' : 'en-US')}
+                  </div>
                 </div>
               </div>
             </div>

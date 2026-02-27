@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import './globals.css';
 import CookieConsent from '@/components/CookieConsent';
 import ChatbotWidget from '@/components/ChatbotWidget';
-import FloatingThemeToggle from '@/components/FloatingThemeToggle';
 import RootShell from '@/components/RootShell';
 import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
@@ -120,7 +119,6 @@ export default function RootLayout({
         <Providers initialLang={lang}>
           <RootShell>{children}</RootShell>
           <CookieConsent />
-          <FloatingThemeToggle />
           <ChatbotWidget />
           <ToastContainer
             position="top-right"

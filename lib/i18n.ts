@@ -476,6 +476,7 @@ const DICT = {
       menu: {
         dashboard: 'Dashboard',
         users: 'Usuarios',
+        badges: 'Badges',
         products: 'Productos',
         tickets: 'Tickets',
         forum: 'Foro',
@@ -1444,6 +1445,7 @@ const DICT = {
       menu: {
         dashboard: 'Dashboard',
         users: 'Users',
+        badges: 'Badges',
         products: 'Products',
         tickets: 'Tickets',
         forum: 'Forum',

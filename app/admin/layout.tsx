@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import {
+  FaAward,
   FaBars,
   FaClipboardList,
   FaCog,
@@ -59,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }> = [
     { key: 'dashboard', name: t(lang, 'admin.menu.dashboard'), href: '/admin', icon: FaHome, group: 'main' },
     { key: 'users', name: t(lang, 'admin.menu.users'), href: '/admin/users', icon: FaUsers, group: 'main' },
+    { key: 'badges', name: t(lang, 'admin.menu.badges'), href: '/admin/badges', icon: FaAward, group: 'main' },
     { key: 'products', name: t(lang, 'admin.menu.products'), href: '/admin/products', icon: FaShoppingCart, group: 'main' },
     { key: 'tickets', name: t(lang, 'admin.menu.tickets'), href: '/admin/tickets', icon: FaTicketAlt, group: 'main' },
     { key: 'applications', name: t(lang, 'admin.menu.applications'), href: '/admin/postulaciones', icon: FaClipboardList, group: 'main' },

@@ -75,8 +75,6 @@ export default function PerfilAjustesPage() {
 
   if (status !== 'authenticated' || !session) return null;
 
-  const balance = Number((details as any)?.balance ?? (session?.user as any)?.balance ?? 0);
-
   const checkMinecraft = async () => {
     const username = minecraftUsernameInput.trim();
     if (!username) {
@@ -543,15 +541,6 @@ export default function PerfilAjustesPage() {
             >
               {savingDisplayName ? t(lang, 'profile.saving') : lang === 'es' ? 'Guardar nombre' : 'Save name'}
             </Button>
-          </div>
-        </div>
-      </Card>
-
-      <Card hover={false}>
-        <div className="text-white font-semibold mb-4">{lang === 'es' ? 'Saldo' : 'Balance'}</div>
-        <div className="space-y-3">
-          <div className="text-sm text-gray-400">
-            {lang === 'es' ? 'Tu saldo actual:' : 'Your current balance:'} <span className="text-white font-semibold">{balance}</span>
           </div>
         </div>
       </Card>

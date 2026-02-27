@@ -3,6 +3,7 @@ import { requireAdmin, requireOwner } from '@/lib/session';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import AdminLog from '@/models/AdminLog';
+import Badge from '@/models/Badge';
 import bcrypt from 'bcryptjs';
 
 function getRequestIp(request: Request) {
@@ -156,7 +157,6 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
       }
 
-      const allowed = new Set(['partner', 'active_developer', 'bug_hunter', 'staff']);
       const incoming = sanitizedUpdates.badges;
       const list = Array.isArray(incoming)
         ? incoming
@@ -168,10 +168,19 @@ export async function PATCH(request: Request) {
         .map((b) => (typeof b === 'string' ? b.trim() : ''))
         .filter(Boolean)
         .map((b) => b.toLowerCase().replace(/\s+/g, '_').replace(/-+/g, '_'))
-        .filter((b) => allowed.has(b))
         .slice(0, 10);
 
-      sanitizedUpdates.badges = Array.from(new Set(cleaned));
+      const unique = Array.from(new Set(cleaned));
+      if (unique.length === 0) {
+        sanitizedUpdates.badges = [];
+      } else {
+        const existingBadges = await Badge.find({ slug: { $in: unique }, enabled: true })
+          .select('slug')
+          .lean();
+
+        const allowedSlugs = new Set(existingBadges.map((b: any) => String(b.slug)));
+        sanitizedUpdates.badges = unique.filter((s) => allowedSlugs.has(s)).slice(0, 10);
+      }
     }
 
     if (typeof sanitizedUpdates.username !== 'undefined') {

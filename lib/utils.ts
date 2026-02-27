@@ -54,6 +54,58 @@ export function formatPrice(price: number, locale: string = 'es-ES', currency: s
   }).format(price);
 }
 
+export function formatSocialCount(value: number, locale: string = 'es-ES'): string {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return '0';
+
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(Math.trunc(n));
+  const fmtInt = (num: number) => new Intl.NumberFormat(locale).format(num);
+
+  // Only compact once we hit 10,000 (10k)
+  if (abs < 10_000) return sign + fmtInt(abs);
+
+  // Rules:
+  // - 10,000..99,999 => 1 decimal (17.6k)
+  // - 100,000..999,999 => 0 decimals (176k)
+  // - 1,000,000..9,999,999 => 1 decimal (1.2M)
+  // - >= 10,000,000 => 0 decimals (12M)
+  // Same logic applies for billions.
+  const formatScaled = (scaled: number, decimals: number, suffix: string) => {
+    const rounded = Number(scaled.toFixed(decimals));
+    const text = rounded.toFixed(decimals).replace(/\.0$/, '');
+    return { rounded, text: `${sign}${text}${suffix}` };
+  };
+
+  if (abs >= 1_000_000_000) {
+    const scaled = abs / 1_000_000_000;
+    const decimals = abs < 10_000_000_000 ? 1 : 0;
+    const out = formatScaled(scaled, decimals, 'B');
+    return out.text;
+  }
+
+  if (abs >= 1_000_000) {
+    const scaled = abs / 1_000_000;
+    const decimals = abs < 10_000_000 ? 1 : 0;
+    const out = formatScaled(scaled, decimals, 'M');
+    if (out.rounded >= 1000) {
+      const bump = formatScaled(abs / 1_000_000_000, 1, 'B');
+      return bump.text;
+    }
+    return out.text;
+  }
+
+  // abs >= 10k here
+  const scaled = abs / 1_000;
+  const decimals = abs < 100_000 ? 1 : 0;
+  const out = formatScaled(scaled, decimals, 'k');
+  if (out.rounded >= 1000) {
+    const bump = formatScaled(abs / 1_000_000, 1, 'M');
+    return bump.text;
+  }
+  return out.text;
+}
+
 export function slugify(text: string): string {
   return text
     .toString()

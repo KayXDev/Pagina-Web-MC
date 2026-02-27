@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import ThemeToggle from '@/components/ThemeToggle';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { formatPrice } from '@/lib/utils';
@@ -28,7 +29,6 @@ import {
   FaTimes,
   FaCog,
   FaTrash,
-  FaCoins
 } from 'react-icons/fa';
 
 const Navbar = () => {
@@ -44,12 +44,6 @@ const Navbar = () => {
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifItems, setNotifItems] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement | null>(null);
-
-  const balance = Number((session?.user as any)?.balance || 0);
-
-  const [balanceOpenDesktop, setBalanceOpenDesktop] = useState(false);
-  const [balanceOpenMobile, setBalanceOpenMobile] = useState(false);
-  const balanceRef = useRef<HTMLDivElement | null>(null);
 
   type CartItem = { productId: string; quantity: number };
   type Product = { _id: string; name: string; price: number; image?: string };
@@ -68,8 +62,6 @@ const Navbar = () => {
   useEffect(() => {
     setNotifOpenDesktop(false);
     setNotifOpenMobile(false);
-    setBalanceOpenDesktop(false);
-    setBalanceOpenMobile(false);
     setCartOpenDesktop(false);
     setCartOpenMobile(false);
     setIsOpen(false);
@@ -81,10 +73,6 @@ const Navbar = () => {
         const el = notifRef.current;
         if (el && e.target instanceof Node && !el.contains(e.target)) setNotifOpenDesktop(false);
       }
-      if (balanceOpenDesktop) {
-        const el = balanceRef.current;
-        if (el && e.target instanceof Node && !el.contains(e.target)) setBalanceOpenDesktop(false);
-      }
       if (cartOpenDesktop) {
         const el = cartRef.current;
         if (el && e.target instanceof Node && !el.contains(e.target)) setCartOpenDesktop(false);
@@ -93,44 +81,7 @@ const Navbar = () => {
 
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [notifOpenDesktop, balanceOpenDesktop, cartOpenDesktop]);
-
-  const formatCompactNumber = (value: number) => {
-    const n = Number(value || 0);
-    if (!Number.isFinite(n)) return '0';
-    const sign = n < 0 ? '-' : '';
-    const abs = Math.abs(n);
-
-    const fmt = (num: number) => {
-      const locale = lang === 'es' ? 'es-ES' : 'en-US';
-      return new Intl.NumberFormat(locale).format(num);
-    };
-
-    if (abs < 1000) return sign + fmt(Math.floor(abs));
-
-    const units: Array<{ v: number; s: string }> = [
-      { v: 1_000_000_000, s: 'B' },
-      { v: 1_000_000, s: 'M' },
-      { v: 1_000, s: 'K' },
-    ];
-
-    for (const u of units) {
-      if (abs >= u.v) {
-        const scaled = abs / u.v;
-        const decimals = scaled >= 10 ? 0 : 1;
-        const text = scaled.toFixed(decimals).replace(/\.0$/, '');
-        return `${sign}${text}${u.s}`;
-      }
-    }
-
-    return sign + fmt(Math.floor(abs));
-  };
-
-  const formatFullNumber = (value: number) => {
-    const locale = lang === 'es' ? 'es-ES' : 'en-US';
-    const n = Number(value || 0);
-    return new Intl.NumberFormat(locale).format(Number.isFinite(n) ? Math.floor(n) : 0);
-  };
+  }, [notifOpenDesktop, cartOpenDesktop]);
 
   const localCartKey = 'shop.cart.items';
 
@@ -675,59 +626,12 @@ const Navbar = () => {
             </div>
 
             <div className="flex items-center gap-1 ml-3 pl-3 border-l border-gray-200 dark:border-white/10">
-              {session?.user ? (
-                <div className="relative" ref={balanceRef}>
-                  <motion.button
-                    onClick={() => {
-                      const next = !balanceOpenDesktop;
-                      setBalanceOpenDesktop(next);
-                      setBalanceOpenMobile(false);
-                      setCartOpenDesktop(false);
-                      setCartOpenMobile(false);
-                      setNotifOpenDesktop(false);
-                      setNotifOpenMobile(false);
-                    }}
-                    className="group relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1"
-                    aria-label={lang === 'es' ? 'Saldo' : 'Balance'}
-                    whileHover={{ scale: 1.08, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 520, damping: 28 }}
-                  >
-                    <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
-                    <span className="relative inline-flex items-center gap-1">
-                      <FaCoins />
-                      <span className="text-xs font-semibold tabular-nums">{formatCompactNumber(balance)}</span>
-                    </span>
-                  </motion.button>
-
-                  <AnimatePresence>
-                    {balanceOpenDesktop && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        className="absolute left-0 mt-2 w-64 max-w-[80vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden"
-                      >
-                        <div className="px-4 py-3">
-                          <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Saldo' : 'Balance'}</div>
-                          <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white tabular-nums">
-                            {formatFullNumber(balance)}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : null}
-
               <div className="relative" ref={cartRef}>
                 <motion.button
                   onClick={() => {
                     const next = !cartOpenDesktop;
                     setCartOpenDesktop(next);
                     setCartOpenMobile(false);
-                    setBalanceOpenDesktop(false);
-                    setBalanceOpenMobile(false);
                     setNotifOpenDesktop(false);
                     setNotifOpenMobile(false);
                     if (next) {
@@ -825,8 +729,6 @@ const Navbar = () => {
                       const next = !notifOpenDesktop;
                       setNotifOpenDesktop(next);
                       setNotifOpenMobile(false);
-                      setBalanceOpenDesktop(false);
-                      setBalanceOpenMobile(false);
                       setCartOpenDesktop(false);
                       setCartOpenMobile(false);
                       if (next) fetchNotifications();
@@ -923,65 +825,19 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
               )}
+              <ThemeToggle />
               <LanguageSwitcher />
             </div>
           </div>
 
           {/* Mobile controls */}
           <div className="md:hidden flex items-center gap-1 ml-auto">
-            {session?.user ? (
-              <div className="relative">
-                <motion.button
-                  onClick={() => {
-                    const next = !balanceOpenMobile;
-                    setBalanceOpenMobile(next);
-                    setBalanceOpenDesktop(false);
-                    setCartOpenMobile(false);
-                    setCartOpenDesktop(false);
-                    setNotifOpenDesktop(false);
-                    setNotifOpenMobile(false);
-                  }}
-                  className="group relative px-2 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white inline-flex items-center gap-1"
-                  aria-label={lang === 'es' ? 'Saldo' : 'Balance'}
-                  whileHover={{ scale: 1.08, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 520, damping: 28 }}
-                >
-                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
-                  <span className="relative inline-flex items-center gap-1">
-                    <FaCoins size={18} />
-                    <span className="text-xs font-semibold tabular-nums">{formatCompactNumber(balance)}</span>
-                  </span>
-                </motion.button>
-
-                <AnimatePresence>
-                  {balanceOpenMobile && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[360px] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden z-50"
-                    >
-                      <div className="px-4 py-3">
-                        <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Saldo' : 'Balance'}</div>
-                        <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white tabular-nums">
-                          {formatFullNumber(balance)}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : null}
-
             <div className="relative">
               <motion.button
                 onClick={() => {
                   const next = !cartOpenMobile;
                   setCartOpenMobile(next);
                   setCartOpenDesktop(false);
-                  setBalanceOpenDesktop(false);
-                  setBalanceOpenMobile(false);
                   setNotifOpenDesktop(false);
                   setNotifOpenMobile(false);
                   if (next) {
@@ -1071,13 +927,32 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {session?.user ? (
+              <Link
+                href="/notificaciones"
+                className="group relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                aria-label={t(lang, 'nav.notifications')}
+                title={t(lang, 'nav.notifications')}
+              >
+                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
+                <span className="relative">
+                  <FaBell size={20} />
+                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            ) : null}
+            <ThemeToggle />
             <LanguageSwitcher />
             <button
               onClick={() => {
                 const next = !isOpen;
                 setIsOpen(next);
                 if (!next) setNotifOpenMobile(false);
-                if (!next) setBalanceOpenMobile(false);
               }}
               className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
             >
