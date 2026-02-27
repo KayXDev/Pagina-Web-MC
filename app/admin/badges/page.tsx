@@ -295,6 +295,9 @@ export default function AdminBadgesPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="text-lg font-bold text-gray-900 dark:text-white">{b.slug}</div>
                     {b.enabled ? <Badge variant="success">enabled</Badge> : <Badge variant="warning">disabled</Badge>}
+                    {String(b.icon || '').startsWith('/uploads/') ? (
+                      <Badge variant="warning">uploads(dev)</Badge>
+                    ) : null}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{b.icon}</div>
                   <div className="mt-1 text-sm text-gray-800 dark:text-gray-200">

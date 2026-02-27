@@ -20,6 +20,15 @@ function normalizeSlug(input: string) {
     .slice(0, 40);
 }
 
+function normalizeIcon(input: string) {
+  const raw = String(input || '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('//')) return `https:${raw}`.slice(0, 300);
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw.slice(0, 300);
+  if (raw.startsWith('/')) return raw.slice(0, 300);
+  return `/${raw}`.slice(0, 300);
+}
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -58,7 +67,7 @@ export async function POST(request: Request) {
     const slug = normalizeSlug(body?.slug);
     const labelEs = typeof body?.labelEs === 'string' ? body.labelEs.trim().slice(0, 60) : '';
     const labelEn = typeof body?.labelEn === 'string' ? body.labelEn.trim().slice(0, 60) : '';
-    const icon = typeof body?.icon === 'string' ? body.icon.trim().slice(0, 300) : '';
+    const icon = typeof body?.icon === 'string' ? normalizeIcon(body.icon) : '';
     const enabled = typeof body?.enabled === 'boolean' ? body.enabled : true;
 
     if (!slug || slug.length < 2) {

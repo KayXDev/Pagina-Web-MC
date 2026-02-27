@@ -20,6 +20,15 @@ function normalizeSlug(input: string) {
     .slice(0, 40);
 }
 
+function normalizeIcon(input: string) {
+  const raw = String(input || '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('//')) return `https:${raw}`.slice(0, 300);
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw.slice(0, 300);
+  if (raw.startsWith('/')) return raw.slice(0, 300);
+  return `/${raw}`.slice(0, 300);
+}
+
 export async function PATCH(request: Request, { params }: { params: { slug: string } }) {
   try {
     const owner = await requireOwner();
@@ -31,7 +40,7 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
     const updates: Record<string, any> = {};
     if (typeof body?.labelEs === 'string') updates.labelEs = body.labelEs.trim().slice(0, 60);
     if (typeof body?.labelEn === 'string') updates.labelEn = body.labelEn.trim().slice(0, 60);
-    if (typeof body?.icon === 'string') updates.icon = body.icon.trim().slice(0, 300);
+    if (typeof body?.icon === 'string') updates.icon = normalizeIcon(body.icon);
     if (typeof body?.enabled === 'boolean') updates.enabled = body.enabled;
 
     if (Object.keys(updates).length === 0) {
