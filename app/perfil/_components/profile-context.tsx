@@ -12,6 +12,10 @@ export type ProfileDetails = {
   email: string;
   role: string;
   tags: string[];
+  badges?: string[];
+  balance?: number;
+  followersCountOverride?: number | null;
+  followingCountOverride?: number | null;
   avatar?: string;
   banner?: string;
   verified?: boolean;

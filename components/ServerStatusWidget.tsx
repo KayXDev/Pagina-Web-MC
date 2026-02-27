@@ -21,6 +21,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
 
   const portNumber = Number.isFinite(Number(port)) ? Number(port) : 25565;
   const serverAddress = `${host}:${portNumber}`;
+  const displayAddress = host;
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -49,7 +50,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
 
   const copyIP = () => {
     try {
-      navigator.clipboard.writeText(serverAddress);
+      navigator.clipboard.writeText(displayAddress);
     } catch {
       // ignore
     }
@@ -100,7 +101,7 @@ const ServerStatusWidget = ({ host, port = 25565 }: ServerStatusWidgetProps) => 
           </div>
 
           <div className="min-w-0">
-            <div className="text-white font-mono break-all">{serverAddress}</div>
+            <div className="text-white font-mono break-all">{displayAddress}</div>
             <div className="text-sm text-gray-400 mt-1 leading-snug break-words">
               {String(status?.motd || '').trim() || (lang === 'es' ? 'Sin mensaje del servidor.' : 'No server message.')}
             </div>

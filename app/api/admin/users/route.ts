@@ -130,13 +130,48 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const allowedKeys = new Set(['role', 'isBanned', 'bannedReason', 'tags', 'verified', 'username']);
+    const allowedKeys = new Set([
+      'role',
+      'isBanned',
+      'bannedReason',
+      'tags',
+      'badges',
+      'verified',
+      'username',
+      'balance',
+      'followersCountOverride',
+      'followingCountOverride',
+    ]);
     const sanitizedUpdates: Record<string, any> = {};
 
     for (const [key, value] of Object.entries(updates || {})) {
       if (allowedKeys.has(key)) {
         sanitizedUpdates[key] = value;
       }
+    }
+
+    // Badges: solo OWNER puede modificarlos
+    if (typeof sanitizedUpdates.badges !== 'undefined') {
+      if (admin.role !== 'OWNER') {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+      }
+
+      const allowed = new Set(['partner', 'active_developer', 'bug_hunter', 'staff']);
+      const incoming = sanitizedUpdates.badges;
+      const list = Array.isArray(incoming)
+        ? incoming
+        : typeof incoming === 'string'
+          ? incoming.split(',')
+          : [];
+
+      const cleaned = list
+        .map((b) => (typeof b === 'string' ? b.trim() : ''))
+        .filter(Boolean)
+        .map((b) => b.toLowerCase().replace(/\s+/g, '_').replace(/-+/g, '_'))
+        .filter((b) => allowed.has(b))
+        .slice(0, 10);
+
+      sanitizedUpdates.badges = Array.from(new Set(cleaned));
     }
 
     if (typeof sanitizedUpdates.username !== 'undefined') {
@@ -195,6 +230,48 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
       }
       sanitizedUpdates.verified = Boolean(sanitizedUpdates.verified);
+    }
+
+    // Balance / follower overrides: solo OWNER puede cambiarlos
+    if (
+      typeof sanitizedUpdates.balance !== 'undefined' ||
+      typeof sanitizedUpdates.followersCountOverride !== 'undefined' ||
+      typeof sanitizedUpdates.followingCountOverride !== 'undefined'
+    ) {
+      if (admin.role !== 'OWNER') {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+      }
+
+      const parseNumOrNull = (v: any) => {
+        if (v === null || v === '') return null;
+        if (typeof v === 'number') return v;
+        if (typeof v === 'string' && v.trim() !== '') return Number(v);
+        return undefined;
+      };
+
+      if (typeof sanitizedUpdates.balance !== 'undefined') {
+        const n = parseNumOrNull(sanitizedUpdates.balance);
+        if (n === undefined || n === null || !Number.isFinite(n) || n < 0 || n > 1_000_000_000) {
+          return NextResponse.json({ error: 'Saldo inválido' }, { status: 400 });
+        }
+        sanitizedUpdates.balance = Math.floor(n);
+      }
+
+      if (typeof sanitizedUpdates.followersCountOverride !== 'undefined') {
+        const n = parseNumOrNull(sanitizedUpdates.followersCountOverride);
+        if (n !== null && (n === undefined || !Number.isFinite(n) || n < 0 || n > 1_000_000_000)) {
+          return NextResponse.json({ error: 'Override inválido' }, { status: 400 });
+        }
+        sanitizedUpdates.followersCountOverride = n === null ? null : Math.floor(n);
+      }
+
+      if (typeof sanitizedUpdates.followingCountOverride !== 'undefined') {
+        const n = parseNumOrNull(sanitizedUpdates.followingCountOverride);
+        if (n !== null && (n === undefined || !Number.isFinite(n) || n < 0 || n > 1_000_000_000)) {
+          return NextResponse.json({ error: 'Override inválido' }, { status: 400 });
+        }
+        sanitizedUpdates.followingCountOverride = n === null ? null : Math.floor(n);
+      }
     }
 
     if (typeof sanitizedUpdates.role === 'string') {

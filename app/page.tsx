@@ -21,10 +21,11 @@ export default function HomePage() {
   const serverHost = process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || 'play.999wrldnetwork.es';
   const serverPort = Number(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_PORT || 25565);
   const serverAddress = `${serverHost}:${Number.isFinite(serverPort) ? serverPort : 25565}`;
+  const serverDisplayAddress = serverHost;
 
   const handlePlayNow = async () => {
     try {
-      await navigator.clipboard.writeText(serverAddress);
+      await navigator.clipboard.writeText(serverDisplayAddress);
     } catch {
       // ignore (clipboard permissions)
     }
@@ -36,8 +37,8 @@ export default function HomePage() {
     if (isSafari) {
       toast.info(
         lang === 'es'
-          ? `IP copiada: ${serverAddress}. Pégala en Multijugador > Añadir servidor.`
-          : `IP copied: ${serverAddress}. Paste it in Multiplayer > Add server.`
+          ? `IP copiada: ${serverDisplayAddress}. Pégala en Multijugador > Añadir servidor.`
+          : `IP copied: ${serverDisplayAddress}. Paste it in Multiplayer > Add server.`
       );
       return;
     }
@@ -49,8 +50,8 @@ export default function HomePage() {
 
     toast.info(
       lang === 'es'
-        ? `IP copiada: ${serverAddress}. Intentando abrir Minecraft…`
-        : `IP copied: ${serverAddress}. Trying to open Minecraft…`
+        ? `IP copiada: ${serverDisplayAddress}. Intentando abrir Minecraft…`
+        : `IP copied: ${serverDisplayAddress}. Trying to open Minecraft…`
     );
 
     window.location.href = javaUrl;

@@ -49,6 +49,8 @@ export const authOptions: NextAuthOptions = {
           banner: (user as any).banner || '',
           verified: Boolean((user as any).verified),
           tags: Array.isArray((user as any).tags) ? (user as any).tags : [],
+          badges: Array.isArray((user as any).badges) ? (user as any).badges : [],
+          balance: Number((user as any).balance || 0),
           adminSections: Array.isArray((user as any).adminSections) ? ((user as any).adminSections as string[]) : [],
           adminSectionsConfigured: Boolean((user as any).adminSectionsConfigured),
         };
@@ -67,6 +69,8 @@ export const authOptions: NextAuthOptions = {
         token.username = (user as any).username ?? user.name ?? undefined;
         token.displayName = typeof (user as any).displayName === 'string' ? ((user as any).displayName as string) : undefined;
         token.tags = (user as any).tags || [];
+        token.badges = (user as any).badges || [];
+        token.balance = Number((user as any).balance || 0);
         token.adminSections = (user as any).adminSections || [];
         token.adminSectionsConfigured = Boolean((user as any).adminSectionsConfigured);
       }
@@ -78,6 +82,7 @@ export const authOptions: NextAuthOptions = {
         if (typeof (session as any)?.avatar === 'string') token.avatar = (session as any).avatar;
         if (typeof (session as any)?.banner === 'string') token.banner = (session as any).banner;
         if (typeof (session as any)?.verified === 'boolean') token.verified = (session as any).verified;
+        if (typeof (session as any)?.balance === 'number') token.balance = (session as any).balance;
       }
 
       return token;
@@ -93,6 +98,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).username = ((token as any).username as string) || (token.name as string);
         (session.user as any).displayName = ((token as any).displayName as string) || '';
         session.user.tags = (token.tags as string[]) || [];
+        (session.user as any).badges = ((token as any).badges as string[]) || [];
+        (session.user as any).balance = typeof (token as any).balance === 'number' ? ((token as any).balance as number) : 0;
         session.user.adminSections = (token.adminSections as string[]) || [];
         session.user.adminSectionsConfigured = Boolean((token as any).adminSectionsConfigured);
       }
@@ -104,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         if (userId && session.user) {
           await dbConnect();
           const fresh = await User.findById(userId)
-            .select('username displayName role avatar banner verified tags adminSections adminSectionsConfigured isBanned bannedReason')
+            .select('username displayName role avatar banner verified tags badges balance adminSections adminSectionsConfigured isBanned bannedReason')
             .lean();
 
           if (fresh) {
@@ -116,6 +123,8 @@ export const authOptions: NextAuthOptions = {
             session.user.banner = (fresh as any).banner;
             session.user.verified = Boolean((fresh as any).verified);
             session.user.tags = Array.isArray((fresh as any).tags) ? ((fresh as any).tags as string[]) : [];
+            (session.user as any).badges = Array.isArray((fresh as any).badges) ? ((fresh as any).badges as string[]) : [];
+            (session.user as any).balance = Number((fresh as any).balance || 0);
             session.user.adminSections = Array.isArray((fresh as any).adminSections)
               ? ((fresh as any).adminSections as string[])
               : [];

@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: { username: s
     const user = await User.findOne({
       username: { $regex: new RegExp(`^${escapeRegex(usernameParam)}$`, 'i') },
     })
-      .select('_id username displayName role tags avatar banner verified createdAt')
+      .select('_id username displayName role tags badges avatar banner verified createdAt followersCountOverride followingCountOverride')
       .lean();
 
     if (!user) {
@@ -38,18 +38,28 @@ export async function GET(_request: Request, { params }: { params: { username: s
         : Promise.resolve(false),
     ]);
 
+    const followersOverride = (user as any).followersCountOverride;
+    const followingOverride = (user as any).followingCountOverride;
+
+    const extraFollowers = typeof followersOverride === 'number' && Number.isFinite(followersOverride) ? Math.max(0, Math.floor(followersOverride)) : 0;
+    const extraFollowing = typeof followingOverride === 'number' && Number.isFinite(followingOverride) ? Math.max(0, Math.floor(followingOverride)) : 0;
+
+    const finalFollowers = followersCount + extraFollowers;
+    const finalFollowing = followingCount + extraFollowing;
+
     return NextResponse.json({
       id: userId,
       username: user.username,
       displayName: String((user as any).displayName || ''),
       role: user.role,
       tags: Array.isArray((user as any).tags) ? ((user as any).tags as string[]) : [],
+      badges: Array.isArray((user as any).badges) ? ((user as any).badges as string[]) : [],
       avatar: (user as any).avatar || '',
       banner: (user as any).banner || '',
       verified: Boolean((user as any).verified),
       createdAt: (user as any).createdAt,
-      followersCount,
-      followingCount,
+      followersCount: finalFollowers,
+      followingCount: finalFollowing,
       isFollowing,
       isSelf: viewer?.id ? viewer.id === userId : false,
     });

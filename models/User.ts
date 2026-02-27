@@ -8,6 +8,10 @@ export interface IUser {
   password: string;
   role: 'USER' | 'STAFF' | 'ADMIN' | 'OWNER';
   tags: string[];
+  badges?: string[];
+  balance?: number;
+  followersCountOverride?: number | null;
+  followingCountOverride?: number | null;
   adminSections?: string[];
   adminSectionsConfigured?: boolean;
   avatar?: string;
@@ -65,6 +69,25 @@ const UserSchema = new Schema<IUser>(
     tags: {
       type: [String],
       default: [],
+    },
+    badges: {
+      type: [String],
+      default: [],
+    },
+    balance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    followersCountOverride: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+    followingCountOverride: {
+      type: Number,
+      default: null,
+      min: 0,
     },
     adminSections: {
       type: [String],
@@ -148,6 +171,45 @@ if (models.User) {
         tags: {
           type: [String],
           default: [],
+        },
+      });
+    }
+
+    if (!models.User.schema.path('badges')) {
+      models.User.schema.add({
+        badges: {
+          type: [String],
+          default: [],
+        },
+      });
+    }
+
+    if (!models.User.schema.path('balance')) {
+      models.User.schema.add({
+        balance: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('followersCountOverride')) {
+      models.User.schema.add({
+        followersCountOverride: {
+          type: Number,
+          default: null,
+          min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('followingCountOverride')) {
+      models.User.schema.add({
+        followingCountOverride: {
+          type: Number,
+          default: null,
+          min: 0,
         },
       });
     }

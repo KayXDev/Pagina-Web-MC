@@ -35,7 +35,7 @@ export async function GET() {
     await dbConnect();
 
     const user = await User.findById(currentUser.id).select(
-      '_id username displayName email role tags avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
+      '_id username displayName email role tags badges balance followersCountOverride followingCountOverride avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin'
     );
 
     if (!user) {
@@ -48,6 +48,15 @@ export async function GET() {
       Follow.countDocuments({ followerId: userId }),
     ]);
 
+    const followersOverride = (user as any).followersCountOverride;
+    const followingOverride = (user as any).followingCountOverride;
+
+    const extraFollowers = typeof followersOverride === 'number' && Number.isFinite(followersOverride) ? Math.max(0, Math.floor(followersOverride)) : 0;
+    const extraFollowing = typeof followingOverride === 'number' && Number.isFinite(followingOverride) ? Math.max(0, Math.floor(followingOverride)) : 0;
+
+    const finalFollowers = followersCount + extraFollowers;
+    const finalFollowing = followingCount + extraFollowing;
+
     return NextResponse.json({
       id: userId,
       username: user.username,
@@ -55,6 +64,10 @@ export async function GET() {
       email: user.email,
       role: user.role,
       tags: Array.isArray((user as any).tags) ? (user as any).tags : [],
+      badges: Array.isArray((user as any).badges) ? (user as any).badges : [],
+      balance: Number((user as any).balance || 0),
+      followersCountOverride: typeof followersOverride === 'number' ? followersOverride : null,
+      followingCountOverride: typeof followingOverride === 'number' ? followingOverride : null,
       avatar: user.avatar || '',
       banner: (user as any).banner || '',
       verified: Boolean((user as any).verified),
@@ -66,8 +79,8 @@ export async function GET() {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLogin: (user as any).lastLogin || null,
-      followersCount,
-      followingCount,
+      followersCount: finalFollowers,
+      followingCount: finalFollowing,
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
@@ -95,6 +108,7 @@ export async function PATCH(request: Request) {
 
     const nextDisplayNameRaw = typeof body?.displayName === 'string' ? body.displayName : undefined;
     const nextDisplayName = typeof nextDisplayNameRaw === 'string' ? nextDisplayNameRaw.trim() : undefined;
+
 
     const updates: Record<string, any> = {};
 
@@ -134,6 +148,7 @@ export async function PATCH(request: Request) {
       }
       updates.displayName = nextDisplayName;
     }
+
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'Sin cambios' }, { status: 400 });

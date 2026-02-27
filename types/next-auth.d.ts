@@ -9,8 +9,10 @@ declare module 'next-auth' {
     username?: string;
     displayName?: string;
     tags?: string[];
+    badges?: string[];
     adminSections?: string[];
     adminSectionsConfigured?: boolean;
+    balance?: number;
   }
 
   interface Session {
@@ -25,8 +27,10 @@ declare module 'next-auth' {
       username?: string;
       displayName?: string;
       tags: string[];
+      badges?: string[];
       adminSections?: string[];
       adminSectionsConfigured?: boolean;
+      balance?: number;
     };
   }
 }
@@ -42,7 +46,9 @@ declare module 'next-auth/jwt' {
     username?: string;
     displayName?: string;
     tags?: string[];
+    badges?: string[];
     adminSections?: string[];
     adminSectionsConfigured?: boolean;
+    balance?: number;
   }
 }

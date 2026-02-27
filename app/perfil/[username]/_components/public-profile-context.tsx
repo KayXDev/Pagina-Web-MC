@@ -9,6 +9,7 @@ export type PublicProfileDetails = {
   displayName?: string;
   role: string;
   tags: string[];
+  badges?: string[];
   avatar?: string;
   banner?: string;
   verified?: boolean;

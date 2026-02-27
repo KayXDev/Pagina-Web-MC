@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
-import { FaUsers, FaUser, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV } from 'react-icons/fa';
+import { FaUsers, FaUser, FaBan, FaUserShield, FaSearch, FaTrash, FaCheckCircle, FaSyncAlt, FaEllipsisV, FaBug } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -16,9 +17,42 @@ interface User {
   email: string;
   role: string;
   tags?: string[];
+  badges?: string[];
   verified?: boolean;
+  balance?: number;
+  followersCountOverride?: number | null;
+  followingCountOverride?: number | null;
   isBanned: boolean;
   createdAt: string;
+}
+
+const ALLOWED_BADGES = new Set(['partner', 'active_developer', 'bug_hunter', 'staff']);
+
+function normalizeBadgeId(value: string) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-+/g, '_');
+}
+
+function getBadgeMeta(
+  id: string,
+  lang: Lang
+): { label: string; src: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' } | null {
+  const badgeId = normalizeBadgeId(id);
+  switch (badgeId) {
+    case 'partner':
+      return { label: t(lang, 'profile.badges.partner'), src: '/badges/partner.png', variant: 'info' };
+    case 'active_developer':
+      return { label: t(lang, 'profile.badges.activeDeveloper'), src: '/badges/active_developer.png', variant: 'success' };
+    case 'bug_hunter':
+      return { label: t(lang, 'profile.badges.bugHunter'), src: '/badges/bug_hunter.png', variant: 'warning' };
+    case 'staff':
+      return { label: t(lang, 'profile.badges.staff'), src: '/badges/staff.png', variant: 'default' };
+    default:
+      return null;
+  }
 }
 
 export default function AdminUsersPage() {
@@ -200,7 +234,7 @@ export default function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     if (!normalizedSearch) return users;
     return users.filter((user) => {
-      const blob = [user.username, user.email, user.role, (user.tags || []).join(' ')].join(' ').toLowerCase();
+      const blob = [user.username, user.email, user.role, (user.tags || []).join(' '), (user.badges || []).join(' ')].join(' ').toLowerCase();
       return blob.includes(normalizedSearch);
     });
   }, [users, normalizedSearch]);
@@ -392,6 +426,7 @@ export default function AdminUsersPage() {
             {filteredUsers.map((user) => {
               const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
               const canEditTags = isOwner;
+              const canEditBadges = isOwner;
               const canToggleVerified = isOwner;
               const menuOpen = openMenuUserId === user._id;
 
@@ -504,6 +539,101 @@ export default function AdminUsersPage() {
                             </button>
                           ) : null}
 
+                          {canEditBadges ? (
+                            <button
+                              type="button"
+                              disabled={isProtectedOwner}
+                              className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                              onClick={async () => {
+                                setOpenMenuUserId(null);
+                                const current = (user.badges || []).join(',');
+                                const input = window.prompt(t(lang, 'admin.users.badgesPrompt'), current);
+                                if (input === null) return;
+                                const nextBadges = input
+                                  .split(',')
+                                  .map((b) => normalizeBadgeId(b))
+                                  .filter((b) => ALLOWED_BADGES.has(b));
+                                await updateUser(user._id, { badges: nextBadges });
+                              }}
+                            >
+                              <FaBug />
+                              <span>{t(lang, 'admin.users.badgesBtn')}</span>
+                            </button>
+                          ) : null}
+
+                          {isOwner ? (
+                            <button
+                              type="button"
+                              disabled={isProtectedOwner}
+                              className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                              onClick={async () => {
+                                setOpenMenuUserId(null);
+                                const current = typeof user.balance === 'number' ? String(user.balance) : '0';
+                                const input = window.prompt(lang === 'es' ? 'Saldo (número entero, mínimo 0):' : 'Balance (integer, min 0):', current);
+                                if (input === null) return;
+                                const next = Number(String(input).trim());
+                                if (!Number.isFinite(next) || next < 0) {
+                                  toast.error(lang === 'es' ? 'Saldo inválido' : 'Invalid balance');
+                                  return;
+                                }
+                                await updateUser(user._id, { balance: Math.floor(next) });
+                              }}
+                            >
+                              <span>{lang === 'es' ? 'Editar saldo' : 'Edit balance'}</span>
+                            </button>
+                          ) : null}
+
+                          {isOwner ? (
+                            <button
+                              type="button"
+                              disabled={isProtectedOwner}
+                              className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                              onClick={async () => {
+                                setOpenMenuUserId(null);
+                                const currentFollowers = typeof user.followersCountOverride === 'number' ? String(user.followersCountOverride) : '';
+                                const currentFollowing = typeof user.followingCountOverride === 'number' ? String(user.followingCountOverride) : '';
+                                const inputFollowers = window.prompt(
+                                  lang === 'es'
+                                    ? 'Extra seguidores (se SUMA a los reales). Vacío para 0:'
+                                    : 'Extra followers (ADDED to real). Empty for 0:',
+                                  currentFollowers
+                                );
+                                if (inputFollowers === null) return;
+                                const inputFollowing = window.prompt(
+                                  lang === 'es'
+                                    ? 'Extra siguiendo (se SUMA a los reales). Vacío para 0:'
+                                    : 'Extra following (ADDED to real). Empty for 0:',
+                                  currentFollowing
+                                );
+                                if (inputFollowing === null) return;
+
+                                const parseExtra = (v: string) => {
+                                  const trimmed = String(v || '').trim();
+                                  if (!trimmed) return null;
+                                  const n = Number(trimmed);
+                                  return Number.isFinite(n) ? Math.floor(n) : NaN;
+                                };
+
+                                const nextFollowers = parseExtra(String(inputFollowers));
+                                const nextFollowing = parseExtra(String(inputFollowing));
+                                if (
+                                  (nextFollowers !== null && (!Number.isFinite(nextFollowers) || nextFollowers < 0)) ||
+                                  (nextFollowing !== null && (!Number.isFinite(nextFollowing) || nextFollowing < 0))
+                                ) {
+                                  toast.error(lang === 'es' ? 'Override inválido' : 'Invalid override');
+                                  return;
+                                }
+
+                                await updateUser(user._id, {
+                                  followersCountOverride: nextFollowers === null ? null : nextFollowers,
+                                  followingCountOverride: nextFollowing === null ? null : nextFollowing,
+                                });
+                              }}
+                            >
+                              <span>{lang === 'es' ? 'Editar seguidores extra' : 'Edit extra followers'}</span>
+                            </button>
+                          ) : null}
+
                           <button
                             type="button"
                             disabled={isProtectedOwner}
@@ -541,6 +671,16 @@ export default function AdminUsersPage() {
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     {getRoleBadge(user.role)}
                     {statusBadge}
+                    {(user.badges || []).slice(0, 4).map((badgeId) => {
+                      const meta = getBadgeMeta(badgeId, lang);
+                      if (!meta) return null;
+                      return (
+                        <span key={badgeId} title={meta.label} className="inline-flex items-center justify-center">
+                          <Image src={meta.src} alt={meta.label} width={16} height={16} className="shrink-0" />
+                          <span className="sr-only">{meta.label}</span>
+                        </span>
+                      );
+                    })}
                     {(user.tags || []).slice(0, 3).map((tag) => (
                       <Badge key={tag} variant="default">
                         {tag}
@@ -590,6 +730,7 @@ export default function AdminUsersPage() {
                   {filteredUsers.map((user) => {
                     const isProtectedOwner = user.role === 'OWNER' && !canEditOwnerAccounts;
                     const canEditTags = isOwner;
+                    const canEditBadges = isOwner;
                     const canToggleVerified = isOwner;
                     const menuOpen = openMenuUserId === user._id;
 
@@ -635,6 +776,16 @@ export default function AdminUsersPage() {
 
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-2">
+                            {(user.badges || []).slice(0, 3).map((badgeId) => {
+                              const meta = getBadgeMeta(badgeId, lang);
+                              if (!meta) return null;
+                              return (
+                                <span key={badgeId} title={meta.label} className="inline-flex items-center justify-center">
+                                  <Image src={meta.src} alt={meta.label} width={16} height={16} className="shrink-0" />
+                                  <span className="sr-only">{meta.label}</span>
+                                </span>
+                              );
+                            })}
                             {(user.tags || []).slice(0, 3).map((tag) => (
                               <Badge key={tag} variant="default">
                                 {tag}
@@ -737,6 +888,28 @@ export default function AdminUsersPage() {
                                     >
                                       <FaUserShield />
                                       <span>{t(lang, 'admin.users.tagsBtn')}</span>
+                                    </button>
+                                  ) : null}
+
+                                  {canEditBadges ? (
+                                    <button
+                                      type="button"
+                                      disabled={isProtectedOwner}
+                                      className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 dark:text-gray-200 dark:hover:bg-white/5"
+                                      onClick={async () => {
+                                        setOpenMenuUserId(null);
+                                        const current = (user.badges || []).join(',');
+                                        const input = window.prompt(t(lang, 'admin.users.badgesPrompt'), current);
+                                        if (input === null) return;
+                                        const nextBadges = input
+                                          .split(',')
+                                          .map((b) => normalizeBadgeId(b))
+                                          .filter((b) => ALLOWED_BADGES.has(b));
+                                        await updateUser(user._id, { badges: nextBadges });
+                                      }}
+                                    >
+                                      <FaBug />
+                                      <span>{t(lang, 'admin.users.badgesBtn')}</span>
                                     </button>
                                   ) : null}
 

@@ -304,10 +304,10 @@ export default function ChatbotWidget() {
   const conversation = renderConversation();
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex justify-end">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
       {open ? (
         <Card
-          className="border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/95 rounded-2xl w-full max-w-[420px] shadow-lg shadow-black/10 dark:shadow-black/40"
+          className="border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/95 rounded-2xl w-[calc(100vw-2rem)] max-w-[420px] shadow-lg shadow-black/10 dark:shadow-black/40"
           hover={false}
         >
           <div className="flex items-center justify-between gap-3 mb-3">
@@ -330,16 +330,6 @@ export default function ChatbotWidget() {
                 </div>
               </div>
             </div>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              className="!px-3"
-              onClick={() => setOpen(false)}
-            >
-              <FaTimes />
-              <span className="sr-only">{t(lang, 'chatbot.closeAria')}</span>
-            </Button>
           </div>
 
             {mode === 'AI' ? (
@@ -466,16 +456,16 @@ export default function ChatbotWidget() {
             </div>
           ) : null}
         </Card>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="h-12 w-12 rounded-full bg-white border border-gray-200 text-gray-900 grid place-items-center hover:bg-gray-50 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/15"
-          aria-label={t(lang, 'chatbot.openAria')}
-        >
-          <FaComments />
-        </button>
-      )}
+      ) : null}
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="h-12 w-12 rounded-full bg-white border border-gray-200 text-gray-900 grid place-items-center hover:bg-gray-50 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/15"
+        aria-label={open ? t(lang, 'chatbot.closeAria') : t(lang, 'chatbot.openAria')}
+      >
+        {open ? <FaTimes /> : <FaComments />}
+      </button>
     </div>
   );
 }

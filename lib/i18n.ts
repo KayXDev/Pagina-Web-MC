@@ -434,6 +434,12 @@ const DICT = {
         staff: 'Staff',
         user: 'Usuario',
       },
+      badges: {
+        partner: 'Partner',
+        activeDeveloper: 'Desarrollador activo',
+        bugHunter: 'Bug Hunter',
+        staff: 'Staff',
+      },
     },
     maintenance: {
       title: 'Sitio en mantenimiento',
@@ -579,6 +585,7 @@ const DICT = {
         searchPlaceholder: 'Buscar por nombre o email...',
         noResults: 'No se encontraron usuarios',
         tagsPrompt: 'Tags separados por comas',
+        badgesPrompt: 'Badges separados por comas (partner, active_developer, bug_hunter, staff)',
         usernamePrompt: 'Nuevo @username (3-20, letras/números/_)',
         verify: 'Verificar',
         unverify: 'Quitar verificado',
@@ -616,6 +623,7 @@ const DICT = {
         active: 'Activo',
         changeUsernameBtn: 'Cambiar @',
         tagsBtn: 'Tags',
+        badgesBtn: 'Badges',
         deleteBtn: 'Eliminar',
       },
       products: {
@@ -1394,6 +1402,12 @@ const DICT = {
         staff: 'Staff',
         user: 'User',
       },
+      badges: {
+        partner: 'Partner',
+        activeDeveloper: 'Active Developer',
+        bugHunter: 'Bug Hunter',
+        staff: 'Staff',
+      },
     },
     maintenance: {
       title: 'Site under maintenance',
@@ -1539,6 +1553,7 @@ const DICT = {
         searchPlaceholder: 'Search by name or email...',
         noResults: 'No users found',
         tagsPrompt: 'Comma-separated tags',
+        badgesPrompt: 'Comma-separated badges (partner, active_developer, bug_hunter, staff)',
         usernamePrompt: 'New @username (3-20, letters/numbers/_)',
         verify: 'Verify',
         unverify: 'Remove verification',
@@ -1575,6 +1590,7 @@ const DICT = {
         active: 'Active',
         changeUsernameBtn: 'Change @',
         tagsBtn: 'Tags',
+        badgesBtn: 'Badges',
         deleteBtn: 'Delete',
       },
       products: {

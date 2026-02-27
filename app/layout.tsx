@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import './globals.css';
 import CookieConsent from '@/components/CookieConsent';
 import ChatbotWidget from '@/components/ChatbotWidget';
+import FloatingThemeToggle from '@/components/FloatingThemeToggle';
 import RootShell from '@/components/RootShell';
 import { Providers } from './providers';
 import { ToastContainer } from 'react-toastify';
@@ -42,8 +43,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   icons: {
-    icon: [{ url: '/icon.png' }],
-    shortcut: [{ url: '/icon.png' }],
+    icon: [{ url: '/favicon.png' }],
+    shortcut: [{ url: '/favicon.png' }],
     apple: [{ url: '/icon.png' }],
   },
   openGraph: {
@@ -97,7 +98,7 @@ export default function RootLayout({
   return (
     <html lang={lang} className="dark" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon.png" />
+        <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <SeoJsonLd data={orgJsonLd} />
         <SeoJsonLd data={websiteJsonLd} />
@@ -119,6 +120,7 @@ export default function RootLayout({
         <Providers initialLang={lang}>
           <RootShell>{children}</RootShell>
           <CookieConsent />
+          <FloatingThemeToggle />
           <ChatbotWidget />
           <ToastContainer
             position="top-right"

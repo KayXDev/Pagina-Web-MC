@@ -43,6 +43,33 @@ function getTagVariant(tag: string): 'default' | 'success' | 'warning' | 'danger
   return 'info';
 }
 
+function normalizeBadgeId(value: string) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-+/g, '_');
+}
+
+function getBadgeMeta(
+  id: string,
+  lang: Lang
+): { label: string; src: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' } | null {
+  const badgeId = normalizeBadgeId(id);
+  switch (badgeId) {
+    case 'partner':
+      return { label: t(lang, 'profile.badges.partner'), src: '/badges/partner.png', variant: 'info' };
+    case 'active_developer':
+      return { label: t(lang, 'profile.badges.activeDeveloper'), src: '/badges/active_developer.png', variant: 'success' };
+    case 'bug_hunter':
+      return { label: t(lang, 'profile.badges.bugHunter'), src: '/badges/bug_hunter.png', variant: 'warning' };
+    case 'staff':
+      return { label: t(lang, 'profile.badges.staff'), src: '/badges/staff.png', variant: 'default' };
+    default:
+      return null;
+  }
+}
+
 function InnerShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, status, details, loadingDetails } = useProfile();
@@ -71,6 +98,11 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const titleName = displayName || username;
   const role = String(session.user?.role || 'USER');
   const tags: string[] = Array.isArray(session.user?.tags) ? session.user.tags : [];
+  const badges: string[] = Array.isArray((details as any)?.badges)
+    ? ((details as any).badges as string[])
+    : Array.isArray((session.user as any)?.badges)
+      ? (((session.user as any).badges as string[]) || [])
+      : [];
 
   const avatarUrl = String(details?.avatar || session.user?.avatar || '');
   const bannerUrl = String((details as any)?.banner || (session.user as any)?.banner || '');
@@ -145,6 +177,16 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                 <div className="mt-1 text-sm text-gray-300 truncate">@{username}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {getRoleBadge(role, lang)}
+                  {badges.map((badgeId) => {
+                    const meta = getBadgeMeta(badgeId, lang);
+                    if (!meta) return null;
+                    return (
+                      <span key={badgeId} title={meta.label} className="inline-flex items-center justify-center">
+                        <Image src={meta.src} alt={meta.label} width={16} height={16} className="shrink-0" />
+                        <span className="sr-only">{meta.label}</span>
+                      </span>
+                    );
+                  })}
                   {tags.map((tag) => (
                     <Badge key={tag} variant={getTagVariant(tag)}>
                       {tag}
