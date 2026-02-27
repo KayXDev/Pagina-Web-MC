@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui';
+import { useClientLang } from '@/lib/useClientLang';
 
 function deleteCookie(name: string) {
   if (typeof document === 'undefined') return;
@@ -10,6 +11,8 @@ function deleteCookie(name: string) {
 }
 
 export default function CookiePreferencesButton() {
+  const lang = useClientLang();
+
   return (
     <Button
       variant="secondary"
@@ -19,7 +22,7 @@ export default function CookiePreferencesButton() {
         window.dispatchEvent(new Event('cookie-consent-updated'));
       }}
     >
-      Cambiar preferencias de cookies
+      {lang === 'en' ? 'Change cookie preferences' : 'Cambiar preferencias de cookies'}
     </Button>
   );
 }

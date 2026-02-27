@@ -18,6 +18,16 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const pathname = request.nextUrl.pathname;
 
+  // If the user has no explicit language cookie, infer it from the browser.
+  // Supported: 'es' | 'en'
+  const shouldSetLangCookie = !request.cookies.get('lang')?.value;
+  const inferLang = () => {
+    const raw = String(request.headers.get('accept-language') || '').toLowerCase();
+    const first = raw.split(',')[0]?.trim() || '';
+    const base = first.slice(0, 2);
+    return base === 'en' ? 'en' : 'es';
+  };
+
   const matchesMaintenancePath = (paths: string[], currentPath: string) => {
     const cur = (currentPath || '').trim();
     if (!cur.startsWith('/')) return false;
@@ -148,7 +158,16 @@ export async function middleware(request: NextRequest) {
     }
   }
   
-  return NextResponse.next();
+  const res = NextResponse.next();
+  if (shouldSetLangCookie) {
+    res.cookies.set('lang', inferLang(), {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+      secure: request.nextUrl.protocol === 'https:',
+    });
+  }
+  return res;
 }
 
 export const config = {
