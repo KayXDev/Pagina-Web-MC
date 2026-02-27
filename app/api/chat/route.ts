@@ -25,20 +25,21 @@ const chatBodySchema = z
 
 export async function POST(request: Request) {
   try {
-    const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      return NextResponse.json(
-        { error: 'Falta GROQ_API_KEY en variables de entorno' },
-        { status: 500 }
-      );
-    }
-
     const bodyJson = await request.json().catch(() => ({}));
     const body = chatBodySchema.parse(bodyJson);
 
-    const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
-
     const preferredLang = body.lang === 'en' ? 'en' : 'es';
+
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
+      const reply =
+        preferredLang === 'en'
+          ? 'The AI assistant is temporarily unavailable (missing GROQ_API_KEY). You can still open a support ticket at /soporte, or try again later.'
+          : 'El asistente IA no está disponible temporalmente (falta GROQ_API_KEY). Puedes abrir un ticket en /soporte o intentarlo de nuevo más tarde.';
+      return NextResponse.json({ reply });
+    }
+
+    const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
     const upstreamMessages = Array.isArray(body.messages)
       ? body.messages
@@ -58,15 +59,23 @@ export async function POST(request: Request) {
       .join('\n\n')
       .slice(0, 2500);
 
+    const siteName = process.env.SITE_NAME || '999Wrld Network';
+    const serverIp =
+      process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || process.env.MINECRAFT_SERVER_IP || 'play.999wrldnetwork.es';
+    const serverPort = process.env.MINECRAFT_SERVER_PORT || '25565';
+    const discordUrl = process.env.DISCORD_URL;
+
     const systemPrompt =
-      'You are a support assistant for a Minecraft server/community website. ' +
+      `You are a support assistant for ${siteName}, a Minecraft server/community website. ` +
       'CRITICAL: Reply in the same language as the user message. If the user writes in English, reply in English. If the user writes in Spanish, reply in Spanish. ' +
       `If unsure, default to the website language: ${preferredLang === 'en' ? 'English' : 'Spanish'}. ` +
-      'Use a professional, clear tone and step-by-step troubleshooting. ' +
+      'Use a professional, clear tone and step-by-step troubleshooting. Keep it concise and actionable. ' +
       'First identify the issue and ask 1-2 key clarifying questions if needed (e.g., username, Java/Bedrock, version, server IP, exact error). ' +
-      'Then provide short, verifiable steps. ' +
+      'Then provide short, verifiable steps. When helpful, link users to relevant pages: /vote, /tienda, /foro, /soporte. ' +
       'If the issue requires internal actions (moderation, billing, account access) or you cannot safely resolve it, say so and suggest talking to a human staff/admin agent. ' +
       'Never ask for or accept passwords, tokens, API keys, or other sensitive data; if requested, refuse and explain why.\n' +
+      `\nServer info (if asked): Java IP ${serverIp}, port ${serverPort}.` +
+      (discordUrl ? ` Discord: ${discordUrl}.` : '') +
       `\nKnowledge snippets (may be empty):\n${kbText || '(none)'}\n`;
 
     const messages = [{ role: 'system' as const, content: systemPrompt }, ...upstreamMessages];

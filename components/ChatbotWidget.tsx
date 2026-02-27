@@ -21,6 +21,8 @@ type TicketReply = {
   username: string;
 };
 
+const CHATBOT_STORAGE_KEY = 'chatbot:messages:v1';
+
 export default function ChatbotWidget() {
   const { status } = useSession();
   const router = useRouter();
@@ -36,9 +38,7 @@ export default function ChatbotWidget() {
   const [ticketReplies, setTicketReplies] = useState<TicketReply[]>([]);
   const [ticketSyncing, setTicketSyncing] = useState(false);
   const [handoffConfirm, setHandoffConfirm] = useState(false);
-  const [messages, setMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', content: t('es', 'chatbot.greet') },
-  ]);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
 
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -48,6 +48,31 @@ export default function ChatbotWidget() {
     () => messages.map((m) => ({ role: m.role, content: m.content })),
     [messages]
   );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      const safe = parsed
+        .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .map((m: any) => ({ role: m.role as ChatMsg['role'], content: String(m.content).slice(0, 2000) }))
+        .slice(-50);
+      if (safe.length > 0) setMessages(safe);
+    } catch {
+      // ignore malformed localStorage
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (mode !== 'AI') return;
+      localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(messages.slice(-50)));
+    } catch {
+      // ignore quota/storage errors
+    }
+  }, [messages, mode]);
 
   useEffect(() => {
     setMessages((prev) => {
@@ -291,7 +316,9 @@ export default function ChatbotWidget() {
                 <FaComments />
               </div>
               <div className="min-w-0">
-                <div className="text-gray-900 dark:text-white font-semibold leading-5 truncate">Asistente</div>
+                <div className="text-gray-900 dark:text-white font-semibold leading-5 truncate">
+                  {t(lang, 'chatbot.title')}
+                </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 leading-4">
                     {loading
                     ? t(lang, 'chatbot.typing')

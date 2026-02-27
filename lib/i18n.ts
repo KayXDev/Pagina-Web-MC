@@ -868,7 +868,8 @@ const DICT = {
       subtitleAi: 'Soporte automático',
       subtitleAgent: 'Agente humano',
       typing: 'Escribiendo…',
-      greet: 'Hola, ¿en qué puedo ayudarte?',
+      greet:
+        'Hola. Soy el asistente de 999Wrld Network. Puedo ayudarte con acceso/cuenta, votar, tienda/pagos, reportes y problemas de conexión. ¿Qué necesitas?',
       openAria: 'Abrir chat',
       closeAria: 'Cerrar',
       inputPlaceholderAi: 'Escribe tu mensaje…',
@@ -1826,7 +1827,8 @@ const DICT = {
       subtitleAi: 'Automatic support',
       subtitleAgent: 'Human agent',
       typing: 'Typing…',
-      greet: 'Hi! How can I help you?',
+      greet:
+        "Hi! I'm the 999Wrld Network assistant. I can help with login/account, voting, store/payments, reports, and connection issues. What do you need?",
       openAria: 'Open chat',
       closeAria: 'Close',
       inputPlaceholderAi: 'Type your message…',

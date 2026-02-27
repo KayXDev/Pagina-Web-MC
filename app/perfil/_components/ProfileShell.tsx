@@ -52,7 +52,6 @@ function InnerShell({ children }: { children: React.ReactNode }) {
     () => [
       { href: '/perfil', label: t(lang, 'profile.nav.overview') },
       { href: '/perfil/actividad', label: t(lang, 'profile.nav.activity') },
-      { href: '/perfil/ajustes', label: t(lang, 'profile.nav.settings') },
     ],
     [lang]
   );
