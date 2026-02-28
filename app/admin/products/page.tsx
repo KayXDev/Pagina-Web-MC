@@ -435,8 +435,8 @@ export default function AdminProductsPage() {
                   rows={4}
                   placeholder={
                     lang === 'es'
-                      ? '1 comando por línea. Usa {player} (y opcional {qty}).\nEj: lp user {player} parent add vip'
-                      : '1 command per line. Use {player} (and optional {qty}).\nEx: lp user {player} parent add vip'
+                      ? '1 comando por línea. Usa {player} o {user} (y opcional {qty}).\nEj: crates key give {user} vote 1 -sf'
+                      : '1 command per line. Use {player} or {user} (and optional {qty}).\nEx: crates key give {user} vote 1 -sf'
                   }
                 />
               </div>

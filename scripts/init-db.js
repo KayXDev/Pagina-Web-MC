@@ -240,6 +240,7 @@ const createSampleProducts = async () => {
         description: 'Llave para abrir cofres épicos con recompensas increíbles',
         price: 3.99,
         category: 'KEYS',
+        deliveryCommands: ['crates key give {user} epic {qty} -sf'],
         features: [
           '1 Llave de cofre épico',
           'Chance de items legendarios',
@@ -255,6 +256,7 @@ const createSampleProducts = async () => {
         description: 'Pack de 5 llaves épicas con descuento',
         price: 16.99,
         category: 'KEYS',
+        deliveryCommands: ['crates key give {user} epic 5 -sf'],
         features: [
           '5 Llaves de cofre épico',
           'Ahorra un 15%',
