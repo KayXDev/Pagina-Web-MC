@@ -43,6 +43,21 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function boolEnv(name, def = false) {
+  const raw = String(process.env[name] || '').trim().toLowerCase();
+  if (!raw) return def;
+  return raw === '1' || raw === 'true' || raw === 'yes' || raw === 'y' || raw === 'on';
+}
+
+function normalizeCommand(cmd) {
+  // Commands executed via RCON/console should not require a leading '/'.
+  // Some servers/plugins accept it, some don't; stripping is safest.
+  return String(cmd || '')
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/\s+/g, ' ');
+}
+
 async function postJson(url, headers, body) {
   const res = await fetch(url, {
     method: 'POST',
@@ -67,6 +82,9 @@ async function main() {
 
   const pollMs = numEnv('DELIVERY_POLL_INTERVAL_MS', 2000);
   const clientName = String(process.env.DELIVERY_CLIENT_NAME || os.hostname() || 'worker').slice(0, 80);
+
+  const logCommands = boolEnv('DELIVERY_LOG_COMMANDS', false);
+  const logResponses = boolEnv('DELIVERY_LOG_RCON_RESPONSES', false);
 
   const headers = {
     'x-delivery-key': apiKey,
@@ -98,7 +116,9 @@ async function main() {
       }
 
       const deliveryId = String(delivery.id || '').trim();
-      const commands = Array.isArray(delivery.commands) ? delivery.commands.map((c) => String(c || '').trim()).filter(Boolean) : [];
+      const commands = Array.isArray(delivery.commands)
+        ? delivery.commands.map((c) => normalizeCommand(c)).filter(Boolean)
+        : [];
 
       if (!deliveryId || !commands.length) {
         // Malformed; mark failed so it can retry / be inspected.
@@ -115,7 +135,9 @@ async function main() {
       try {
         const conn = await ensureRcon();
         for (const cmd of commands) {
-          await conn.send(cmd);
+          if (logCommands) console.log(`[delivery-worker] rcon> ${cmd}`);
+          const resp = await conn.send(cmd);
+          if (logResponses && resp) console.log(`[delivery-worker] rcon< ${String(resp).trim()}`);
         }
 
         await postJson(`${siteUrl}/api/deliveries/complete`, headers, { deliveryId });
