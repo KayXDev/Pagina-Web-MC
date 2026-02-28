@@ -62,6 +62,8 @@ export async function ensureDeliveryForOrder(orderId: string): Promise<{ created
       commands.push(
         applyPlaceholders(template, {
           player: minecraftUsername,
+          user: minecraftUsername,
+          username: minecraftUsername,
           uuid: minecraftUuid,
           qty,
           product: productName,
