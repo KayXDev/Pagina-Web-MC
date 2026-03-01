@@ -4,6 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import ShopOrder from '@/models/ShopOrder';
 import { getStripe } from '@/lib/stripe';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
+import { ensureStockDeductedForOrder } from '@/lib/stock';
 
 export async function POST(request: Request) {
   const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || '').trim();
@@ -69,6 +70,20 @@ export async function POST(request: Request) {
       await ShopOrder.updateOne({ _id: order._id }, { $set: update });
 
       if (paymentStatus === 'paid') {
+        const stockRes = await ensureStockDeductedForOrder(String(order._id));
+        if (!stockRes.ok) {
+          await ShopOrder.updateOne(
+            { _id: order._id },
+            {
+              $set: {
+                stockDeductionError: stockRes.error.message,
+              },
+            }
+          );
+          // Do not create deliveries if stock couldn't be deducted.
+          return NextResponse.json({ received: true });
+        }
+
         // Create (idempotent) delivery job for in-game commands.
         await ensureDeliveryForOrder(String(order._id));
       }

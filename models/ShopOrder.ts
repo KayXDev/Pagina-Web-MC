@@ -41,6 +41,10 @@ export interface IShopOrder {
   stripeStatus?: string;
   stripePaymentStatus?: string;
   paidAt?: Date;
+
+  // Stock deduction tracking (idempotent, for limited-stock products)
+  stockDeductedAt?: Date;
+  stockDeductionError?: string;
   ip?: string;
   userAgent?: string;
   createdAt: Date;
@@ -83,6 +87,9 @@ const ShopOrderSchema = new Schema<IShopOrder>(
     stripeStatus: { type: String, default: '' },
     stripePaymentStatus: { type: String, default: '' },
     paidAt: { type: Date },
+
+    stockDeductedAt: { type: Date },
+    stockDeductionError: { type: String, default: '' },
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },
   },

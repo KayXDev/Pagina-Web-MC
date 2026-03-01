@@ -73,6 +73,26 @@ export async function POST(request: Request) {
       if (!p.isActive) return NextResponse.json({ error: 'Producto no disponible' }, { status: 400 });
     }
 
+    // Stock validation for limited products.
+    for (const { it, p } of lineItems) {
+      if (!p) continue;
+      if (p.isUnlimited) continue;
+      const currentStock = Number((p as any).stock);
+      const safeStock = Number.isFinite(currentStock) ? currentStock : 0;
+      const need = Math.max(1, Math.floor(Number(it.quantity || 1)));
+      if (safeStock < need) {
+        return NextResponse.json(
+          {
+            error: 'Sin stock suficiente',
+            productId: String((p as any)._id || it.productId),
+            stock: safeStock,
+            requested: need,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const orderItems = lineItems.map(({ it, p }) => {
       const unitPrice = Number(p.price || 0);
       const quantity = Number(it.quantity || 1);

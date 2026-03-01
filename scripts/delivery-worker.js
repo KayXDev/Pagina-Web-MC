@@ -97,8 +97,30 @@ async function main() {
   let rcon = null;
   async function ensureRcon() {
     if (rcon) return rcon;
-    rcon = await Rcon.connect({ host: rconHost, port: rconPort, password: rconPassword });
-    return rcon;
+    const conn = await Rcon.connect({ host: rconHost, port: rconPort, password: rconPassword });
+
+    // IMPORTANT: rcon-client re-emits socket errors as an EventEmitter 'error'.
+    // If nobody listens to it, Node will crash with an unhandled 'error' event.
+    conn.on('error', async (err) => {
+      const message = String(err && err.message ? err.message : err);
+      console.error(`[delivery-worker] rcon error: ${message}`);
+
+      // Force reconnect next loop.
+      try {
+        await conn.end();
+      } catch {
+        // ignore
+      }
+
+      if (rcon === conn) rcon = null;
+    });
+
+    conn.on('end', () => {
+      if (rcon === conn) rcon = null;
+    });
+
+    rcon = conn;
+    return conn;
   }
 
   while (true) {

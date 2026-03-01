@@ -4,6 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import { requireAdmin } from '@/lib/session';
 import ShopOrder from '@/models/ShopOrder';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
+import { ensureStockDeductedForOrder } from '@/lib/stock';
 
 const schema = z.object({
   orderId: z.string().min(1),
@@ -55,6 +56,19 @@ export async function POST(request: Request) {
           },
         }
       );
+    }
+
+    const stockRes = await ensureStockDeductedForOrder(String(order._id));
+    if (!stockRes.ok) {
+      await ShopOrder.updateOne(
+        { _id: order._id },
+        {
+          $set: {
+            stockDeductionError: stockRes.error.message,
+          },
+        }
+      );
+      return NextResponse.json({ error: 'Sin stock suficiente' }, { status: 409 });
     }
 
     const res = await ensureDeliveryForOrder(String(order._id));
