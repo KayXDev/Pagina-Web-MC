@@ -27,6 +27,8 @@ interface Product {
   category: string;
   features: string[];
   image?: string;
+  isUnlimited?: boolean;
+  stock?: number;
 }
 
 export default function TiendaPage() {
@@ -285,7 +287,7 @@ export default function TiendaPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', { cache: 'no-store' });
         const data = await response.json();
         setProducts(data);
       } catch (error) {
@@ -341,6 +343,15 @@ export default function TiendaPage() {
   };
 
   const addToCart = async (productId: string) => {
+    const product = products.find((p) => p._id === productId);
+    const isUnlimited = Boolean((product as any)?.isUnlimited);
+    const stock = Number((product as any)?.stock);
+    const safeStock = Number.isFinite(stock) ? stock : 0;
+    if (product && !isUnlimited && safeStock <= 0) {
+      toast.error(lang === 'es' ? 'Sin stock disponible' : 'Out of stock');
+      return;
+    }
+
     const next = normalizeCart([...cartItems, { productId, quantity: 1 }]);
     await persistCart(next);
   };
@@ -563,6 +574,19 @@ export default function TiendaPage() {
                             <Badge variant="info">{product.category}</Badge>
                           </div>
                         </div>
+
+                        {product.isUnlimited === false && (
+                          <div className="mb-3">
+                            {Number(product.stock ?? 0) > 0 ? (
+                              <Badge variant="default">
+                                {(lang === 'es' ? 'Stock' : 'Stock') + ': ' + String(product.stock ?? 0)}
+                              </Badge>
+                            ) : (
+                              <Badge variant="danger">{lang === 'es' ? 'Sin stock' : 'Out of stock'}</Badge>
+                            )}
+                          </div>
+                        )}
+
                         <p className="text-gray-600 dark:text-gray-400 mb-4">{product.description}</p>
 
                         {/* Features */}
@@ -582,7 +606,13 @@ export default function TiendaPage() {
                       <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800">
                         <div className="flex items-center justify-between">
                           <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
-                          <Button onClick={() => addToCart(product._id)} disabled={savingCart}>
+                          <Button
+                            onClick={() => addToCart(product._id)}
+                            disabled={
+                              savingCart ||
+                              (product.isUnlimited === false && Number(product.stock ?? 0) <= 0)
+                            }
+                          >
                             <FaShoppingCart />
                             <span>{addToCartLabel}</span>
                           </Button>
