@@ -12,4 +12,8 @@ export const VOTE_SITES: VoteSite[] = [
     name: 'MinecraftServers.org',
     url: 'https://minecraftservers.org/vote/684433',
   },
+  {
+    name: 'Minecraft-Server-List',
+    url: 'https://minecraft-server-list.com/server/518331/vote/',
+  },
 ];
