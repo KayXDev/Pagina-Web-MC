@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import PendingUser from '@/models/PendingUser';
+import ReferralProfile from '@/models/ReferralProfile';
 import { registerSchema } from '@/lib/validations';
 import { isEmailConfigured, sendEmailVerificationCodeEmail } from '@/lib/email';
 
@@ -21,6 +22,13 @@ function getPepper() {
 
 function makeCode() {
   return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+}
+
+function normalizeReferralCode(raw: string) {
+  return String(raw || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, '');
 }
 
 export async function POST(request: Request) {
@@ -65,6 +73,19 @@ export async function POST(request: Request) {
         ? String((validatedData as any).displayName).trim()
         : '';
 
+    const requestedReferralCode = normalizeReferralCode(String((validatedData as any).referralCode || ''));
+
+    let referrerProfile: any = null;
+    if (requestedReferralCode) {
+      referrerProfile = await ReferralProfile.findOne({ code: requestedReferralCode, active: true })
+        .select('code userId active')
+        .lean();
+
+      if (!referrerProfile) {
+        return NextResponse.json({ error: 'Código de referido inválido' }, { status: 400 });
+      }
+    }
+
     const emailLower = validatedData.email.toLowerCase();
 
     // Prevent reserving usernames/emails already in pending state (case-insensitive)
@@ -102,6 +123,8 @@ export async function POST(request: Request) {
           username: validatedData.username,
           displayName,
           email: emailLower,
+          referredByUserId: String(referrerProfile?.userId || ''),
+          referredByCode: String(referrerProfile?.code || ''),
           passwordHash: hashedPassword,
           codeHash,
           expiresAt,

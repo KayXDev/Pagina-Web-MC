@@ -16,10 +16,12 @@ import {
   FaHome,
   FaKey,
   FaNewspaper,
+  FaPercent,
   FaShieldAlt,
   FaShoppingCart,
   FaTicketAlt,
   FaTimes,
+  FaUserFriends,
   FaUsers,
 } from 'react-icons/fa';
 import { t } from '@/lib/i18n';
@@ -62,6 +64,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { key: 'users', name: t(lang, 'admin.menu.users'), href: '/admin/users', icon: FaUsers, group: 'main' },
     { key: 'badges', name: t(lang, 'admin.menu.badges'), href: '/admin/badges', icon: FaAward, group: 'main' },
     { key: 'products', name: t(lang, 'admin.menu.products'), href: '/admin/products', icon: FaShoppingCart, group: 'main' },
+    { key: 'coupons', name: lang === 'es' ? 'Cupones' : 'Coupons', href: '/admin/coupons', icon: FaPercent, group: 'main' },
+    { key: 'referrals', name: lang === 'es' ? 'Referidos' : 'Referrals', href: '/admin/referrals', icon: FaUserFriends, group: 'main' },
     { key: 'tickets', name: t(lang, 'admin.menu.tickets'), href: '/admin/tickets', icon: FaTicketAlt, group: 'main' },
     { key: 'applications', name: t(lang, 'admin.menu.applications'), href: '/admin/postulaciones', icon: FaClipboardList, group: 'main' },
     { key: 'forum', name: t(lang, 'admin.menu.forum'), href: '/admin/foro', icon: FaComments, group: 'content' },

@@ -44,6 +44,9 @@ const Navbar = () => {
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifItems, setNotifItems] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement | null>(null);
+  const notifOpenDesktopRef = useRef(false);
+  const notifOpenMobileRef = useRef(false);
+  const notifStreamRef = useRef<EventSource | null>(null);
 
   type CartItem = { productId: string; quantity: number };
   type Product = { _id: string; name: string; price: number; image?: string };
@@ -66,6 +69,14 @@ const Navbar = () => {
     setCartOpenMobile(false);
     setIsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    notifOpenDesktopRef.current = notifOpenDesktop;
+  }, [notifOpenDesktop]);
+
+  useEffect(() => {
+    notifOpenMobileRef.current = notifOpenMobile;
+  }, [notifOpenMobile]);
 
   useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
@@ -235,6 +246,45 @@ const Navbar = () => {
     fetchNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user, pathname]);
+
+  useEffect(() => {
+    if (!session?.user || typeof window === 'undefined') {
+      if (notifStreamRef.current) {
+        notifStreamRef.current.close();
+        notifStreamRef.current = null;
+      }
+      return;
+    }
+
+    const es = new EventSource('/api/notifications/stream');
+    notifStreamRef.current = es;
+
+    const onNotifications = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data || '{}');
+        const count = typeof payload?.unreadCount === 'number' ? payload.unreadCount : 0;
+        setUnreadCount(Math.max(0, count));
+
+        // Keep list fresh while notifications panel is open.
+        if (notifOpenDesktopRef.current || notifOpenMobileRef.current) {
+          void fetchNotifications();
+        }
+      } catch {
+        // ignore malformed events
+      }
+    };
+
+    es.addEventListener('notifications', onNotifications as EventListener);
+
+    return () => {
+      es.removeEventListener('notifications', onNotifications as EventListener);
+      es.close();
+      if (notifStreamRef.current === es) {
+        notifStreamRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user]);
 
   const markAllRead = async () => {
     if (!session?.user) return;
@@ -662,25 +712,37 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
-                      className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden"
+                      className="absolute right-0 mt-2 w-[420px] max-w-[92vw] rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-2xl overflow-hidden"
                     >
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
-                        <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900/60 dark:to-gray-950/40">
+                        <div className="text-gray-900 dark:text-white font-semibold text-lg">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
                         <div className="text-xs text-gray-600 dark:text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
                       </div>
 
                       {cartLoading ? (
                         <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                       ) : cartItems.length === 0 ? (
-                        <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                        <div className="px-4 py-7">
+                          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 p-6 text-center">
+                            <div className="mx-auto h-14 w-14 rounded-xl grid place-items-center bg-minecraft-gold/15 text-minecraft-gold mb-3">
+                              <FaShoppingCart size={24} />
+                            </div>
+                            <div className="text-gray-900 dark:text-white font-semibold mb-1">
+                              {lang === 'es' ? 'Tu carrito esta vacio' : 'Your cart is empty'}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {lang === 'es' ? 'Añade productos para verlos aqui.' : 'Add products to see them here.'}
+                            </div>
+                          </div>
+                        </div>
                       ) : (
-                        <div className="max-h-[60vh] overflow-auto divide-y divide-gray-200 dark:divide-white/10">
+                        <div className="max-h-[60vh] overflow-auto px-3 py-3 space-y-2">
                           {cartItems.slice(0, 6).map((it) => {
                             const p = cartProductById.get(String(it.productId));
                             const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
                             const line = Number(p?.price || 0) * Number(it.quantity || 0);
                             return (
-                              <div key={it.productId} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5">
+                              <div key={it.productId} className="px-3 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
                                     <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>
@@ -868,25 +930,37 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-xl border border-gray-200 dark:border-minecraft-diamond/20 bg-white/95 dark:bg-gray-950/90 backdrop-blur-sm shadow-xl overflow-hidden z-50"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-2xl border border-gray-200/80 dark:border-minecraft-diamond/20 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-2xl overflow-hidden z-50"
                   >
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
-                      <div className="text-gray-900 dark:text-white font-semibold">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900/60 dark:to-gray-950/40">
+                      <div className="text-gray-900 dark:text-white font-semibold text-lg">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-300">{cartTotalQty} {lang === 'es' ? 'artículos' : 'items'}</div>
                     </div>
 
                     {cartLoading ? (
                       <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                     ) : cartItems.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.'}</div>
+                      <div className="px-4 py-7">
+                        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 p-6 text-center">
+                          <div className="mx-auto h-14 w-14 rounded-xl grid place-items-center bg-minecraft-gold/15 text-minecraft-gold mb-3">
+                            <FaShoppingCart size={24} />
+                          </div>
+                          <div className="text-gray-900 dark:text-white font-semibold mb-1">
+                            {lang === 'es' ? 'Tu carrito esta vacio' : 'Your cart is empty'}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {lang === 'es' ? 'Añade productos para verlos aqui.' : 'Add products to see them here.'}
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                      <div className="max-h-[50vh] overflow-auto divide-y divide-gray-200 dark:divide-white/10">
+                      <div className="max-h-[50vh] overflow-auto px-3 py-3 space-y-2">
                         {cartItems.slice(0, 5).map((it) => {
                           const p = cartProductById.get(String(it.productId));
                           const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
                           const line = Number(p?.price || 0) * Number(it.quantity || 0);
                           return (
-                            <div key={it.productId} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5">
+                            <div key={it.productId} className="px-3 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
                                   <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</div>

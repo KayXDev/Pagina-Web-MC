@@ -45,6 +45,23 @@ export interface IShopOrder {
   // Stock deduction tracking (idempotent, for limited-stock products)
   stockDeductedAt?: Date;
   stockDeductionError?: string;
+
+  // Coupon metadata
+  couponCode?: string;
+  couponType?: 'PERCENT' | 'FIXED' | '';
+  couponValue?: number;
+  couponDiscountAmount?: number;
+  couponUsageAppliedAt?: Date;
+
+  // Referral metadata
+  referralCode?: string;
+  referralReferrerUserId?: string;
+  referralDiscountPercent?: number;
+  referralDiscountAmount?: number;
+  referralRewardAmount?: number;
+  referralRewardAppliedAt?: Date;
+
+  subtotalPrice?: number;
   ip?: string;
   userAgent?: string;
   createdAt: Date;
@@ -72,6 +89,7 @@ const ShopOrderSchema = new Schema<IShopOrder>(
       default: [],
     },
     totalPrice: { type: Number, default: 0 },
+    subtotalPrice: { type: Number, default: 0 },
     currency: { type: String, default: 'EUR' },
     status: { type: String, enum: ['PENDING', 'PAID', 'DELIVERED', 'CANCELED'], default: 'PENDING' },
     provider: { type: String, enum: ['MANUAL', 'PAYPAL', 'STRIPE'], default: 'MANUAL' },
@@ -90,6 +108,20 @@ const ShopOrderSchema = new Schema<IShopOrder>(
 
     stockDeductedAt: { type: Date },
     stockDeductionError: { type: String, default: '' },
+
+    couponCode: { type: String, default: '' },
+    couponType: { type: String, enum: ['', 'PERCENT', 'FIXED'], default: '' },
+    couponValue: { type: Number, default: 0 },
+    couponDiscountAmount: { type: Number, default: 0 },
+    couponUsageAppliedAt: { type: Date },
+
+    referralCode: { type: String, default: '' },
+    referralReferrerUserId: { type: String, default: '' },
+    referralDiscountPercent: { type: Number, default: 0 },
+    referralDiscountAmount: { type: Number, default: 0 },
+    referralRewardAmount: { type: Number, default: 0 },
+    referralRewardAppliedAt: { type: Date },
+
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },
   },

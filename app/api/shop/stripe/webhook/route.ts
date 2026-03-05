@@ -5,6 +5,7 @@ import ShopOrder from '@/models/ShopOrder';
 import { getStripe } from '@/lib/stripe';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
 import { ensureStockDeductedForOrder } from '@/lib/stock';
+import { applyOrderIncentives } from '@/lib/referrals';
 
 export async function POST(request: Request) {
   const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || '').trim();
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
 
         // Create (idempotent) delivery job for in-game commands.
         await ensureDeliveryForOrder(String(order._id));
+        await applyOrderIncentives(String(order._id));
       }
     }
 

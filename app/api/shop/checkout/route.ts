@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import dbConnect from '@/lib/mongodb';
-import Product from '@/models/Product';
 import ShopOrder from '@/models/ShopOrder';
 import { resolveMinecraftAccount } from '@/lib/minecraftAccount';
 import { getCurrentUser } from '@/lib/session';
+import { buildPricingFromItems } from '@/lib/shopPricing';
 
 const checkoutSchema = z.object({
   minecraftUsername: z.string().min(1),
   productId: z.string().min(1).optional(),
+  couponCode: z.string().max(40).optional(),
   items: z
     .array(
       z.object({
@@ -51,65 +52,28 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const normalizedMap = new Map<string, number>();
-    for (const item of rawItems) {
-      const prev = normalizedMap.get(item.productId) || 0;
-      normalizedMap.set(item.productId, Math.min(99, prev + item.quantity));
-    }
-
-    const normalizedItems = Array.from(normalizedMap.entries()).map(([productId, quantity]) => ({ productId, quantity }));
-    const ids = normalizedItems.map((i) => i.productId);
-
-    const products = await Product.find({ _id: { $in: ids } }).lean();
-    const productById = new Map<string, any>(products.map((p: any) => [String(p._id), p]));
-
-    const lineItems = normalizedItems.map((it) => {
-      const p = productById.get(String(it.productId));
-      return { it, p };
-    });
-
-    for (const { p } of lineItems) {
-      if (!p) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
-      if (!p.isActive) return NextResponse.json({ error: 'Producto no disponible' }, { status: 400 });
-    }
-
-    // Stock validation for limited products.
-    for (const { it, p } of lineItems) {
-      if (!p) continue;
-      if (p.isUnlimited) continue;
-      const currentStock = Number((p as any).stock);
-      const safeStock = Number.isFinite(currentStock) ? currentStock : 0;
-      const need = Math.max(1, Math.floor(Number(it.quantity || 1)));
-      if (safeStock < need) {
-        return NextResponse.json(
-          {
-            error: 'Sin stock suficiente',
-            productId: String((p as any)._id || it.productId),
-            stock: safeStock,
-            requested: need,
-          },
-          { status: 409 }
-        );
-      }
-    }
-
-    const orderItems = lineItems.map(({ it, p }) => {
-      const unitPrice = Number(p.price || 0);
-      const quantity = Number(it.quantity || 1);
-      const lineTotal = unitPrice * quantity;
-      return {
-        productId: String(p._id),
-        productName: String(p.name || ''),
-        unitPrice,
-        quantity,
-        lineTotal,
-      };
-    });
-
-    const totalPrice = orderItems.reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
-    const first = orderItems[0];
-
     const user = await getCurrentUser().catch(() => null);
+
+    let pricing;
+    try {
+      pricing = await buildPricingFromItems({
+        rawItems,
+        couponCode: parsed.data.couponCode,
+        buyerUserId: user?.id || '',
+      });
+    } catch (err: any) {
+      const msg = String(err?.message || 'Error');
+      if (msg === 'Producto no encontrado') return NextResponse.json({ error: msg }, { status: 404 });
+      if (msg === 'Sin stock suficiente') {
+        const meta = (err as any)?.meta || {};
+        return NextResponse.json({ error: msg, ...meta }, { status: 409 });
+      }
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+
+    const orderItems = pricing.orderItems;
+    const totalPrice = pricing.totalPrice;
+    const first = orderItems[0];
 
     const headers = new Headers(request.headers);
     const ip = headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '';
@@ -123,7 +87,17 @@ export async function POST(request: Request) {
       productName: first?.productName || '',
       productPrice: first?.unitPrice || 0,
       items: orderItems,
+      subtotalPrice: pricing.subtotal,
       totalPrice,
+      couponCode: pricing.coupon?.code || '',
+      couponType: pricing.coupon?.type || '',
+      couponValue: pricing.coupon?.value || 0,
+      couponDiscountAmount: pricing.coupon?.discountAmount || 0,
+      referralCode: pricing.referral?.code || '',
+      referralReferrerUserId: pricing.referral?.referrerUserId || '',
+      referralDiscountPercent: pricing.referral?.discountPercent || 0,
+      referralDiscountAmount: pricing.referral?.discountAmount || 0,
+      referralRewardAmount: pricing.referral?.rewardAmount || 0,
       currency: process.env.SHOP_CURRENCY || 'EUR',
       status: 'PENDING',
       provider: 'MANUAL',
@@ -138,6 +112,19 @@ export async function POST(request: Request) {
       minecraftUsername: order.minecraftUsername,
       minecraftUuid: order.minecraftUuid,
       currency: order.currency,
+      subtotalPrice: (order as any).subtotalPrice || 0,
+      coupon: (order as any).couponCode
+        ? {
+            code: (order as any).couponCode,
+            discountAmount: (order as any).couponDiscountAmount || 0,
+          }
+        : null,
+      referral: (order as any).referralCode
+        ? {
+            code: (order as any).referralCode,
+            discountAmount: (order as any).referralDiscountAmount || 0,
+          }
+        : null,
       totalPrice: (order as any).totalPrice || 0,
       items: (order as any).items || [],
       product:

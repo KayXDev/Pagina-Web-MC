@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaCheck, FaTags } from 'react-icons/fa';
+import { FaShoppingCart, FaCheck, FaTags, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -37,6 +37,11 @@ export default function TiendaPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [priceMin, setPriceMin] = useState<string>('');
+  const [priceMax, setPriceMax] = useState<string>('');
+  const [priceSort, setPriceSort] = useState<'DEFAULT' | 'LOW_TO_HIGH' | 'HIGH_TO_LOW'>('DEFAULT');
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [wishlistOnly, setWishlistOnly] = useState(false);
 
   const addToCartLabel = lang === 'es' ? 'Añadir' : 'Add';
   const cartErrorLabel = lang === 'es' ? 'Error al guardar el carrito' : 'Failed to save cart';
@@ -142,6 +147,29 @@ export default function TiendaPage() {
   }, []);
 
   const localCartKey = 'shop.cart.items';
+  const localWishlistKey = 'shop.wishlist.items';
+
+  const readLocalWishlist = (): string[] => {
+    try {
+      const raw = localStorage.getItem(localWishlistKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return Array.from(new Set(parsed.map((id: any) => String(id || '').trim()).filter(Boolean)));
+    } catch {
+      return [];
+    }
+  };
+
+  const writeLocalWishlist = (items: string[]) => {
+    try {
+      localStorage.setItem(localWishlistKey, JSON.stringify(Array.from(new Set(items))));
+      window.dispatchEvent(new Event('shop-wishlist-updated'));
+    } catch {
+      // ignore
+    }
+  };
+
   const readLocalCart = (): CartItem[] => {
     try {
       const raw = localStorage.getItem(localCartKey);
@@ -252,6 +280,15 @@ export default function TiendaPage() {
   }, [status]);
 
   useEffect(() => {
+    setWishlist(readLocalWishlist());
+
+    const onWishlistUpdated = () => setWishlist(readLocalWishlist());
+    window.addEventListener('shop-wishlist-updated', onWishlistUpdated);
+    return () => window.removeEventListener('shop-wishlist-updated', onWishlistUpdated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     // If logged in, prefer the account-linked MC user
     const loadLinked = async () => {
       if (status !== 'authenticated') return;
@@ -300,9 +337,33 @@ export default function TiendaPage() {
     fetchProducts();
   }, [lang]);
 
-  const filteredProducts = selectedCategory === 'ALL' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  const filteredProducts = products
+    .filter((p) => (selectedCategory === 'ALL' ? true : p.category === selectedCategory))
+    .filter((p) => (wishlistOnly ? wishlist.includes(String(p._id)) : true))
+    .filter((p) => {
+      const min = Number(priceMin);
+      const max = Number(priceMax);
+      const byMin = Number.isFinite(min) && priceMin.trim() !== '' ? Number(p.price) >= min : true;
+      const byMax = Number.isFinite(max) && priceMax.trim() !== '' ? Number(p.price) <= max : true;
+      return byMin && byMax;
+    })
+    .sort((a, b) => {
+      if (priceSort === 'LOW_TO_HIGH') return Number(a.price) - Number(b.price);
+      if (priceSort === 'HIGH_TO_LOW') return Number(b.price) - Number(a.price);
+      return 0;
+    });
+
+  const toggleWishlist = (productId: string) => {
+    const id = String(productId || '').trim();
+    if (!id) return;
+
+    setWishlist((prev) => {
+      const has = prev.includes(id);
+      const next = has ? prev.filter((x) => x !== id) : [...prev, id];
+      writeLocalWishlist(next);
+      return next;
+    });
+  };
 
   const checkMinecraft = async () => {
     const username = minecraftUsernameInput.trim();
@@ -472,17 +533,41 @@ export default function TiendaPage() {
       ) : (
         <>
           {/* Minecraft Account (summary) */}
-          <div className="max-w-5xl mx-auto mb-8">
+          <div className="max-w-5xl mx-auto mb-8 flex justify-center">
             <Card
               hover={false}
-              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl px-4 py-2"
+              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl p-4 w-full max-w-md"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center justify-between gap-3 w-full">
-                <div className="min-w-0">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                  {minecraftResolved?.uuid ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={minecraftAvatarSrc || minecraftAvatarPrimary}
+                        alt={minecraftResolved.username}
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                        onError={() => {
+                          if (!minecraftAvatarFallback) return;
+                          setMinecraftAvatarSrc((cur) => (cur === minecraftAvatarFallback ? cur : minecraftAvatarFallback));
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <FaTags className="text-2xl text-gray-500" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
                   <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
-                  <div className="text-gray-900 dark:text-white font-semibold truncate mt-0.5">
+                  <div className="text-gray-900 dark:text-white text-lg font-semibold truncate mt-0.5">
                     {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
+                  </div>
+                  <div className="mt-2">
+                    <Badge variant={minecraftResolved?.uuid ? 'success' : 'warning'}>
+                      {minecraftResolved?.uuid ? t(lang, 'shop.minecraftVerified') : t(lang, 'shop.minecraftNeedUsername')}
+                    </Badge>
                   </div>
                 </div>
 
@@ -506,12 +591,11 @@ export default function TiendaPage() {
                   </Button>
                 ) : null}
               </div>
-              </div>
             </Card>
           </div>
 
           {/* Category Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-12">
+          <div className="flex flex-col gap-4 mb-12">
             <div className="flex flex-wrap justify-center sm:justify-start gap-3 flex-1">
               {categories.map((category) => (
                 <button
@@ -527,6 +611,67 @@ export default function TiendaPage() {
                 </button>
               ))}
             </div>
+
+            <Card
+              hover={false}
+              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <Input
+                  type="number"
+                  min="0"
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  placeholder={lang === 'es' ? 'Precio minimo' : 'Min price'}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  placeholder={lang === 'es' ? 'Precio maximo' : 'Max price'}
+                />
+                <select
+                  value={priceSort}
+                  onChange={(e) => setPriceSort(e.target.value as 'DEFAULT' | 'LOW_TO_HIGH' | 'HIGH_TO_LOW')}
+                  className="w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+                >
+                  <option value="DEFAULT">{lang === 'es' ? 'Orden por defecto' : 'Default order'}</option>
+                  <option value="LOW_TO_HIGH">{lang === 'es' ? 'Precio: menor a mayor' : 'Price: low to high'}</option>
+                  <option value="HIGH_TO_LOW">{lang === 'es' ? 'Precio: mayor a menor' : 'Price: high to low'}</option>
+                </select>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setPriceMin('');
+                    setPriceMax('');
+                    setPriceSort('DEFAULT');
+                    setSelectedCategory('ALL');
+                    setWishlistOnly(false);
+                  }}
+                >
+                  <span>{lang === 'es' ? 'Limpiar filtros' : 'Clear filters'}</span>
+                </Button>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setWishlistOnly((v) => !v)}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                    wishlistOnly
+                      ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300'
+                      : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:bg-black/20 dark:text-gray-300 dark:hover:bg-white/10'
+                  }`}
+                >
+                  <FaHeart className={wishlistOnly ? 'text-red-500' : 'text-gray-400'} />
+                  <span>{lang === 'es' ? 'Solo favoritos' : 'Wishlist only'}</span>
+                </button>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  {lang === 'es' ? 'Favoritos guardados' : 'Saved wishlist'}: {wishlist.length}
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Products Grid */}
@@ -551,6 +696,18 @@ export default function TiendaPage() {
                     <Card className="h-full flex flex-col">
                       {/* Product Image */}
                       <div className="relative w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => toggleWishlist(product._id)}
+                          className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full grid place-items-center bg-white/90 text-gray-700 hover:bg-white border border-gray-200 dark:bg-black/60 dark:text-gray-200 dark:border-white/10 dark:hover:bg-black/80"
+                          aria-label={lang === 'es' ? 'Añadir a favoritos' : 'Add to wishlist'}
+                        >
+                          {wishlist.includes(String(product._id)) ? (
+                            <FaHeart className="text-red-500" />
+                          ) : (
+                            <FaRegHeart />
+                          )}
+                        </button>
                         {product.image ? (
                           <Image
                             src={product.image}

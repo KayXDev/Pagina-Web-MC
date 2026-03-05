@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaUser, FaEnvelope, FaLock, FaUserPlus } from 'react-icons/fa';
@@ -12,6 +13,7 @@ import { useClientLang } from '@/lib/useClientLang';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const lang = useClientLang();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'form' | 'code' | 'done'>('form');
@@ -23,7 +25,17 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    referralCode: '',
   });
+
+  useEffect(() => {
+    const fromQuery = String(searchParams?.get('ref') || '').trim().toUpperCase();
+    const fromStorage = typeof window !== 'undefined' ? String(localStorage.getItem('shop.referral.code') || '').trim().toUpperCase() : '';
+    const finalCode = fromQuery || fromStorage;
+    if (!finalCode) return;
+
+    setFormData((prev) => ({ ...prev, referralCode: prev.referralCode || finalCode }));
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +57,7 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
+          referralCode: formData.referralCode,
         }),
       });
 
@@ -194,6 +207,18 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                {lang === 'es' ? 'Código de referido (opcional)' : 'Referral code (optional)'}
+              </label>
+              <Input
+                type="text"
+                placeholder={lang === 'es' ? 'Ej: PLAYER-ABC12' : 'e.g. PLAYER-ABC12'}
+                value={formData.referralCode}
+                onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+              />
             </div>
 
             <Button

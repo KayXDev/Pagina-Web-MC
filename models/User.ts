@@ -6,6 +6,8 @@ export interface IUser {
   displayName?: string;
   email: string;
   password: string;
+  referredByUserId?: string;
+  referredByCode?: string;
   role: 'USER' | 'STAFF' | 'ADMIN' | 'OWNER';
   tags: string[];
   badges?: string[];
@@ -68,6 +70,18 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
+    },
+    referredByUserId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    referredByCode: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+      maxlength: [32, 'Referral code cannot exceed 32 characters'],
     },
     role: {
       type: String,
@@ -332,6 +346,28 @@ if (models.User) {
         banner: {
           type: String,
           default: '',
+        },
+      });
+    }
+
+    if (!models.User.schema.path('referredByUserId')) {
+      models.User.schema.add({
+        referredByUserId: {
+          type: String,
+          default: '',
+          trim: true,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('referredByCode')) {
+      models.User.schema.add({
+        referredByCode: {
+          type: String,
+          default: '',
+          trim: true,
+          uppercase: true,
+          maxlength: [32, 'Referral code cannot exceed 32 characters'],
         },
       });
     }

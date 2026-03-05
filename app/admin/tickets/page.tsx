@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { FaTicketAlt, FaTimes, FaSearch, FaSyncAlt } from 'react-icons/fa';
+import { FaTicketAlt, FaTimes, FaSearch, FaSyncAlt, FaDiscord } from 'react-icons/fa';
 import { Card, Badge, Button, Select, Textarea, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { formatDateTime } from '@/lib/utils';
@@ -56,13 +56,107 @@ export default function AdminTicketsPage() {
 
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [ticketWebhook, setTicketWebhook] = useState('');
+  const [webhookLoading, setWebhookLoading] = useState(true);
+  const [webhookSaving, setWebhookSaving] = useState(false);
+  const [webhookTesting, setWebhookTesting] = useState(false);
+  const [webhookTestPriority, setWebhookTestPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM');
+  const [canManageWebhook, setCanManageWebhook] = useState(true);
 
   const liveFetchRef = useRef(false);
 
   useEffect(() => {
     fetchTickets();
+    fetchTicketWebhookSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchTicketWebhookSettings = async () => {
+    setWebhookLoading(true);
+    try {
+      const response = await fetch('/api/admin/settings', { cache: 'no-store' });
+      if (response.status === 403) {
+        setCanManageWebhook(false);
+        setTicketWebhook('');
+        return;
+      }
+      if (!response.ok) throw new Error('settings_error');
+      const data = await response.json();
+      setCanManageWebhook(true);
+      setTicketWebhook(String(data?.tickets_discord_webhook || ''));
+    } catch {
+      setCanManageWebhook(false);
+      setTicketWebhook('');
+    } finally {
+      setWebhookLoading(false);
+    }
+  };
+
+  const saveTicketWebhookSettings = async () => {
+    setWebhookSaving(true);
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tickets_discord_webhook: ticketWebhook.trim(),
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String((data as any)?.error || 'Error'));
+      }
+
+      toast.success(
+        lang === 'es'
+          ? 'Webhook de tickets guardado'
+          : 'Tickets webhook saved'
+      );
+      setCanManageWebhook(true);
+      setTicketWebhook(String(ticketWebhook || '').trim());
+    } catch (err: any) {
+      toast.error(
+        err?.message ||
+          (lang === 'es'
+            ? 'No se pudo guardar el webhook de tickets'
+            : 'Could not save tickets webhook')
+      );
+    } finally {
+      setWebhookSaving(false);
+    }
+  };
+
+  const sendWebhookTest = async () => {
+    setWebhookTesting(true);
+    try {
+      const response = await fetch('/api/admin/tickets/webhook-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priority: webhookTestPriority }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(String((data as any)?.error || 'Error'));
+      }
+
+      toast.success(
+        lang === 'es'
+          ? 'Webhook de prueba enviado a Discord'
+          : 'Test webhook sent to Discord'
+      );
+    } catch (err: any) {
+      toast.error(
+        err?.message ||
+          (lang === 'es'
+            ? 'No se pudo enviar el webhook de prueba'
+            : 'Could not send test webhook')
+      );
+    } finally {
+      setWebhookTesting(false);
+    }
+  };
 
   const fetchTickets = async (langOverride?: Lang, opts?: { silent?: boolean }) => {
     const useLang = langOverride || lang;
@@ -390,6 +484,91 @@ export default function AdminTicketsPage() {
             </span>
           </div>
         </div>
+      </Card>
+
+      <Card
+        hover={false}
+        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+      >
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-gray-900 dark:text-white font-semibold">
+              <FaDiscord className="text-[#5865F2]" />
+              <span>{lang === 'es' ? 'Webhook de tickets (Discord)' : 'Tickets webhook (Discord)'}</span>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              {lang === 'es'
+                ? 'Cuando llegue un ticket nuevo, se enviará una notificación al canal configurado.'
+                : 'When a new ticket is created, a notification will be sent to the configured channel.'}
+            </p>
+          </div>
+
+          {!webhookLoading ? (
+            <Badge variant={String(ticketWebhook || '').trim() ? 'success' : 'default'}>
+              {String(ticketWebhook || '').trim()
+                ? (lang === 'es' ? 'CONFIGURADO' : 'CONFIGURED')
+                : (lang === 'es' ? 'NO CONFIGURADO' : 'NOT CONFIGURED')}
+            </Badge>
+          ) : null}
+        </div>
+
+        {webhookLoading ? (
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
+        ) : canManageWebhook ? (
+          <>
+            <div className="mt-4">
+              <Input
+                type="text"
+                value={ticketWebhook}
+                onChange={(e) => setTicketWebhook(e.target.value)}
+                placeholder="https://discord.com/api/webhooks/..."
+              />
+            </div>
+
+            <div className="mt-3 flex flex-col md:flex-row gap-2 md:items-center md:justify-end">
+              <select
+                value={webhookTestPriority}
+                onChange={(e) => setWebhookTestPriority(e.target.value as 'HIGH' | 'MEDIUM' | 'LOW')}
+                className="w-full md:w-auto px-3 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100"
+              >
+                <option value="HIGH">HIGH (Red)</option>
+                <option value="MEDIUM">MEDIUM (Amber)</option>
+                <option value="LOW">LOW (Green)</option>
+              </select>
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={sendWebhookTest}
+                disabled={webhookTesting || !String(ticketWebhook || '').trim()}
+              >
+                <span>
+                  {webhookTesting
+                    ? (lang === 'es' ? 'Enviando test...' : 'Sending test...')
+                    : (lang === 'es' ? 'Enviar test' : 'Send test')}
+                </span>
+              </Button>
+
+              <Button
+                type="button"
+                onClick={saveTicketWebhookSettings}
+                disabled={webhookSaving}
+              >
+                <span>
+                  {webhookSaving
+                    ? t(lang, 'common.saving')
+                    : (lang === 'es' ? 'Guardar webhook' : 'Save webhook')}
+                </span>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="mt-4 text-sm text-amber-700 dark:text-amber-300">
+            {lang === 'es'
+              ? 'Solo administradores pueden configurar este webhook.'
+              : 'Only administrators can configure this webhook.'}
+          </div>
+        )}
       </Card>
 
       {/* Layout */}

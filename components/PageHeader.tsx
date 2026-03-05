@@ -23,9 +23,7 @@ const PageHeader = ({ title, description, icon }: PageHeaderProps) => {
           transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
           className="flex justify-center mb-5"
         >
-          <div className="h-20 w-20 rounded-2xl grid place-items-center bg-white/80 border border-gray-200/70 shadow-sm shadow-black/5 ring-1 ring-black/5 dark:bg-white/5 dark:border-white/10 dark:ring-white/10">
-            {icon}
-          </div>
+          <div className="grid place-items-center">{icon}</div>
         </motion.div>
       )}
       <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">

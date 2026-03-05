@@ -55,6 +55,8 @@ export async function POST(request: Request) {
         displayName: String(pending.displayName || ''),
         email,
         password: String(pending.passwordHash || ''),
+        referredByUserId: String(pending.referredByUserId || ''),
+        referredByCode: String(pending.referredByCode || ''),
         role: 'USER',
         emailVerifiedAt: new Date(),
       });

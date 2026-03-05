@@ -5,6 +5,8 @@ export interface IPendingUser {
   username: string;
   displayName?: string;
   email: string;
+  referredByUserId?: string;
+  referredByCode?: string;
   passwordHash: string;
   codeHash: string;
   expiresAt: Date;
@@ -34,6 +36,18 @@ const PendingUserSchema = new Schema<IPendingUser>(
       lowercase: true,
       trim: true,
       maxlength: 320,
+    },
+    referredByUserId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    referredByCode: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+      maxlength: 32,
     },
     passwordHash: {
       type: String,

@@ -33,6 +33,14 @@ export default function CartPage() {
   const [savingCart, setSavingCart] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkingOutStripe, setCheckingOutStripe] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [discountPreview, setDiscountPreview] = useState<null | {
+    subtotal: number;
+    totalPrice: number;
+    coupon?: { code: string; discountAmount: number } | null;
+    referral?: { code: string; discountAmount: number } | null;
+  }>(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
 
   const [minecraftUsername, setMinecraftUsername] = useState('');
   const [minecraftUuid, setMinecraftUuid] = useState('');
@@ -246,6 +254,46 @@ export default function CartPage() {
     }, 0);
   }, [cartItems, productById]);
 
+  useEffect(() => {
+    const run = async () => {
+      if (!cartItems.length) {
+        setDiscountPreview(null);
+        return;
+      }
+
+      if (!couponCode.trim()) {
+        setDiscountPreview({ subtotal: totalPrice, totalPrice });
+        return;
+      }
+
+      setDiscountLoading(true);
+      try {
+        const res = await fetch('/api/shop/discounts/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cartItems,
+            couponCode: couponCode.trim(),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((data as any).error || 'Error');
+
+        setDiscountPreview({
+          subtotal: Number((data as any).subtotal || totalPrice),
+          totalPrice: Number((data as any).totalPrice || totalPrice),
+          coupon: (data as any).coupon || null,
+          referral: (data as any).referral || null,
+        });
+      } catch {
+        setDiscountPreview({ subtotal: totalPrice, totalPrice });
+      } finally {
+        setDiscountLoading(false);
+      }
+    };
+    run();
+  }, [cartItems, couponCode, totalPrice]);
+
   const setQty = async (productId: string, quantity: number) => {
     const q = Math.min(99, Math.max(1, Math.floor(Number(quantity || 1))));
     const next = cartItems.map((it) => (it.productId === productId ? { ...it, quantity: q } : it));
@@ -270,7 +318,11 @@ export default function CartPage() {
       const res = await fetch('/api/shop/paypal/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minecraftUsername: username, items: cartItems }),
+        body: JSON.stringify({
+          minecraftUsername: username,
+          items: cartItems,
+          couponCode: couponCode.trim(),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any).error || 'Error');
@@ -319,7 +371,11 @@ export default function CartPage() {
       const res = await fetch('/api/shop/stripe/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minecraftUsername: username, items: cartItems }),
+        body: JSON.stringify({
+          minecraftUsername: username,
+          items: cartItems,
+          couponCode: couponCode.trim(),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any).error || 'Error');
@@ -573,10 +629,44 @@ export default function CartPage() {
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-xs text-gray-400 mb-2">{lang === 'es' ? 'Cupón de descuento' : 'Discount coupon'}</div>
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder={lang === 'es' ? 'Ej: WELCOME10' : 'e.g. WELCOME10'}
+                  />
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="text-gray-400">{lang === 'es' ? 'Subtotal' : 'Subtotal'}</div>
+                    <div className="text-gray-200">{formatPrice(discountPreview?.subtotal ?? totalPrice)}</div>
+                  </div>
+
+                  {discountPreview?.coupon?.discountAmount ? (
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <div className="text-gray-400">{lang === 'es' ? 'Cupón' : 'Coupon'} ({discountPreview.coupon.code})</div>
+                      <div className="text-minecraft-grass">- {formatPrice(discountPreview.coupon.discountAmount)}</div>
+                    </div>
+                  ) : null}
+
+                  {discountPreview?.referral?.discountAmount ? (
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <div className="text-gray-400">{lang === 'es' ? 'Referido' : 'Referral'} ({discountPreview.referral.code})</div>
+                      <div className="text-minecraft-grass">- {formatPrice(discountPreview.referral.discountAmount)}</div>
+                    </div>
+                  ) : null}
+
                   <div className="flex items-center justify-between text-sm">
                     <div className="text-gray-400">{lang === 'es' ? 'Total' : 'Total'}</div>
-                    <div className="text-white font-bold text-lg">{formatPrice(totalPrice)}</div>
+                    <div className="text-white font-bold text-lg">
+                      {formatPrice(discountPreview?.totalPrice ?? totalPrice)}
+                    </div>
                   </div>
+
+                  {discountLoading ? (
+                    <div className="mt-2 text-[11px] text-gray-500">{lang === 'es' ? 'Calculando descuentos...' : 'Calculating discounts...'}</div>
+                  ) : null}
                 </div>
 
                 <div className="mt-4 space-y-2">
