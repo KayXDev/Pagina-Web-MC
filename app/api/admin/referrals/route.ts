@@ -8,6 +8,7 @@ import User from '@/models/User';
 import { ensureReferralProfileForUser } from '@/lib/referrals';
 
 const REFERRAL_DISCOUNT_SETTING_KEY = 'referral_discount_percent';
+const REFERRAL_WEBHOOK_SETTING_KEY = 'shop_referral_discord_webhook';
 
 const createSchema = z.object({
   userId: z.string().min(1).optional(),
@@ -25,9 +26,10 @@ export async function GET() {
     await requireAdmin();
     await dbConnect();
 
-    const [profiles, discountSetting] = await Promise.all([
+    const [profiles, discountSetting, referralWebhookSetting] = await Promise.all([
       ReferralProfile.find().sort({ updatedAt: -1 }).limit(200).lean(),
       Settings.findOne({ key: REFERRAL_DISCOUNT_SETTING_KEY }).lean(),
+      Settings.findOne({ key: REFERRAL_WEBHOOK_SETTING_KEY }).lean(),
     ]);
     const userIds = profiles.map((p: any) => String(p.userId || '')).filter(Boolean);
     const users = await User.find({ _id: { $in: userIds } }, { _id: 1, username: 1, email: 1, balance: 1 }).lean();
@@ -40,6 +42,7 @@ export async function GET() {
 
     return NextResponse.json({
       referralDiscountPercent,
+      referralWebhook: String(referralWebhookSetting?.value || ''),
       profiles: profiles.map((p: any) => {
         const u = userById.get(String(p.userId || ''));
         return {

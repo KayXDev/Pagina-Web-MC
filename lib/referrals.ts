@@ -2,8 +2,13 @@ import dbConnect from '@/lib/mongodb';
 import Coupon from '@/models/Coupon';
 import ReferralProfile from '@/models/ReferralProfile';
 import ReferralEvent from '@/models/ReferralEvent';
+import Settings from '@/models/Settings';
 import ShopOrder from '@/models/ShopOrder';
 import User from '@/models/User';
+import { sendCouponUsedWebhook, sendReferralRewardWebhook } from '@/lib/shopIncentivesDiscord';
+
+const COUPON_WEBHOOK_KEY = 'shop_coupon_discord_webhook';
+const REFERRAL_WEBHOOK_KEY = 'shop_referral_discord_webhook';
 
 function normalizeReferralCode(raw: string) {
   return String(raw || '')
@@ -64,6 +69,13 @@ export async function applyOrderIncentives(orderId: string) {
 
   const updates: Record<string, any> = {};
 
+  const [couponWebhookSetting, referralWebhookSetting] = await Promise.all([
+    Settings.findOne({ key: COUPON_WEBHOOK_KEY }).lean(),
+    Settings.findOne({ key: REFERRAL_WEBHOOK_KEY }).lean(),
+  ]);
+  const couponWebhookUrl = String(couponWebhookSetting?.value || '').trim();
+  const referralWebhookUrl = String(referralWebhookSetting?.value || '').trim();
+
   const couponCode = String((order as any).couponCode || '').trim().toUpperCase();
   if (couponCode && !(order as any).couponUsageAppliedAt) {
     const markCoupon = await ShopOrder.updateOne(
@@ -74,6 +86,27 @@ export async function applyOrderIncentives(orderId: string) {
     if (Number((markCoupon as any).modifiedCount || 0) > 0) {
       await Coupon.updateOne({ code: couponCode }, { $inc: { usedCount: 1 } }).catch(() => null);
       updates.couponUsageApplied = true;
+
+      if (couponWebhookUrl) {
+        const siteName = String(process.env.SITE_NAME || 'Shop').trim();
+        const siteUrl = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
+        const buyer = String((order as any).userId || '').trim()
+          ? await User.findById(String((order as any).userId || ''), { _id: 1, username: 1, email: 1 }).lean().catch(() => null)
+          : null;
+        await sendCouponUsedWebhook({
+          webhookUrl: couponWebhookUrl,
+          siteName,
+          siteUrl,
+          orderId: String((order as any)._id || ''),
+          couponCode,
+          discountAmount: Number((order as any).couponDiscountAmount || 0),
+          totalPrice: Number((order as any).totalPrice || 0),
+          currency: String((order as any).currency || 'EUR'),
+          buyerLabel: buyer
+            ? `**${String((buyer as any).username || '')}** (\`${String((buyer as any).email || '')}\`)`
+            : `**${String((order as any).minecraftUsername || 'Unknown')}**`,
+        }).catch(() => null);
+      }
     }
   }
 
@@ -124,6 +157,36 @@ export async function applyOrderIncentives(orderId: string) {
       ).catch(() => null);
 
       updates.referralRewardApplied = true;
+
+      if (referralWebhookUrl) {
+        const siteName = String(process.env.SITE_NAME || 'Shop').trim();
+        const siteUrl = String(process.env.SITE_URL || process.env.NEXTAUTH_URL || '').trim();
+        const [referrer, referred] = await Promise.all([
+          referrerUserId
+            ? User.findById(referrerUserId, { _id: 1, username: 1, email: 1 }).lean().catch(() => null)
+            : null,
+          referredUserId
+            ? User.findById(referredUserId, { _id: 1, username: 1, email: 1 }).lean().catch(() => null)
+            : null,
+        ]);
+
+        await sendReferralRewardWebhook({
+          webhookUrl: referralWebhookUrl,
+          siteName,
+          siteUrl,
+          orderId: String((order as any)._id || ''),
+          referralCode,
+          buyerDiscountAmount: Number(discountAmount || 0),
+          rewardAmount: Number(rewardAmount || 0),
+          currency: String((order as any).currency || 'EUR'),
+          referrerLabel: referrer
+            ? `**${String((referrer as any).username || '')}** (\`${String((referrer as any).email || '')}\`)`
+            : `\`${referrerUserId}\``,
+          referredLabel: referred
+            ? `**${String((referred as any).username || '')}** (\`${String((referred as any).email || '')}\`)`
+            : `\`${referredUserId}\``,
+        }).catch(() => null);
+      }
     }
   }
 

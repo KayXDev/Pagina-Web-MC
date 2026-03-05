@@ -27,8 +27,11 @@ type Product = {
 export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingWebhook, setSavingWebhook] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [couponWebhook, setCouponWebhook] = useState('');
   const [form, setForm] = useState({
     code: '',
     description: '',
@@ -71,7 +74,56 @@ export default function AdminCouponsPage() {
     };
 
     fetchProducts();
+
+    const fetchWebhook = async () => {
+      try {
+        const res = await fetch('/api/admin/settings', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        setCouponWebhook(String((data as any)?.shop_coupon_discord_webhook || ''));
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchWebhook();
   }, []);
+
+  const saveCouponWebhook = async () => {
+    setSavingWebhook(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shop_coupon_discord_webhook: couponWebhook.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+      toast.success('Coupon webhook saved');
+      setCouponWebhook(String(couponWebhook || '').trim());
+    } catch (err: any) {
+      toast.error(err?.message || 'Error saving coupon webhook');
+    } finally {
+      setSavingWebhook(false);
+    }
+  };
+
+  const testCouponWebhook = async () => {
+    setTestingWebhook(true);
+    try {
+      const res = await fetch('/api/admin/coupons/webhook-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+      toast.success('Coupon test webhook sent');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error sending coupon test webhook');
+    } finally {
+      setTestingWebhook(false);
+    }
+  };
 
   const createCoupon = async () => {
     setSaving(true);
@@ -168,6 +220,24 @@ export default function AdminCouponsPage() {
           <Button type="button" onClick={createCoupon} disabled={saving || !form.code.trim()}>
             <FaPlus />
             <span>{saving ? 'Saving...' : 'Create coupon'}</span>
+          </Button>
+        </div>
+      </Card>
+
+      <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+        <div className="text-gray-900 dark:text-white font-semibold mb-2">Coupon usage webhook (Discord)</div>
+        <Input
+          type="text"
+          value={couponWebhook}
+          onChange={(e) => setCouponWebhook(e.target.value)}
+          placeholder="https://discord.com/api/webhooks/..."
+        />
+        <div className="mt-3 flex flex-col md:flex-row gap-2 justify-end">
+          <Button type="button" variant="secondary" onClick={testCouponWebhook} disabled={testingWebhook || !couponWebhook.trim()}>
+            <span>{testingWebhook ? 'Sending test...' : 'Send test'}</span>
+          </Button>
+          <Button type="button" onClick={saveCouponWebhook} disabled={savingWebhook}>
+            <span>{savingWebhook ? 'Saving...' : 'Save webhook'}</span>
           </Button>
         </div>
       </Card>
