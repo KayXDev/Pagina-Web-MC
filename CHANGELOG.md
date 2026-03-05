@@ -1,6 +1,6 @@
 # 📝 Changelog
 
-## [Unreleased] 🚧
+### 2026-03-05 ✅ 🆕 Latest 🚧
 
 ### ✨ Added
 
@@ -60,7 +60,7 @@
 
 ---
 
-## 2026-02-27 ✅ 🆕 Latest
+## 2026-02-27 ✅
 
 > *Day summary: social identity (`@username` + display name), code-based email verification (OTP), presence statuses, admin-managed badges, plus several newsletter/legal/SEO improvements.*
 
