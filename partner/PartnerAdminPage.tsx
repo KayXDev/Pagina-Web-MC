@@ -48,31 +48,33 @@ type AdminBooking = {
   ad?: { serverName: string; ownerUsername: string; status: string } | null;
 };
 
-function slotLabel(slot: number): string {
+function slotLabel(slot: number, lang: 'es' | 'en'): string {
   return Number(slot) === 0 ? 'VIP' : `#${slot}`;
 }
 
-function adBadge(status: AdminAd['status']) {
-  if (status === 'APPROVED') return <Badge variant="success">APROBADO</Badge>;
-  if (status === 'REJECTED') return <Badge variant="danger">RECHAZADO</Badge>;
-  return <Badge variant="warning">PENDIENTE</Badge>;
+function adBadge(status: AdminAd['status'], lang: 'es' | 'en') {
+  if (status === 'APPROVED') return <Badge variant="success">{lang === 'es' ? 'APROBADO' : 'APPROVED'}</Badge>;
+  if (status === 'REJECTED') return <Badge variant="danger">{lang === 'es' ? 'RECHAZADO' : 'REJECTED'}</Badge>;
+  return <Badge variant="warning">{lang === 'es' ? 'PENDIENTE' : 'PENDING'}</Badge>;
 }
 
-function bookingBadge(status: AdminBooking['status']) {
-  if (status === 'ACTIVE') return <Badge variant="success">ACTIVO</Badge>;
-  if (status === 'PENDING') return <Badge variant="warning">PENDIENTE</Badge>;
-  if (status === 'EXPIRED') return <Badge variant="default">EXPIRADO</Badge>;
-  return <Badge variant="default">CANCELADO</Badge>;
+function bookingBadge(status: AdminBooking['status'], lang: 'es' | 'en') {
+  if (status === 'ACTIVE') return <Badge variant="success">{lang === 'es' ? 'ACTIVO' : 'ACTIVE'}</Badge>;
+  if (status === 'PENDING') return <Badge variant="warning">{lang === 'es' ? 'PENDIENTE' : 'PENDING'}</Badge>;
+  if (status === 'EXPIRED') return <Badge variant="default">{lang === 'es' ? 'EXPIRADO' : 'EXPIRED'}</Badge>;
+  return <Badge variant="default">{lang === 'es' ? 'CANCELADO' : 'CANCELED'}</Badge>;
 }
 
 function Modal({
   open,
   title,
+  closeLabel,
   onClose,
   children,
 }: {
   open: boolean;
   title: string;
+  closeLabel: string;
   onClose: () => void;
   children: React.ReactNode;
 }) {
@@ -89,7 +91,7 @@ function Modal({
     <div className="fixed inset-0 z-50">
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={closeLabel}
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
@@ -100,7 +102,7 @@ function Modal({
               <div className="min-w-0">
                 <div className="text-gray-900 dark:text-white font-bold truncate">{title}</div>
               </div>
-              <Button variant="secondary" size="sm" onClick={onClose}>Cerrar</Button>
+              <Button variant="secondary" size="sm" onClick={onClose}>{closeLabel}</Button>
             </div>
             {children}
           </Card>
@@ -188,7 +190,7 @@ export default function PartnerAdminPage() {
     try {
       const res = await fetch('/api/admin/partner/slots', { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       const slots = Array.isArray((data as any)?.overrides?.slots) ? ((data as any).overrides.slots as any[]) : [];
       const next = Array.from({ length: PARTNER_SLOTS }, (_, i) => String(slots[i] ?? '').trim());
       setSlotOverrides(next);
@@ -196,7 +198,7 @@ export default function PartnerAdminPage() {
       const vipAdId = String((data as any)?.overrides?.vipAdId || '').trim();
       setVipOverride(vipAdId);
     } catch (e: any) {
-      setOverridesError(String(e?.message || 'Error'));
+      setOverridesError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
       setSlotOverrides(Array(PARTNER_SLOTS).fill(''));
       setVipOverride('');
     } finally {
@@ -210,7 +212,7 @@ export default function PartnerAdminPage() {
       qp.set('status', 'APPROVED');
       const res = await fetch(`/api/admin/partner/ads?${qp.toString()}`, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       const items = Array.isArray((data as any).items) ? ((data as any).items as AdminAd[]) : [];
       setApprovedAds(items);
     } catch {
@@ -232,7 +234,7 @@ export default function PartnerAdminPage() {
       await loadOverrides();
       setOverridesOpen(false);
     } catch (e: any) {
-      setOverridesError(String(e?.message || 'Error'));
+      setOverridesError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setOverridesSaving(false);
     }
@@ -248,12 +250,12 @@ export default function PartnerAdminPage() {
         body: JSON.stringify(systemAdForm),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       setSystemAdForm((p) => ({ ...p, serverName: '', address: '', version: '', description: '', website: '', discord: '', banner: '' }));
       await loadApprovedAds();
       setSystemAdOpen(false);
     } catch (e: any) {
-      setSystemAdError(String(e?.message || 'Error'));
+      setSystemAdError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setSystemAdCreating(false);
     }
@@ -265,9 +267,9 @@ export default function PartnerAdminPage() {
     try {
       const res = await fetch('/api/admin/partner/pricing', { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       const cfg = (data as any)?.config as PartnerPricingConfig | undefined;
-      if (!cfg) throw new Error('Config inválida');
+      if (!cfg) throw new Error(lang === 'es' ? 'Configuración inválida' : 'Invalid config');
       setPricing({
         slotTotalsEur: Array.isArray((cfg as any).slotTotalsEur)
           ? ((cfg as any).slotTotalsEur as any[]).map((row) =>
@@ -288,7 +290,7 @@ export default function PartnerAdminPage() {
           : [],
       });
     } catch (e: any) {
-      setPricingError(String(e?.message || 'Error'));
+      setPricingError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
       setPricing(null);
     } finally {
       setPricingLoading(false);
@@ -304,7 +306,11 @@ export default function PartnerAdminPage() {
       Array.isArray(pricing.vipTotalsEur) &&
       pricing.vipTotalsEur.length === PARTNER_MAX_DAYS;
     if (!ok) {
-      setPricingError(`Debes rellenar los precios para ${PARTNER_SLOTS} slots y ${PARTNER_MAX_DAYS} días.`);
+      setPricingError(
+        lang === 'es'
+          ? `Debes rellenar los precios para ${PARTNER_SLOTS} slots y ${PARTNER_MAX_DAYS} días.`
+          : `You must fill prices for ${PARTNER_SLOTS} slots and ${PARTNER_MAX_DAYS} days.`
+      );
       return;
     }
 
@@ -320,11 +326,11 @@ export default function PartnerAdminPage() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       await loadPricing();
       setPricingOpen(false);
     } catch (e: any) {
-      setPricingError(String(e?.message || 'Error'));
+      setPricingError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setPricingSaving(false);
     }
@@ -338,7 +344,7 @@ export default function PartnerAdminPage() {
       qp.set('status', adsStatus);
       const res = await fetch(`/api/admin/partner/ads?${qp.toString()}`, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       const nextAds = Array.isArray((data as any).items) ? ((data as any).items as AdminAd[]) : [];
       setAds(nextAds);
       setSelectedAdId((prev) => {
@@ -346,7 +352,7 @@ export default function PartnerAdminPage() {
         return nextAds[0]?._id || '';
       });
     } catch (e: any) {
-      setAdsError(String(e?.message || 'Error'));
+      setAdsError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
       setAds([]);
       setSelectedAdId('');
     } finally {
@@ -362,10 +368,10 @@ export default function PartnerAdminPage() {
       if (bookingsStatus !== 'PENDING_OR_ACTIVE') qp.set('status', bookingsStatus);
       const res = await fetch(`/api/admin/partner/bookings?${qp.toString()}`, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       setBookings(Array.isArray((data as any).items) ? ((data as any).items as AdminBooking[]) : []);
     } catch (e: any) {
-      setBookingsError(String(e?.message || 'Error'));
+      setBookingsError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
       setBookings([]);
     } finally {
       setBookingsLoading(false);
@@ -409,11 +415,11 @@ export default function PartnerAdminPage() {
         body: JSON.stringify({ adId, action, reason }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       await loadAds();
       await loadBookings();
     } catch (e: any) {
-      alert(String(e?.message || 'Error'));
+      alert(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setActionLoading(false);
     }
@@ -477,12 +483,12 @@ export default function PartnerAdminPage() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       await loadAds();
       await loadBookings();
       setEditAdOpen(false);
     } catch (e: any) {
-      setEditAdError(String(e?.message || 'Error'));
+      setEditAdError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setEditAdSaving(false);
     }
@@ -496,12 +502,12 @@ export default function PartnerAdminPage() {
       fd.append('file', file);
       const res = await fetch('/api/uploads/partner-banner', { method: 'POST', body: fd });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       const url = String((data as any)?.url || '').trim();
-      if (!url) throw new Error('Error al subir imagen');
+      if (!url) throw new Error(lang === 'es' ? 'Error al subir imagen' : 'Image upload error');
       setEditAdForm((p) => ({ ...p, banner: url }));
     } catch (e: any) {
-      setEditAdError(String(e?.message || 'Error al subir imagen'));
+      setEditAdError(String(e?.message || (lang === 'es' ? 'Error al subir imagen' : 'Image upload error')));
     } finally {
       setEditBannerUploading(false);
     }
@@ -509,7 +515,11 @@ export default function PartnerAdminPage() {
 
   const deleteSelectedAd = async () => {
     if (!selectedAd) return;
-    const ok = window.confirm('¿Eliminar este anuncio? Si está activo, se quitará del ranking.');
+    const ok = window.confirm(
+      lang === 'es'
+        ? '¿Eliminar este anuncio? Si está activo, se quitará del ranking.'
+        : 'Delete this ad? If it is active, it will be removed from the ranking.'
+    );
     if (!ok) return;
 
     setEditAdSaving(true);
@@ -517,13 +527,13 @@ export default function PartnerAdminPage() {
     try {
       const res = await fetch(`/api/admin/partner/ads?adId=${encodeURIComponent(selectedAd._id)}`, { method: 'DELETE' });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(String((data as any)?.error || 'Error'));
+      if (!res.ok) throw new Error(String((data as any)?.error || (lang === 'es' ? 'Error' : 'Error')));
       setSelectedAdId('');
       await loadAds();
       await loadBookings();
       setEditAdOpen(false);
     } catch (e: any) {
-      setEditAdError(String(e?.message || 'Error'));
+      setEditAdError(String(e?.message || (lang === 'es' ? 'Error' : 'Error')));
     } finally {
       setEditAdSaving(false);
     }
@@ -532,7 +542,7 @@ export default function PartnerAdminPage() {
   if (sessionStatus === 'loading') {
     return (
       <main className="max-w-6xl mx-auto py-10 px-4">
-        <div className="text-gray-600 dark:text-gray-400">Cargando…</div>
+        <div className="text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Cargando…' : 'Loading…'}</div>
       </main>
     );
   }
@@ -540,12 +550,12 @@ export default function PartnerAdminPage() {
   if (sessionStatus !== 'authenticated' || !canAccess) {
     return (
       <main className="max-w-6xl mx-auto py-10 px-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Moderación de Partners</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{lang === 'es' ? 'Moderación de Partners' : 'Partner Moderation'}</h1>
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-          <div className="text-gray-700 dark:text-gray-300">No autorizado.</div>
+          <div className="text-gray-700 dark:text-gray-300">{lang === 'es' ? 'No autorizado.' : 'Not authorized.'}</div>
           <div className="mt-4">
             <Link href="/" className="inline-flex">
-              <Button variant="secondary" size="sm">Volver</Button>
+              <Button variant="secondary" size="sm">{lang === 'es' ? 'Volver' : 'Back'}</Button>
             </Link>
           </div>
         </Card>
@@ -558,19 +568,21 @@ export default function PartnerAdminPage() {
       <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25 mb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
-            <div className="text-xs text-gray-600 dark:text-gray-400">Panel</div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">Moderación de Partners</h1>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Panel' : 'Panel'}</div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{lang === 'es' ? 'Moderación de Partners' : 'Partner Moderation'}</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base mt-2">
-              Gestiona anuncios, reservas y precios • Top {PARTNER_SLOTS} slots
+              {lang === 'es'
+                ? `Gestiona anuncios, reservas y precios • Top ${PARTNER_SLOTS} slots`
+                : `Manage ads, bookings and pricing • Top ${PARTNER_SLOTS} slots`}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>
-              {adsLoading ? 'Cargando…' : 'Recargar anuncios'}
+              {adsLoading ? (lang === 'es' ? 'Cargando…' : 'Loading…') : (lang === 'es' ? 'Recargar anuncios' : 'Reload ads')}
             </Button>
             <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>
-              {bookingsLoading ? 'Cargando…' : 'Recargar reservas'}
+              {bookingsLoading ? (lang === 'es' ? 'Cargando…' : 'Loading…') : (lang === 'es' ? 'Recargar reservas' : 'Reload bookings')}
             </Button>
             <Button
               variant="secondary"
@@ -581,7 +593,7 @@ export default function PartnerAdminPage() {
               }}
               disabled={pricingLoading}
             >
-              {pricingLoading ? 'Cargando…' : 'Editar precios'}
+              {pricingLoading ? (lang === 'es' ? 'Cargando…' : 'Loading…') : (lang === 'es' ? 'Editar precios' : 'Edit pricing')}
             </Button>
             {canOverrideSlots ? (
               <Button
@@ -594,7 +606,7 @@ export default function PartnerAdminPage() {
                 }}
                 disabled={overridesLoading}
               >
-                Asignación manual
+                {lang === 'es' ? 'Asignación manual' : 'Manual assignment'}
               </Button>
             ) : null}
           </div>
@@ -602,19 +614,19 @@ export default function PartnerAdminPage() {
 
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <div className="text-xs text-gray-600 dark:text-gray-400">Anuncios pendientes</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Anuncios pendientes' : 'Pending ads'}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{stats.pending}</div>
           </div>
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas pendientes</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Reservas pendientes' : 'Pending bookings'}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.pending}</div>
           </div>
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas activas</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Reservas activas' : 'Active bookings'}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.active}</div>
           </div>
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <div className="text-xs text-gray-600 dark:text-gray-400">Reservas expiradas</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Reservas expiradas' : 'Expired bookings'}</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{bookingStats.expired}</div>
           </div>
         </div>
@@ -622,38 +634,60 @@ export default function PartnerAdminPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 mb-6">
         <div className="space-y-3">
-          <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Secciones</div>
+          <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Secciones' : 'Sections'}</div>
 
           {([
             {
               k: 'ADS' as const,
-              title: 'Anuncios',
-              desc: 'Revisión, edición y aprobación',
+              title: lang === 'es' ? 'Anuncios' : 'Ads',
+              desc: lang === 'es' ? 'Revisión, edición y aprobación' : 'Review, edit and approval',
               icon: FaBullhorn,
-              meta: `${adsStatus === 'PENDING_REVIEW' ? 'Pendientes' : adsStatus === 'APPROVED' ? 'Aprobados' : 'Rechazados'}: ${ads.length}`,
+              meta: `${
+                adsStatus === 'PENDING_REVIEW'
+                  ? lang === 'es'
+                    ? 'Pendientes'
+                    : 'Pending'
+                  : adsStatus === 'APPROVED'
+                    ? lang === 'es'
+                      ? 'Aprobados'
+                      : 'Approved'
+                    : lang === 'es'
+                      ? 'Rechazados'
+                      : 'Rejected'
+              }: ${ads.length}`,
             },
             {
               k: 'BOOKINGS' as const,
-              title: 'Reservas',
-              desc: 'Pagos, estado y duración',
+              title: lang === 'es' ? 'Reservas' : 'Bookings',
+              desc: lang === 'es' ? 'Pagos, estado y duración' : 'Payments, status and duration',
               icon: FaCalendarAlt,
-              meta: `${bookingsStatus === 'PENDING_OR_ACTIVE' ? 'Pend./Act.' : bookingsStatus}: ${bookings.length}`,
+              meta: `${bookingsStatus === 'PENDING_OR_ACTIVE' ? (lang === 'es' ? 'Pend./Act.' : 'Pend./Act.') : bookingsStatus}: ${bookings.length}`,
             },
             {
               k: 'PRICING' as const,
-              title: 'Precios',
-              desc: 'Precio por slot y días',
+              title: lang === 'es' ? 'Precios' : 'Pricing',
+              desc: lang === 'es' ? 'Precio por slot y días' : 'Price per slot and days',
               icon: FaTag,
-              meta: pricing ? 'Configurado' : pricingLoading ? 'Cargando…' : 'Sin config',
+              meta: pricing
+                ? lang === 'es'
+                  ? 'Configurado'
+                  : 'Configured'
+                : pricingLoading
+                  ? lang === 'es'
+                    ? 'Cargando…'
+                    : 'Loading…'
+                  : lang === 'es'
+                    ? 'Sin config'
+                    : 'No config',
             },
             ...(canOverrideSlots
               ? ([
                   {
                     k: 'OWNER' as const,
                     title: 'Owner',
-                    desc: 'Overrides y anuncio interno',
+                    desc: lang === 'es' ? 'Overrides y anuncio interno' : 'Overrides and internal ad',
                     icon: FaCrown,
-                    meta: 'Acciones avanzadas',
+                    meta: lang === 'es' ? 'Acciones avanzadas' : 'Advanced actions',
                   },
                 ] as const)
               : ([] as const)),
@@ -685,7 +719,7 @@ export default function PartnerAdminPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-gray-900 dark:text-white font-bold truncate">{s.title}</div>
-                      {active ? <Badge variant="success">Abierto</Badge> : null}
+                      {active ? <Badge variant="success">{lang === 'es' ? 'Abierto' : 'Open'}</Badge> : null}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{s.desc}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">{s.meta}</div>
@@ -702,25 +736,25 @@ export default function PartnerAdminPage() {
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <div className="text-gray-900 dark:text-white font-bold">Anuncios</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Aprobar / rechazar solicitudes</div>
+              <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Anuncios' : 'Ads'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Aprobar / rechazar solicitudes' : 'Approve / reject requests'}</div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-44">
                 <Select value={adsStatus} onChange={(e) => setAdsStatus(e.target.value as any)}>
-                  <option value="PENDING_REVIEW">Pendientes</option>
-                  <option value="APPROVED">Aprobados</option>
-                  <option value="REJECTED">Rechazados</option>
+                  <option value="PENDING_REVIEW">{lang === 'es' ? 'Pendientes' : 'Pending'}</option>
+                  <option value="APPROVED">{lang === 'es' ? 'Aprobados' : 'Approved'}</option>
+                  <option value="REJECTED">{lang === 'es' ? 'Rechazados' : 'Rejected'}</option>
                 </Select>
               </div>
-              <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>Recargar</Button>
+              <Button variant="secondary" size="sm" onClick={loadAds} disabled={adsLoading}>{lang === 'es' ? 'Recargar' : 'Reload'}</Button>
             </div>
           </div>
 
           {adsError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{adsError}</div> : null}
 
           {!ads.length ? (
-            <div className="text-sm text-gray-600 dark:text-gray-400">Sin anuncios para este filtro.</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Sin anuncios para este filtro.' : 'No ads for this filter.'}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3">
               <div className="rounded-xl border border-gray-200 bg-white p-2 dark:border-white/10 dark:bg-white/5 max-h-[560px] overflow-auto">
@@ -740,7 +774,7 @@ export default function PartnerAdminPage() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="font-semibold text-gray-900 dark:text-white truncate">{a.serverName}</div>
-                          {adBadge(a.status)}
+                          {adBadge(a.status, lang)}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{a.address}{a.version ? ` • ${a.version}` : ''}</div>
                         <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{a.ownerUsername}</div>
@@ -752,19 +786,19 @@ export default function PartnerAdminPage() {
 
               <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/5">
                 {!selectedAd ? (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Selecciona una solicitud.</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Selecciona una solicitud.' : 'Select a request.'}</div>
                 ) : (
                   <>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <div className="font-semibold text-gray-900 dark:text-white truncate">{selectedAd.serverName}</div>
-                          {adBadge(selectedAd.status)}
+                          {adBadge(selectedAd.status, lang)}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {selectedAd.address}{selectedAd.version ? ` • ${selectedAd.version}` : ''}
                         </div>
-                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">Owner: {selectedAd.ownerUsername}</div>
+                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Owner' : 'Owner'}: {selectedAd.ownerUsername}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">UserId: {selectedAd.userId}</div>
                       </div>
 
@@ -775,7 +809,7 @@ export default function PartnerAdminPage() {
                           onClick={() => decide(selectedAd._id, 'APPROVE')}
                           disabled={adsLoading || actionLoading || selectedAd.status === 'APPROVED'}
                         >
-                          {actionLoading ? 'Procesando…' : 'Aprobar'}
+                          {actionLoading ? (lang === 'es' ? 'Procesando…' : 'Processing…') : (lang === 'es' ? 'Aprobar' : 'Approve')}
                         </Button>
                         <Button
                           variant="secondary"
@@ -783,11 +817,11 @@ export default function PartnerAdminPage() {
                           onClick={() => decide(selectedAd._id, 'REJECT')}
                           disabled={adsLoading || actionLoading || selectedAd.status === 'REJECTED' || !String(rejectReason || '').trim()}
                         >
-                          Rechazar
+                          {lang === 'es' ? 'Rechazar' : 'Reject'}
                         </Button>
                         {role === 'OWNER' ? (
                           <Button variant="secondary" size="sm" onClick={() => setEditAdOpen(true)} disabled={!selectedAd}>
-                            Editar…
+                            {lang === 'es' ? 'Editar…' : 'Edit…'}
                           </Button>
                         ) : null}
                       </div>
@@ -795,13 +829,13 @@ export default function PartnerAdminPage() {
 
                     {selectedAd.status !== 'APPROVED' ? (
                       <div className="mt-4">
-                        <label className="text-xs text-gray-600 dark:text-gray-400">Motivo de rechazo (obligatorio para rechazar)</label>
+                        <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Motivo de rechazo (obligatorio para rechazar)' : 'Rejection reason (required to reject)'}</label>
                         <Textarea
                           value={rejectReason}
                           onChange={(e) => setRejectReason(e.target.value)}
                           rows={3}
                           maxLength={300}
-                          placeholder="Ej: Banner inválido, faltan datos, etc."
+                          placeholder={lang === 'es' ? 'Ej: Banner inválido, faltan datos, etc.' : 'Ex: Invalid banner, missing data, etc.'}
                         />
                         <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{String(rejectReason || '').length}/300</div>
                       </div>
@@ -809,14 +843,14 @@ export default function PartnerAdminPage() {
 
                     {selectedAd.status === 'REJECTED' && selectedAd.rejectionReason ? (
                       <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                        <div className="font-semibold">Motivo de rechazo</div>
+                        <div className="font-semibold">{lang === 'es' ? 'Motivo de rechazo' : 'Rejection reason'}</div>
                         <div className="opacity-90">{selectedAd.rejectionReason}</div>
                       </div>
                     ) : null}
 
                     {String(selectedAd.submissionNote || '').trim() ? (
                       <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
-                        <div className="font-semibold">Nota de solicitud</div>
+                        <div className="font-semibold">{lang === 'es' ? 'Nota de solicitud' : 'Request note'}</div>
                         <div className="mt-1 whitespace-pre-wrap">{String(selectedAd.submissionNote || '').trim()}</div>
                       </div>
                     ) : null}
@@ -826,7 +860,7 @@ export default function PartnerAdminPage() {
                     <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
                       {selectedAd.website ? (
                         <a href={selectedAd.website} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">
-                          Web
+                          {lang === 'es' ? 'Web' : 'Web'}
                         </a>
                       ) : null}
                       {selectedAd.discord ? (
@@ -836,13 +870,13 @@ export default function PartnerAdminPage() {
                       ) : null}
                       {selectedAd.banner ? (
                         <a href={selectedAd.banner} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">
-                          Banner
+                          {lang === 'es' ? 'Banner' : 'Banner'}
                         </a>
                       ) : null}
                     </div>
 
                     <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-                      Creado: {formatDateTime(selectedAd.createdAt, dateLocale)} • Actualizado: {formatDateTime(selectedAd.updatedAt, dateLocale)}
+                      {lang === 'es' ? 'Creado' : 'Created'}: {formatDateTime(selectedAd.createdAt, dateLocale)} • {lang === 'es' ? 'Actualizado' : 'Updated'}: {formatDateTime(selectedAd.updatedAt, dateLocale)}
                     </div>
                   </>
                 )}
@@ -856,47 +890,47 @@ export default function PartnerAdminPage() {
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
-              <div className="text-gray-900 dark:text-white font-bold">Reservas</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Historial y estado de pagos</div>
+              <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Reservas' : 'Bookings'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Historial y estado de pagos' : 'Payment history and status'}</div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-44">
                 <Select value={bookingsStatus} onChange={(e) => setBookingsStatus(e.target.value as any)}>
-                  <option value="PENDING_OR_ACTIVE">Pendientes + Activas</option>
-                  <option value="PENDING">Pendientes</option>
-                  <option value="ACTIVE">Activas</option>
-                  <option value="EXPIRED">Expiradas</option>
-                  <option value="CANCELED">Canceladas</option>
+                  <option value="PENDING_OR_ACTIVE">{lang === 'es' ? 'Pendientes + Activas' : 'Pending + Active'}</option>
+                  <option value="PENDING">{lang === 'es' ? 'Pendientes' : 'Pending'}</option>
+                  <option value="ACTIVE">{lang === 'es' ? 'Activas' : 'Active'}</option>
+                  <option value="EXPIRED">{lang === 'es' ? 'Expiradas' : 'Expired'}</option>
+                  <option value="CANCELED">{lang === 'es' ? 'Canceladas' : 'Canceled'}</option>
                 </Select>
               </div>
-              <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>Recargar</Button>
+              <Button variant="secondary" size="sm" onClick={loadBookings} disabled={bookingsLoading}>{lang === 'es' ? 'Recargar' : 'Reload'}</Button>
             </div>
           </div>
 
           {bookingsError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{bookingsError}</div> : null}
 
           {!bookings.length ? (
-            <div className="text-sm text-gray-600 dark:text-gray-400">Sin reservas.</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Sin reservas.' : 'No bookings.'}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-gray-500 dark:text-gray-400">
-                    <th className="py-2 pr-4">Estado</th>
+                    <th className="py-2 pr-4">{lang === 'es' ? 'Estado' : 'Status'}</th>
                     <th className="py-2 pr-4">Slot</th>
-                    <th className="py-2 pr-4">Anuncio</th>
+                    <th className="py-2 pr-4">{lang === 'es' ? 'Anuncio' : 'Ad'}</th>
                     <th className="py-2 pr-4">User</th>
-                    <th className="py-2 pr-4">Pago</th>
-                    <th className="py-2 pr-4">Nota</th>
-                    <th className="py-2 pr-4">Fin</th>
-                    <th className="py-2">Creada</th>
+                    <th className="py-2 pr-4">{lang === 'es' ? 'Pago' : 'Payment'}</th>
+                    <th className="py-2 pr-4">{lang === 'es' ? 'Nota' : 'Note'}</th>
+                    <th className="py-2 pr-4">{lang === 'es' ? 'Fin' : 'End'}</th>
+                    <th className="py-2">{lang === 'es' ? 'Creada' : 'Created'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-white/10">
                   {bookings.map((b) => (
                     <tr key={b._id} className="text-gray-700 dark:text-gray-200">
                       <td className="py-3 pr-4">{bookingBadge(b.status)}</td>
-                      <td className="py-3 pr-4 font-semibold">{slotLabel(Number(b.slot))}</td>
+                      <td className="py-3 pr-4 font-semibold">{slotLabel(Number(b.slot), lang)}</td>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-gray-900 dark:text-white">{b.ad?.serverName || '—'}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{b.ad?.ownerUsername || ''}</div>
@@ -904,7 +938,7 @@ export default function PartnerAdminPage() {
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400">{b.userId}</td>
                       <td className="py-3 pr-4">
                         {String(b.provider) === 'FREE'
-                          ? 'GRATIS'
+                          ? (lang === 'es' ? 'GRATIS' : 'FREE')
                           : `${b.provider} • ${formatPrice(Number(b.totalPrice || 0), dateLocale, String(b.currency || 'EUR'))}`}
                       </td>
                       <td className="py-3 pr-4 text-xs text-gray-500 dark:text-gray-400 max-w-[360px]">
@@ -925,26 +959,26 @@ export default function PartnerAdminPage() {
         <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-              <div className="text-gray-900 dark:text-white font-bold">Precios de Partner</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Precios fijos por slot y duración</div>
+              <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Precios de Partner' : 'Partner Pricing'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Precios fijos por slot y duración' : 'Fixed prices by slot and duration'}</div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={loadPricing} disabled={pricingLoading || pricingSaving}>Recargar</Button>
-              <Button variant="primary" size="sm" onClick={() => setPricingOpen(true)} disabled={pricingLoading || !pricing}>Editar…</Button>
+              <Button variant="secondary" size="sm" onClick={loadPricing} disabled={pricingLoading || pricingSaving}>{lang === 'es' ? 'Recargar' : 'Reload'}</Button>
+              <Button variant="primary" size="sm" onClick={() => setPricingOpen(true)} disabled={pricingLoading || !pricing}>{lang === 'es' ? 'Editar…' : 'Edit…'}</Button>
             </div>
           </div>
 
           {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}
 
           {!pricing ? (
-            <div className="text-sm text-gray-600 dark:text-gray-400">{pricingLoading ? 'Cargando…' : 'No hay configuración.'}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">{pricingLoading ? (lang === 'es' ? 'Cargando…' : 'Loading…') : (lang === 'es' ? 'No hay configuración.' : 'No configuration.')}</div>
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
               <div>
                 <div className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">Precios fijos por días</span> (1–{PARTNER_MAX_DAYS})
+                  <span className="font-semibold">{lang === 'es' ? 'Precios fijos por días' : 'Fixed daily prices'}</span> (1–{PARTNER_MAX_DAYS})
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Vista previa rápida</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Vista previa rápida' : 'Quick preview'}</div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-28">
@@ -968,12 +1002,12 @@ export default function PartnerAdminPage() {
           <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">Asignación manual de slots</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Solo OWNER • Prioridad sobre reservas activas</div>
+                <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Asignación manual de slots' : 'Manual slot assignment'}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Solo OWNER • Prioridad sobre reservas activas' : 'OWNER only • Priority over active bookings'}</div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={loadOverrides} disabled={overridesLoading || overridesSaving}>Recargar</Button>
-                <Button variant="primary" size="sm" onClick={() => setOverridesOpen(true)} disabled={overridesLoading}>Editar…</Button>
+                <Button variant="secondary" size="sm" onClick={loadOverrides} disabled={overridesLoading || overridesSaving}>{lang === 'es' ? 'Recargar' : 'Reload'}</Button>
+                <Button variant="primary" size="sm" onClick={() => setOverridesOpen(true)} disabled={overridesLoading}>{lang === 'es' ? 'Editar…' : 'Edit…'}</Button>
               </div>
             </div>
 
@@ -983,10 +1017,10 @@ export default function PartnerAdminPage() {
           <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-gray-900 dark:text-white font-bold">Crear anuncio interno</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Solo OWNER • Para asignación manual</div>
+                <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Crear anuncio interno' : 'Create internal ad'}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{lang === 'es' ? 'Solo OWNER • Para asignación manual' : 'OWNER only • For manual assignment'}</div>
               </div>
-              <Button variant="primary" size="sm" onClick={() => setSystemAdOpen(true)}>Crear…</Button>
+              <Button variant="primary" size="sm" onClick={() => setSystemAdOpen(true)}>{lang === 'es' ? 'Crear…' : 'Create…'}</Button>
             </div>
 
             {systemAdError ? <div className="mt-3 text-sm text-red-600 dark:text-red-300">{systemAdError}</div> : null}
@@ -997,29 +1031,29 @@ export default function PartnerAdminPage() {
         </div>
       </div>
 
-      <Modal open={pricingOpen} title="Editar precios" onClose={() => setPricingOpen(false)}>
+      <Modal open={pricingOpen} title={lang === 'es' ? 'Editar precios' : 'Edit pricing'} closeLabel={lang === 'es' ? 'Cerrar' : 'Close'} onClose={() => setPricingOpen(false)}>
         {pricingError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{pricingError}</div> : null}
 
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <div>
-              <label className="text-xs text-gray-600 dark:text-gray-400">Día</label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Día' : 'Day'}</label>
               <Select value={String(pricingDay)} onChange={(e) => setPricingDay(Number(e.target.value || 1))}>
                 {Array.from({ length: PARTNER_MAX_DAYS }, (_, i) => i + 1).map((d) => (
-                  <option key={d} value={String(d)}>{d} día{d === 1 ? '' : 's'}</option>
+                  <option key={d} value={String(d)}>{d} {lang === 'es' ? `día${d === 1 ? '' : 's'}` : `day${d === 1 ? '' : 's'}`}</option>
                 ))}
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setPricingOpen(false)} disabled={pricingSaving}>Cancelar</Button>
+              <Button variant="secondary" size="sm" onClick={() => setPricingOpen(false)} disabled={pricingSaving}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</Button>
               <Button variant="primary" size="sm" onClick={savePricing} disabled={!pricing || pricingLoading || pricingSaving}>
-                {pricingSaving ? 'Guardando…' : 'Guardar'}
+                {pricingSaving ? (lang === 'es' ? 'Guardando…' : 'Saving…') : (lang === 'es' ? 'Guardar' : 'Save')}
               </Button>
             </div>
           </div>
 
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Editas el precio total de ese día para VIP y para cada slot (EUR).
+            {lang === 'es' ? 'Editas el precio total de ese día para VIP y para cada slot (EUR).' : 'You edit the total price of that day for VIP and each slot (EUR).'}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1089,29 +1123,29 @@ export default function PartnerAdminPage() {
         </div>
       </Modal>
 
-      <Modal open={overridesOpen} title="Asignación manual de slots" onClose={() => setOverridesOpen(false)}>
+      <Modal open={overridesOpen} title={lang === 'es' ? 'Asignación manual de slots' : 'Manual slot assignment'} closeLabel={lang === 'es' ? 'Cerrar' : 'Close'} onClose={() => setOverridesOpen(false)}>
         {overridesError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{overridesError}</div> : null}
 
         <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          Solo afecta a destacados: VIP + #{PARTNER_PAID_MAX_SLOT}
+          {lang === 'es' ? `Solo afecta a destacados: VIP + #${PARTNER_PAID_MAX_SLOT}` : `Only affects featured placements: VIP + #${PARTNER_PAID_MAX_SLOT}`}
         </div>
 
         <div className="flex items-center justify-end gap-2 mb-4">
-          <Button variant="secondary" size="sm" onClick={() => setOverridesOpen(false)} disabled={overridesSaving}>Cancelar</Button>
+          <Button variant="secondary" size="sm" onClick={() => setOverridesOpen(false)} disabled={overridesSaving}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</Button>
           <Button variant="primary" size="sm" onClick={saveOverrides} disabled={overridesLoading || overridesSaving}>
-            {overridesSaving ? 'Guardando…' : 'Guardar'}
+            {overridesSaving ? (lang === 'es' ? 'Guardando…' : 'Saving…') : (lang === 'es' ? 'Guardar' : 'Save')}
           </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">VIP (fijo arriba)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'VIP (fijo arriba)' : 'VIP (fixed at top)'}</label>
             <Select
               value={String(vipOverride || '')}
               onChange={(e) => setVipOverride(String(e.target.value || '').trim())}
               disabled={overridesLoading || overridesSaving}
             >
-              <option value="">— Automático (reserva activa) —</option>
+              <option value="">{lang === 'es' ? '— Automático (reserva activa) —' : '— Automatic (active booking) —'}</option>
               {approvedAds.map((a) => (
                 <option key={a._id} value={a._id}>
                   {a.serverName} — {a.ownerUsername}
@@ -1138,7 +1172,7 @@ export default function PartnerAdminPage() {
                   }}
                   disabled={overridesLoading || overridesSaving}
                 >
-                  <option value="">— Automático (reserva activa) —</option>
+                  <option value="">{lang === 'es' ? '— Automático (reserva activa) —' : '— Automatic (active booking) —'}</option>
                   {approvedAds.map((a) => (
                     <option key={a._id} value={a._id}>
                       {a.serverName} — {a.ownerUsername}
@@ -1151,44 +1185,44 @@ export default function PartnerAdminPage() {
         </div>
       </Modal>
 
-      <Modal open={systemAdOpen} title="Crear anuncio (OWNER)" onClose={() => setSystemAdOpen(false)}>
+      <Modal open={systemAdOpen} title={lang === 'es' ? 'Crear anuncio (OWNER)' : 'Create ad (OWNER)'} closeLabel={lang === 'es' ? 'Cerrar' : 'Close'} onClose={() => setSystemAdOpen(false)}>
         {systemAdError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{systemAdError}</div> : null}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Autor (ownerUsername)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Autor (ownerUsername)' : 'Author (ownerUsername)'}</label>
             <Input value={systemAdForm.ownerUsername} onChange={(e) => setSystemAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Versión (opcional)' : 'Version (optional)'}</label>
             <Input value={systemAdForm.version} onChange={(e) => setSystemAdForm((p) => ({ ...p, version: e.target.value }))} placeholder="1.20.x" />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
-            <Input value={systemAdForm.serverName} onChange={(e) => setSystemAdForm((p) => ({ ...p, serverName: e.target.value }))} placeholder="Mi servidor" />
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Nombre del servidor' : 'Server name'}</label>
+            <Input value={systemAdForm.serverName} onChange={(e) => setSystemAdForm((p) => ({ ...p, serverName: e.target.value }))} placeholder={lang === 'es' ? 'Mi servidor' : 'My server'} />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
-            <Input value={systemAdForm.address} onChange={(e) => setSystemAdForm((p) => ({ ...p, address: e.target.value }))} placeholder="play.ejemplo.com" />
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'IP / Dominio' : 'IP / Domain'}</label>
+            <Input value={systemAdForm.address} onChange={(e) => setSystemAdForm((p) => ({ ...p, address: e.target.value }))} placeholder={lang === 'es' ? 'play.ejemplo.com' : 'play.example.com'} />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Banner (URL, opcional)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Banner (URL, opcional)' : 'Banner (URL, optional)'}</label>
             <Input value={systemAdForm.banner} onChange={(e) => setSystemAdForm((p) => ({ ...p, banner: e.target.value }))} placeholder="https://..." />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Website (optional)' : 'Website (optional)'}</label>
             <Input value={systemAdForm.website} onChange={(e) => setSystemAdForm((p) => ({ ...p, website: e.target.value }))} placeholder="https://..." />
           </div>
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Discord (opcional)' : 'Discord (optional)'}</label>
             <Input value={systemAdForm.discord} onChange={(e) => setSystemAdForm((p) => ({ ...p, discord: e.target.value }))} placeholder="https://discord.gg/..." />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
+            <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Descripción' : 'Description'}</label>
             <Textarea
               value={systemAdForm.description}
               onChange={(e) => setSystemAdForm((p) => ({ ...p, description: e.target.value }))}
-              placeholder="Cuenta qué ofrece tu servidor, modalidad, comunidad..."
+              placeholder={lang === 'es' ? 'Cuenta qué ofrece tu servidor, modalidad, comunidad...' : 'Describe what your server offers, game mode, community...'}
               rows={4}
               minLength={20}
               maxLength={500}
@@ -1198,21 +1232,21 @@ export default function PartnerAdminPage() {
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setSystemAdOpen(false)} disabled={systemAdCreating}>Cancelar</Button>
+          <Button variant="secondary" size="sm" onClick={() => setSystemAdOpen(false)} disabled={systemAdCreating}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</Button>
           <Button
             variant="primary"
             size="sm"
             onClick={createSystemAd}
             disabled={systemAdCreating || !systemAdForm.serverName.trim() || !systemAdForm.address.trim() || systemAdForm.description.trim().length < 20}
           >
-            {systemAdCreating ? 'Creando…' : 'Crear'}
+            {systemAdCreating ? (lang === 'es' ? 'Creando…' : 'Creating…') : (lang === 'es' ? 'Crear' : 'Create')}
           </Button>
         </div>
       </Modal>
 
-      <Modal open={editAdOpen} title="Editar anuncio" onClose={() => setEditAdOpen(false)}>
+      <Modal open={editAdOpen} title={lang === 'es' ? 'Editar anuncio' : 'Edit ad'} closeLabel={lang === 'es' ? 'Cerrar' : 'Close'} onClose={() => setEditAdOpen(false)}>
         {!selectedAd ? (
-          <div className="text-sm text-gray-600 dark:text-gray-400">Selecciona un anuncio para editar.</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Selecciona un anuncio para editar.' : 'Select an ad to edit.'}</div>
         ) : (
           <>
             {editAdError ? <div className="text-sm text-red-600 dark:text-red-300 mb-3">{editAdError}</div> : null}
@@ -1223,27 +1257,27 @@ export default function PartnerAdminPage() {
                 <Input value={editAdForm.ownerUsername} onChange={(e) => setEditAdForm((p) => ({ ...p, ownerUsername: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Nombre del servidor</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Nombre del servidor' : 'Server name'}</label>
                 <Input value={editAdForm.serverName} onChange={(e) => setEditAdForm((p) => ({ ...p, serverName: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">IP / Dominio</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'IP / Dominio' : 'IP / Domain'}</label>
                 <Input value={editAdForm.address} onChange={(e) => setEditAdForm((p) => ({ ...p, address: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Versión (opcional)</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Versión (opcional)' : 'Version (optional)'}</label>
                 <Input value={editAdForm.version} onChange={(e) => setEditAdForm((p) => ({ ...p, version: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Web (opcional)</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Web (opcional)' : 'Website (optional)'}</label>
                 <Input value={editAdForm.website} onChange={(e) => setEditAdForm((p) => ({ ...p, website: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Discord (opcional)</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Discord (opcional)' : 'Discord (optional)'}</label>
                 <Input value={editAdForm.discord} onChange={(e) => setEditAdForm((p) => ({ ...p, discord: e.target.value }))} />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-gray-600 dark:text-gray-400">Banner (archivo, opcional)</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Banner (archivo, opcional)' : 'Banner (file, optional)'}</label>
                 <Input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif"
@@ -1256,10 +1290,10 @@ export default function PartnerAdminPage() {
                   }}
                 />
                 <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  {editBannerUploading ? <span>Subiendo…</span> : null}
+                  {editBannerUploading ? <span>{lang === 'es' ? 'Subiendo…' : 'Uploading…'}</span> : null}
                   {!editBannerUploading && String(editAdForm.banner || '').trim() ? (
                     <>
-                      <a href={String(editAdForm.banner || '').trim()} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">Ver</a>
+                      <a href={String(editAdForm.banner || '').trim()} target="_blank" rel="noreferrer" className="text-minecraft-grass hover:underline">{lang === 'es' ? 'Ver' : 'View'}</a>
                       <Button
                         variant="secondary"
                         size="sm"
@@ -1267,26 +1301,26 @@ export default function PartnerAdminPage() {
                         onClick={() => setEditAdForm((p) => ({ ...p, banner: '' }))}
                         disabled={editAdSaving}
                       >
-                        Quitar
+                        {lang === 'es' ? 'Quitar' : 'Remove'}
                       </Button>
                     </>
                   ) : null}
                 </div>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-gray-600 dark:text-gray-400">Descripción</label>
+                <label className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Descripción' : 'Description'}</label>
                 <Textarea value={editAdForm.description} onChange={(e) => setEditAdForm((p) => ({ ...p, description: e.target.value }))} rows={4} maxLength={500} />
                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{editAdForm.description.length}/500</div>
               </div>
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setEditAdOpen(false)} disabled={editAdSaving}>Cancelar</Button>
+              <Button variant="secondary" size="sm" onClick={() => setEditAdOpen(false)} disabled={editAdSaving}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</Button>
               <Button variant="secondary" size="sm" onClick={deleteSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
-                Eliminar
+                {lang === 'es' ? 'Eliminar' : 'Delete'}
               </Button>
               <Button variant="primary" size="sm" onClick={saveSelectedAd} disabled={editAdSaving || adsLoading || actionLoading}>
-                {editAdSaving ? 'Guardando…' : 'Guardar'}
+                {editAdSaving ? (lang === 'es' ? 'Guardando…' : 'Saving…') : (lang === 'es' ? 'Guardar' : 'Save')}
               </Button>
             </div>
           </>
