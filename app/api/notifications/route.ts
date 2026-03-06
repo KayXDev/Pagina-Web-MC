@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Notification from '@/models/Notification';
 import { requireAuth } from '@/lib/session';
 import User from '@/models/User';
+import { localizeNotificationText } from '@/lib/notificationText';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ async function resolveUserIdFromSessionUser(user: any) {
   return id;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await requireAuth();
     await dbConnect();
@@ -42,7 +43,22 @@ export async function GET() {
       Notification.countDocuments({ userId, readAt: { $exists: false } }),
     ]);
 
-    return NextResponse.json({ items, unreadCount });
+    const langMatch = request.headers.get('cookie')?.match(/(?:^|;\s*)lang=([^;]+)/);
+    const rawLang = langMatch ? decodeURIComponent(langMatch[1]) : '';
+
+    const localizedItems = (Array.isArray(items) ? items : []).map((n: any) => {
+      const localized = localizeNotificationText(rawLang, {
+        title: String(n?.title || ''),
+        message: String(n?.message || ''),
+      });
+      return {
+        ...n,
+        title: localized.title,
+        message: localized.message,
+      };
+    });
+
+    return NextResponse.json({ items: localizedItems, unreadCount });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
