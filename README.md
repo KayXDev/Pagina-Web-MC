@@ -36,6 +36,7 @@
 - [🧱 Stack](#-stack)
 - [✅ Requirements](#-requirements)
 - [🚀 Quickstart](#-quickstart)
+- [⚡ Quick Find (Where to Change Things)](#-quick-find-where-to-change-things)
 - [🔐 Access & Roles](#-access--roles)
 - [🔧 Environment Variables](#-environment-variables)
 - [📜 Scripts](#-scripts)
@@ -143,6 +144,125 @@ npm run dev
 Open: http://localhost:3000
 
 For a complete setup guide (local + production), see **[SETUP.md](SETUP.md)**.
+
+---
+
+## ⚡ Quick Find (Where to Change Things)
+
+Quick guide to find text locations fast.
+
+### 1) Core Rules (Important)
+
+| Case | Where to edit | Notes |
+|---|---|---|
+| Text that uses `t(lang, '...')` | `lib/i18n.ts` | Always update both `es` and `en` to keep translations consistent. |
+| Hardcoded JSX text | `app/**/page.tsx` or `components/**/*.tsx` | If it does not use `t(...)`, edit that file or migrate it to i18n. |
+| Global SEO title/description | `app/layout.tsx` | `metadata.title`, `metadata.description`, `openGraph`, `twitter`. |
+| Site name in JSON-LD | `app/layout.tsx` | `orgJsonLd` and `websiteJsonLd` (uses `SITE_NAME` if available). |
+
+### 2) Global Text (Whole Site)
+
+| What you want to change | File | Keys/area |
+|---|---|---|
+| Navbar labels (Home, Shop, Vote, etc.) | `lib/i18n.ts` | `nav.*` |
+| User menu labels (Admin, Profile, Sign out) | `lib/i18n.ts` | `user.*` |
+| Full footer text | `lib/i18n.ts` | `footer.*` |
+| Language selector labels (Spanish/English) | `lib/i18n.ts` | `lang.*` |
+| Common labels (Save, Cancel, etc.) | `lib/i18n.ts` | `common.*` |
+| Navbar component structure/icons/buttons | `components/Navbar.tsx` | UI structure; labels should preferably come from i18n |
+| Footer component | `components/Footer.tsx` | Check for any additional hardcoded text |
+
+### 3) Public Pages (App Router)
+
+| Route | File | Where text usually lives |
+|---|---|---|
+| `/` | `app/page.tsx` | Hero (`<h1>`), primary buttons, home blocks |
+| `/tienda` | `app/tienda/page.tsx` | Shop header, filters, product cards |
+| `/carrito` | `app/carrito/page.tsx` | Checkout, summary, states and toasts |
+| `/vote` | `app/vote/page.tsx` | `vote.*` in i18n + potential local labels |
+| `/noticias` | `app/noticias/page.tsx` | `news.*` + listing text |
+| `/noticias/[slug]` | `app/noticias/[slug]/page.tsx` | Post details, likes, errors |
+| `/foro` | `app/foro/page.tsx` | Feed, create post, filters, toasts |
+| `/foro/[id]` | `app/foro/[id]/page.tsx` | Details, replies, actions |
+| `/soporte` | `app/soporte/page.tsx` | Tickets, states, form |
+| `/soporte/[id]` | `app/soporte/[id]/page.tsx` | Ticket chat, actions |
+| `/perfil` | `app/perfil/page.tsx` | Header and summary |
+| `/perfil/ajustes` | `app/perfil/ajustes/page.tsx` | Account settings, errors/toasts |
+| `/staff` | `app/staff/page.tsx` | Staff page text and applications |
+| `/normas` | `app/normas/page.tsx` | Rules and tables |
+| `/terminos` | `app/terminos/page.tsx` | Legal |
+| `/privacidad` | `app/privacidad/page.tsx` | Legal |
+| `/cookies` | `app/cookies/page.tsx` | Legal/cookies |
+| `/mantenimiento` | `app/mantenimiento/page.tsx` | Visual message and fallback |
+
+### 4) Admin Panel (Most Used Areas)
+
+| Admin route | File | Main text areas |
+|---|---|---|
+| `/admin` | `app/admin/page.tsx` | Dashboard, KPIs, quick actions |
+| Admin side layout | `app/admin/layout.tsx` | Sidebar, groups, breadcrumbs |
+| `/admin/users` | `app/admin/users/page.tsx` | User table, actions |
+| `/admin/users/[userId]` | `app/admin/users/[userId]/page.tsx` | User details |
+| `/admin/products` | `app/admin/products/page.tsx` | Product CRUD |
+| `/admin/tickets` | `app/admin/tickets/page.tsx` | Support inbox + webhook |
+| `/admin/foro` | `app/admin/foro/page.tsx` | Forum moderation |
+| `/admin/blog` | `app/admin/blog/page.tsx` | News/blog CRUD |
+| `/admin/badges` | `app/admin/badges/page.tsx` | Badge management |
+| `/admin/coupons` | `app/admin/coupons/page.tsx` | Coupons and coupon webhook |
+| `/admin/referrals` | `app/admin/referrals/page.tsx` | Referrals and rewards |
+| `/admin/newsletter` | `app/admin/newsletter/page.tsx` | Newsletter, status, schedule |
+| `/admin/postulaciones` | `app/admin/postulaciones/page.tsx` | Staff applications |
+| `/admin/logs` | `app/admin/logs/page.tsx` | Admin history + webhook |
+| `/admin/services-status` | `app/admin/services-status/page.tsx` | Service status + reports |
+| `/admin/settings` | `app/admin/settings/page.tsx` | Maintenance and settings |
+| `/admin/permisos` | `app/admin/permisos/page.tsx` | Section permissions |
+| `/admin/partner` | `app/admin/partner/page.tsx` | Partner management |
+
+### 5) i18n Keys by Module (Quick Map)
+
+Base file: `lib/i18n.ts`
+
+| Module | Key prefix |
+|---|---|
+| Home | `home.*` |
+| Auth | `auth.*` |
+| Shop | `shop.*` |
+| Rules | `rules.*` |
+| Staff | `staff.*` |
+| News | `news.*` |
+| Forum | `forum.*` |
+| Support/Tickets | `support.*` |
+| Profile | `profile.*` |
+| Vote | `vote.*` |
+| Notifications | `notifications.*` |
+| Full admin | `admin.*` |
+| Footer | `footer.*` |
+| Chatbot | `chatbot.*` |
+| Public partner | `partnerPublic.*` |
+
+### 6) Recommended Workflow for Safe Text Changes
+
+1. First check whether the text comes from i18n (`t(lang, '...')`).
+2. If it comes from i18n, edit only `lib/i18n.ts` in both `es` and `en`.
+3. If it is hardcoded, edit the page/component file and consider migrating it to i18n.
+4. Verify the same route in both languages using the selector (`LanguageSwitcher`).
+5. If you change admin labels, validate both desktop and mobile (`app/admin/layout.tsx`).
+
+### 7) Useful Commands for Translation Audits
+
+Find potentially hardcoded text in admin:
+
+```bash
+rg "lang === 'es'|\?\s*'[^']{3,}'\s*:\s*'[^']{3,}'|toast\.(error|success|warn)\([^\)]*'Error'" app/admin
+```
+
+Find possible non-i18n text across pages:
+
+```bash
+rg "'[^']{4,}'|\"[^\"]{4,}\"" app --glob "**/*.tsx"
+```
+
+If `rg` is not installed, use `grep -R` as an alternative.
 
 ---
 

@@ -1,5 +1,27 @@
 # 📝 Changelog
 
+### 2026-03-06 ✅ 🆕 Latest
+
+### ✨ Added
+
+- 📘 **Detailed Quick Find guide in README**:
+  - Expanded “Quick Find (Where to Change Things)” section with a full route/file map.
+  - Added public pages map, admin pages map, and i18n key-prefix map.
+  - Added recommended translation workflow and audit command examples.
+
+### 🔧 Changed
+
+- 🌐 **README translation consistency**:
+  - Updated the new Quick Find guide to English to match the rest of the README.
+- 🧩 **Admin i18n coverage improved**:
+  - `app/admin/coupons/page.tsx` now uses language-aware labels and toasts via `useClientLang()`.
+  - `app/admin/referrals/page.tsx` now uses language-aware labels and toasts via `useClientLang()`.
+
+### 🐛 Fixed
+
+- 🗣️ **Language switch mismatch in admin sections**:
+  - Resolved hardcoded text in Coupons and Referrals pages that did not follow the selected site language.
+
 ### 2026-03-05 ✅ 🆕 Latest 🚧
 
 ### ✨ Added
