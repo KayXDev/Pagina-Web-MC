@@ -929,7 +929,7 @@ export default function PartnerAdminPage() {
                 <tbody className="divide-y divide-gray-200 dark:divide-white/10">
                   {bookings.map((b) => (
                     <tr key={b._id} className="text-gray-700 dark:text-gray-200">
-                      <td className="py-3 pr-4">{bookingBadge(b.status)}</td>
+                      <td className="py-3 pr-4">{bookingBadge(b.status, lang)}</td>
                       <td className="py-3 pr-4 font-semibold">{slotLabel(Number(b.slot), lang)}</td>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-gray-900 dark:text-white">{b.ad?.serverName || '—'}</div>

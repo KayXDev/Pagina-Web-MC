@@ -32,6 +32,7 @@
 ## 🧭 Table of Contents
 
 - [✨ Highlights](#-highlights)
+- [🛒 BuiltByBit Listing Kit](#-builtbybit-listing-kit)
 - [✨ Features](#-features)
 - [🧱 Stack](#-stack)
 - [✅ Requirements](#-requirements)
@@ -57,6 +58,74 @@
 - Production-ready admin panel with roles, moderation and settings.
 - SEO-ready: `sitemap.xml`, `robots.txt`, canonical URLs and JSON-LD.
 - Deploy-friendly: MongoDB Atlas + NextAuth + uploads compatible with Vercel.
+
+---
+
+## 🛒 BuiltByBit Listing Kit
+
+Use this section as copy-ready content for your BuiltByBit resource page.
+
+### Short Description
+
+Modern, full-featured Minecraft server website (Next.js + TypeScript) with shop, support tickets, forum, profiles, news/blog, notifications, and a complete admin panel.
+
+### Long Description
+
+This package provides a production-ready website for Minecraft communities that want more than a landing page.
+It includes core community features (news, forum, profiles, follows), monetization tools (shop, coupons, referrals), support flows (ticket chat), and a robust admin panel for day-to-day management.
+
+Built with Next.js 14 App Router, TypeScript, TailwindCSS, and MongoDB, it is optimized for deployment on Vercel and easy customization via centralized i18n.
+
+### Key Selling Points
+
+- Full admin panel with modular sections and role-based access.
+- Integrated shop flows with Stripe/PayPal-ready architecture.
+- Coupon and referral systems built into checkout pricing.
+- Forum + news/blog + notifications for long-term engagement.
+- SEO-ready metadata, sitemap, robots, and JSON-LD.
+- Bilingual-ready text architecture (`es`/`en`) using `lib/i18n.ts`.
+
+### Included Features Snapshot
+
+- Public pages: Home, Shop, Cart, Vote, Rules, Staff, News, Forum, Support, Profile, Legal pages.
+- Admin pages: Dashboard, Users, Products, Tickets, Forum moderation, Blog, Partner, Newsletter, Logs, Settings, Permissions, Coupons, Referrals.
+- Extra systems: Real-time notifications, maintenance mode, badge system, staff applications, chatbot handoff support.
+
+### Technical Stack
+
+- Framework: Next.js 14 + React + TypeScript
+- Styling: TailwindCSS + Framer Motion
+- Auth: NextAuth
+- Database: MongoDB + Mongoose
+- Payments: Stripe + PayPal integration points
+- Deployment target: Vercel
+
+### Requirements (for buyers)
+
+- Node.js 18.17+ (Node 20+ recommended)
+- MongoDB database (Atlas recommended)
+- Environment variables configured (`.env`)
+
+### Setup Summary (for buyers)
+
+1. Upload project files and run `npm install`.
+2. Configure `.env` using `.env.example`.
+3. Run `npm run init-db` to seed initial data/admin.
+4. Run `npm run build` and deploy (recommended on Vercel).
+
+For detailed instructions, refer to `SETUP.md`.
+
+### Customization Notes
+
+- Most UI text: `lib/i18n.ts`.
+- Main page/layout edits: `app/**/page.tsx` and `components/**/*.tsx`.
+- Admin UI structure: `app/admin/layout.tsx`.
+- Partner admin module: `partner/PartnerAdminPage.tsx`.
+
+### Support Scope Template (optional for listing)
+
+- Included: installation guidance, basic environment troubleshooting, bug fixes for shipped features.
+- Not included by default: heavy custom feature development, third-party premium service costs, full bespoke redesign.
 
 ---
 
