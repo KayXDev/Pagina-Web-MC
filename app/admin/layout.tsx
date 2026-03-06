@@ -27,6 +27,8 @@ import {
 import { t } from '@/lib/i18n';
 import { Badge } from '@/components/ui';
 import { useClientLang } from '@/lib/useClientLang';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
@@ -319,6 +321,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-lg bg-white border border-gray-200 px-1 py-1 dark:bg-white/5 dark:border-white/10">
+                <LanguageSwitcher />
+                <ThemeToggle />
+              </div>
+
               <Link
                 href="/"
                 aria-label={t(lang, 'nav.home')}
