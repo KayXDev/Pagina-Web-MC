@@ -128,13 +128,13 @@ export async function PATCH(request: Request) {
 
         const messageSetting = nextMessageEntry
           ? String(nextMessageEntry[1] ?? '')
-          : (await Settings.findOne({ key: 'maintenance_message' }))?.value || 'Estamos en mantenimiento. Vuelve más tarde.';
+          : (await Settings.findOne({ key: 'maintenance_message' }))?.value || 'We are under maintenance. Please come back later.';
 
         if (webhookSetting.trim()) {
           const enabled = nextMode === 'true';
-          const siteName = process.env.SITE_NAME || 'Sitio';
+          const siteName = process.env.SITE_NAME || 'Website';
           const siteUrl = process.env.SITE_URL || '';
-          const title = enabled ? '🛠️ Mantenimiento activado' : '✅ Mantenimiento desactivado';
+          const title = enabled ? '🛠️ Maintenance Enabled' : '✅ Maintenance Disabled';
           const color = enabled ? 0xf59e0b : 0x22c55e; // amber / green
           const changedKeys = entries.map(([k]) => k).join(', ') || 'maintenance_mode';
 
@@ -149,9 +149,9 @@ export async function PATCH(request: Request) {
                 timestamp: new Date().toISOString(),
                 footer: { text: siteUrl ? `${siteName} • ${siteUrl}` : siteName },
                 fields: [
-                  { name: 'Estado', value: enabled ? 'EN MANTENIMIENTO' : 'OPERATIVO', inline: true },
-                  { name: 'Cambió', value: admin.name, inline: true },
-                  { name: 'Claves', value: changedKeys, inline: false },
+                  { name: 'Status', value: enabled ? 'MAINTENANCE' : 'LIVE', inline: true },
+                  { name: 'Changed By', value: admin.name, inline: true },
+                  { name: 'Keys', value: changedKeys, inline: false },
                 ],
               },
             ],

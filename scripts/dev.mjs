@@ -67,7 +67,7 @@ function prettyUrl(url) {
   return color(url, ansi.green);
 }
 
-function banner({ readyMs } = {}) {
+function banner({ readyLabel } = {}) {
   const title = `${color('999WRLD Network', ansi.bold)} ${color('— Dev Server', ansi.gray)}`;
   const localUrl = `http://${host}:${port}`;
   const netIp = getNetworkIPv4();
@@ -81,9 +81,9 @@ function banner({ readyMs } = {}) {
     `${color('Env:     ', ansi.gray)} ${color('.env', ansi.yellow)}`,
   ];
 
-  if (typeof readyMs === 'number') {
+  if (readyLabel) {
     lines.push(color('────────────────────────────────', ansi.gray));
-    lines.push(`${color('Status:  ', ansi.gray)} ${color('Ready', ansi.green)} ${color(`(${readyMs}ms)`, ansi.dim)}`);
+    lines.push(`${color('Status:  ', ansi.gray)} ${color('Ready', ansi.green)} ${color(`(${readyLabel})`, ansi.dim)}`);
   }
 
   return renderBox(lines);
@@ -118,11 +118,11 @@ function isNextStartupNoise(line) {
   return false;
 }
 
-function parseReadyMs(line) {
+function parseReadyLabel(line) {
   const raw = stripAnsi(line);
-  const match = raw.match(/Ready in\s+(\d+)ms/i);
+  const match = raw.match(/Ready in\s+([\d.]+\s*(?:ms|s))/i);
   if (!match) return null;
-  return Number.parseInt(match[1], 10);
+  return match[1].replace(/\s+/g, '');
 }
 
 const isTTY = Boolean(process.stdout.isTTY);
@@ -165,10 +165,10 @@ function pipeStream(stream, write) {
 
     for (const line of parts) {
       if (!seenReady) {
-        const readyMs = parseReadyMs(line);
-        if (readyMs !== null) {
+        const readyLabel = parseReadyLabel(line);
+        if (readyLabel !== null) {
           seenReady = true;
-          const box = banner({ readyMs });
+          const box = banner({ readyLabel });
           if (isTTY) {
             drawBoxInPlace(box);
           } else {
