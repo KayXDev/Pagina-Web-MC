@@ -2,8 +2,10 @@ import { spawn } from 'child_process';
 import os from 'os';
 import process from 'process';
 import { createRequire } from 'module';
+import { runLicenseStartupCheck } from './license-check.mjs';
 
 const require = createRequire(import.meta.url);
+const licenseCheck = await runLicenseStartupCheck();
 
 const host = process.env.NEXT_DEV_HOST || '127.0.0.1';
 const port = Number.parseInt(process.env.NEXT_DEV_PORT || '3000', 10);
@@ -67,7 +69,7 @@ function prettyUrl(url) {
   return color(url, ansi.green);
 }
 
-function banner({ readyLabel } = {}) {
+function banner({ readyLabel, license } = {}) {
   const title = `${color('999WRLD Network', ansi.bold)} ${color('— Dev Server', ansi.gray)}`;
   const localUrl = `http://${host}:${port}`;
   const netIp = getNetworkIPv4();
@@ -80,6 +82,18 @@ function banner({ readyLabel } = {}) {
     `${color('Network: ', ansi.gray)} ${networkUrl ? prettyUrl(networkUrl) : color('N/A', ansi.dim)}`,
     `${color('Env:     ', ansi.gray)} ${color('.env', ansi.yellow)}`,
   ];
+
+  if (license) {
+    lines.push(color('────────────────────────────────', ansi.gray));
+    if (license.ok) {
+      lines.push(`${color('License: ', ansi.gray)} ${color('VALID', ansi.green)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
+      lines.push(`${color('Discord: ', ansi.gray)} ${color(String(license.discordId || 'unknown'), ansi.cyan)}`);
+      lines.push(`${color('HWID:    ', ansi.gray)} ${color(String(license.hwid || 'unknown'), ansi.dim)}`);
+    } else {
+      lines.push(`${color('License: ', ansi.gray)} ${color('INVALID', ansi.red)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
+      lines.push(`${color('Reason:  ', ansi.gray)} ${color(String(license.detail || license.message || 'Validation failed'), ansi.yellow)}`);
+    }
+  }
 
   if (readyLabel) {
     lines.push(color('────────────────────────────────', ansi.gray));
@@ -143,7 +157,13 @@ function drawBoxInPlace(box) {
 // In non-TTY (logs/CI): avoid duplicate blocks; print only the final Ready banner.
 if (isTTY) {
   clearScreen();
-  drawBoxInPlace(banner());
+  drawBoxInPlace(banner({ license: licenseCheck }));
+} else {
+  process.stdout.write(banner({ license: licenseCheck }).text);
+}
+
+if (!licenseCheck.ok) {
+  process.exit(1);
 }
 
 const nextBin = require.resolve('next/dist/bin/next');
@@ -168,7 +188,7 @@ function pipeStream(stream, write) {
         const readyLabel = parseReadyLabel(line);
         if (readyLabel !== null) {
           seenReady = true;
-          const box = banner({ readyLabel });
+          const box = banner({ readyLabel, license: licenseCheck });
           if (isTTY) {
             drawBoxInPlace(box);
           } else {

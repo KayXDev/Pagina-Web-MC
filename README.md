@@ -25,12 +25,53 @@
 	<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-brightgreen" />
 	<img alt="Auth" src="https://img.shields.io/badge/Auth-NextAuth-orange" />
 	<img alt="License" src="https://img.shields.io/badge/License-AGPL--3.0-informational" />
+	<img alt="Activation" src="https://img.shields.io/badge/Activation-Drako%20License-red" />
 </p>
+
+---
+
+## 🚨 License required to run
+
+> [!IMPORTANT]
+> This codebase now requires a valid **KayX / Drako Licenses** activation to start in development and production.
+> Licenses are distributed through the creator's **Discord server**.
+
+<p align="center">
+	<strong>Need a license?</strong><br/>
+	Request your activation key through Discord support:<br/>
+	<a href="https://discord.gg/YOUR_INVITE"><strong>Join Discord Support</strong></a>
+</p>
+
+### Required environment variables
+
+These 3 variables are mandatory:
+
+```env
+KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
+KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
+KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
+```
+
+Recommended alongside them:
+
+```env
+KAYX_API_TOKEN=YOUR_API_KEY
+LICENSE_FAIL_OPEN=false
+LICENSE_CACHE_TTL_MS=300000
+```
+
+### What happens if the license is missing or invalid?
+
+- the app startup is blocked
+- the website redirects to the license screen
+- protected API routes return `403`
+- users are instructed to open a ticket in Discord
 
 ---
 
 ## 🧭 Table of Contents
 
+- [🚨 License required to run](#-license-required-to-run)
 - [✨ Highlights](#-highlights)
 - [✨ Features](#-features)
 - [🧱 Stack](#-stack)

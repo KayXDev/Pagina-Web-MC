@@ -1,5 +1,34 @@
 # 📝 Changelog
 
+### 2026-03-08 ✅ 🆕 Latest
+
+### ✨ Added
+
+- 🔐 **Mandatory Drako license activation flow**:
+  - App startup now validates the project license before `npm run dev` and `npm start` continue.
+  - The website enforces remote REST validation against the Drako licensing server.
+- 🖥️ **Styled startup license banner**:
+  - Development startup now shows a polished terminal panel with license status, Discord ID, and cleaner error summaries.
+- 🎨 **Redesigned license-required page**:
+  - New premium-looking page for invalid or missing licenses.
+  - Includes setup guidance, status details, Discord support CTA, and Drako `.env` example.
+
+### 🔧 Changed
+
+- 📘 **README licensing notice moved to the top**:
+  - Added a prominent “License required to run” section near the start of the documentation.
+  - Documented the mandatory Drako variables using placeholders only.
+- 🌐 **License support messaging**:
+  - Invalid-license flows now direct users to Discord support in English.
+- 🔌 **REST-only license validation**:
+  - The project now uses the Drako REST API flow and matches the `/api/client` request format.
+
+### 🐛 Fixed
+
+- 🧾 **Noisy startup errors**:
+  - Removed large Axios stack dumps for common invalid-license cases.
+  - Replaced raw status codes like `INVALID_LICENSEKEY` with readable messages such as “Invalid license key”.
+
 ### 2026-03-06 ✅ 🆕 Latest
 
 ### ✨ Added

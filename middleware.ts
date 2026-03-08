@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { isLicenseBypassPath, validateLicense } from '@/lib/license';
 
 let maintenanceCache:
   | {
@@ -15,8 +16,48 @@ const MAINTENANCE_TIMEOUT_MS = 5000;
 const MAINTENANCE_FALLBACK_MAX_AGE_MS = 60_000;
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const pathname = request.nextUrl.pathname;
+  const isApiRoute = pathname.startsWith('/api');
+
+  if (!isApiRoute && /\.[a-zA-Z0-9]+$/.test(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (!isLicenseBypassPath(pathname)) {
+    const license = await validateLicense({
+      origin: request.nextUrl.origin,
+      host: request.nextUrl.host,
+      pathname,
+      userAgent: request.headers.get('user-agent') || '',
+    });
+
+    if (!license.ok) {
+      if (isApiRoute) {
+        return NextResponse.json(
+          {
+            error: 'LICENSE_INVALID',
+            status: license.status,
+            reason: license.reason,
+            message: license.message,
+          },
+          {
+            status: 403,
+            headers: {
+              'cache-control': 'no-store, max-age=0',
+            },
+          }
+        );
+      }
+
+      return NextResponse.redirect(new URL('/licencia', request.url));
+    }
+  }
+
+  if (isApiRoute) {
+    return NextResponse.next();
+  }
+
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
   // If the user has no explicit language cookie, infer it from the browser.
   // Supported: 'es' | 'en'
@@ -171,5 +212,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

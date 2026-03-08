@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start.mjs",
     "lint": "next lint",
     "init-db": "node scripts/init-db.js",
     "deliveries:worker": "node scripts/delivery-worker.js",

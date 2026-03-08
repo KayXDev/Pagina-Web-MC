@@ -108,6 +108,45 @@ The full reference is in `.env.example`. Summary:
 - `SITE_NAME`
 - `SITE_URL` (for SEO, email links, and sitemap)
 
+### Optional licensing protection
+
+This project is configured to validate licenses with KayX / Drako Licenses Lite.
+
+Set these values:
+
+- `KAYX_LICENSE_KEY=XXXX-XXXX-XXXX`
+- `KAYX_PRODUCT_ID=minecraft-server-web`
+- `KAYX_LICENSE_API_URL=https://tu-api-o-bot.com/api/client`
+
+Optional hardening:
+
+- `KAYX_API_TOKEN` for API auth
+- `KAYX_SHARED_SECRET` for an extra private header if your setup uses one
+- `LICENSE_FAIL_OPEN=false` to block the site if your license API is down
+
+Licensing is always enforced: invalid or missing licenses are redirected to `/licencia` and API requests return `403`.
+
+Drako compatibility notes:
+
+- for the common Drako client endpoint `/api/client`, the app sends `licensekey`, `product` and `hwid`
+- for Drako API v2, the app also sends `key`, `licenseKey`, `license`, `productId`, `productName`, `domain`, `host`, `url` and `hwid`
+- it validates only through the REST API using `POST`
+- `KAYX_API_TOKEN` is required; on `/api/client` it is usually `WebServerSettings.ApiKey`, on API v2 it must have the `auth` permission
+- it accepts common Drako-style responses like `valid`, `success`, `active`, nested `data.valid`, or nested `license.valid`
+
+Backward compatibility aliases are also accepted:
+
+- `DRAKO_LICENSE_API_URL`
+- `DRAKO_LICENSE_KEY`
+- `DRAKO_PRODUCT_ID`
+- `DRAKO_API_TOKEN`
+- `DRAKO_SHARED_SECRET`
+- `DRAKO_LICENSE_API_URL`
+- `DRAKO_LICENSE_KEY`
+- `DRAKO_PRODUCT_ID`
+- `DRAKO_API_TOKEN`
+- `DRAKO_SHARED_SECRET`
+
 ### Minecraft server status
 
 - `MINECRAFT_SERVER_IP` / `MINECRAFT_SERVER_PORT`
