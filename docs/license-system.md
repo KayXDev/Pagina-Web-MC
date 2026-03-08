@@ -10,7 +10,7 @@ Complete guide for configuring, validating, and deploying the license system use
 - [2) Core files used by the license system](#2-core-files-used-by-the-license-system)
 - [3) What you need before starting](#3-what-you-need-before-starting)
 - [4) Configure the Discord Developer Portal](#4-configure-the-discord-developer-portal)
-- [5) Configure the KayX / Drako bot](#5-configure-the-kayx--drako-bot)
+- [5) Configure the KayX bot](#5-configure-the-kayx--drako-bot)
 - [6) Configure this website locally](#6-configure-this-website-locally)
 - [7) Local testing flow](#7-local-testing-flow)
 - [8) Deploy on Vercel or VPS](#8-deploy-on-vercel-or-vps)
@@ -57,7 +57,7 @@ If one of the core files checked by the startup integrity guard is missing, star
 
 You need all of the following:
 
-- a working KayX / Drako Licenses Lite bot
+- a working KayX Licenses Lite bot
 - a Discord application and bot token for that licensing bot
 - the exact product name or product ID configured in the licensing panel
 - a generated buyer license key
@@ -88,7 +88,7 @@ LICENSE_CACHE_TTL_MS=300000
 ## 4) Configure the Discord Developer Portal
 
 The website does not validate against Discord directly.
-Discord is only used because the KayX / Drako bot itself needs a Discord application.
+Discord is only used because the KayX bot itself needs a Discord application.
 
 Open:
 
@@ -136,7 +136,7 @@ They are not required for this website's license validation flow.
 
 ---
 
-## 5) Configure the KayX / Drako bot
+## 5) Configure the KayX bot
 
 Inside the licensing bot or panel, verify all of this.
 
