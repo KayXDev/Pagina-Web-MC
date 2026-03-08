@@ -63,7 +63,8 @@
 </p>
 
 > [!IMPORTANT]
-> This project requires a valid **KayX License** to work in development and production.
+> This project will **not start** without a valid **KayX License**.
+> A license is required in both **development** and **production**, and activation/support is handled through the official **[Discord server](https://discord.gg/wrld999)**.
 
 Required variables:
 
@@ -82,7 +83,7 @@ Quick rules:
 
 Full guide:
 
-- [docs/license-system.md](docs/license-system.md)
+- [Check **DOCS** right here](docs/license-system.md)
 
 ### 🔑 Mandatory variables
 
