@@ -85,50 +85,6 @@ Full guide:
 
 - [Check **DOCS** right here](docs/license-system.md)
 
-### 🔑 Mandatory variables
-
-These variables must be configured before the app can start:
-=======
-> This project now requires a valid **KayX License** activation to run in both development and production.
-> License delivery and support are handled through the official **[Discord server](https://discord.gg/wrld999)**.
-
-### 🔑 Mandatory variables
-
-These 3 variables must be configured before the app can start:
->>>>>>> d0674cf4dc68ac3c29d41ace350a2fb261b247dc
-
-```env
-KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
-KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
-<<<<<<< HEAD
-KAYX_API_TOKEN=YOUR_API_KEY
-```
-
-### ⚙️ Recommended extras
-
-```env
-KAYX_SHARED_SECRET=
-=======
-```
-
-### ⚙️ Recommended extras (optional)
-
-```env
-KAYX_API_TOKEN=YOUR_API_KEY
->>>>>>> d0674cf4dc68ac3c29d41ace350a2fb261b247dc
-LICENSE_FAIL_OPEN=false
-LICENSE_CACHE_TTL_MS=300000
-```
-
-### 💬 Need a license?
-
-Request your activation key through Discord support and open a ticket if you have any setup or validation issue.
-
-<p>
-	<a href="https://discord.gg/wrld999"><strong>Join Discord Support</strong></a>
-</p>
-
 ### 🛡️ If the license is missing or invalid
 
 <<<<<<< HEAD
@@ -141,7 +97,6 @@ Request your activation key through Discord support and open a ticket if you hav
 - The website redirects to the license screen
 - Protected API routes return `403`
 - Users are told to open a Discord ticket
->>>>>>> d0674cf4dc68ac3c29d41ace350a2fb261b247dc
 
 ---
 
