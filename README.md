@@ -33,13 +33,13 @@
 ## 🚨 License required to run
 
 > [!IMPORTANT]
-> This codebase now requires a valid **KayX / Drako Licenses** activation to start in development and production.
+> This codebase now requires a valid **KayX License** activation to start in development and production.
 > Licenses are distributed through the creator's **Discord server**.
 
 <p align="center">
 	<strong>Need a license?</strong><br/>
 	Request your activation key through Discord support:<br/>
-	<a href="https://discord.gg/YOUR_INVITE"><strong>Join Discord Support</strong></a>
+	<a href="https://discord.gg/wrld999"><strong>Join Discord Support</strong></a>
 </p>
 
 ### Required environment variables
