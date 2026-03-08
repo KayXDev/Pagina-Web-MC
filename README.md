@@ -63,8 +63,7 @@
 </p>
 
 > [!IMPORTANT]
-<<<<<<< HEAD
-> This project requires a valid **KayX License** in development and production.
+> This project requires a valid **KayX License** to work in development and production.
 
 Required variables:
 
