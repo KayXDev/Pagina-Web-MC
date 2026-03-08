@@ -1,3 +1,5 @@
+import { EXPECTED_LICENSE_RUNTIME_SEAL, LICENSE_RUNTIME_SEAL } from '@/lib/license-seal';
+
 export type LicenseValidationStatus = 'disabled' | 'valid' | 'invalid' | 'unconfigured' | 'error';
 
 export type LicenseValidationResult = {
@@ -252,6 +254,14 @@ export function isLicenseBypassPath(pathname: string) {
 export async function validateLicense(options: LicenseValidationOptions = {}): Promise<LicenseValidationResult> {
   const config = getLicenseConfig();
   const currentHost = getHostWithoutPort(options.host || options.origin);
+
+  if (LICENSE_RUNTIME_SEAL !== EXPECTED_LICENSE_RUNTIME_SEAL) {
+    return buildFailureResult(
+      'invalid',
+      'License integrity check failed.',
+      'license-integrity-check-failed'
+    );
+  }
 
   if (!config.validationUrl) {
     return buildFailureResult(

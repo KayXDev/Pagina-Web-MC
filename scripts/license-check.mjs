@@ -1,9 +1,19 @@
 import axios from 'axios';
+import fs from 'fs';
 import os from 'os';
+import path from 'path';
 import process from 'process';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { EXPECTED_LICENSE_RUNTIME_SEAL, LICENSE_RUNTIME_SEAL, REQUIRED_LICENSE_FILES } from '../lib/license-seal.js';
 
 dotenv.config();
+
+const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+function getMissingRequiredLicenseFiles() {
+  return REQUIRED_LICENSE_FILES.filter((relativePath) => !fs.existsSync(path.join(ROOT_DIR, relativePath)));
+}
 
 function prettifyLicenseStatus(status) {
   const value = String(status || '').trim().toUpperCase();
@@ -42,6 +52,32 @@ export async function runLicenseStartupCheck() {
   const product = String(process.env.KAYX_PRODUCT_ID || process.env.DRAKO_PRODUCT_ID || '').trim();
   const apiKey = String(process.env.KAYX_API_TOKEN || process.env.DRAKO_API_TOKEN || '').trim();
   const hwid = String(process.env.KAYX_HWID || process.env.DRAKO_HWID || os.hostname() || 'unknown-host').trim();
+
+  if (LICENSE_RUNTIME_SEAL !== EXPECTED_LICENSE_RUNTIME_SEAL) {
+    return {
+      ok: false,
+      state: 'error',
+      title: 'License integrity check failed',
+      message: 'The license integrity seal is invalid.',
+      product,
+      hwid,
+      url,
+    };
+  }
+
+  const missingFiles = getMissingRequiredLicenseFiles();
+  if (missingFiles.length > 0) {
+    return {
+      ok: false,
+      state: 'error',
+      title: 'License integrity check failed',
+      message: `Required license files are missing: ${missingFiles.join(', ')}`,
+      detail: missingFiles.join(', '),
+      product,
+      hwid,
+      url,
+    };
+  }
 
   if (!url || !licensekey || !product || !apiKey) {
     return {

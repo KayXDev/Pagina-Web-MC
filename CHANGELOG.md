@@ -4,24 +4,29 @@
 
 ### ✨ Added
 
-- 🔐 **Mandatory Drako license activation flow**:
+- 🔐 **Mandatory KayX license activation flow**:
   - App startup now validates the project license before `npm run dev` and `npm start` continue.
-  - The website enforces remote REST validation against the Drako licensing server.
+  - The website enforces remote REST validation against the KayX/Drako licensing server.
 - 🖥️ **Styled startup license banner**:
   - Development startup now shows a polished terminal panel with license status, Discord ID, and cleaner error summaries.
 - 🎨 **Redesigned license-required page**:
   - New premium-looking page for invalid or missing licenses.
-  - Includes setup guidance, status details, Discord support CTA, and Drako `.env` example.
+  - Includes setup guidance, status details, Discord support CTA, and KayX `.env` example.
+- 📚 **Dedicated license documentation**:
+  - Added a separate guide in `docs/license-system.md` with full setup, Discord Developer Portal steps, deployment, and troubleshooting.
+- 🧩 **License integrity guard**:
+  - Startup now fails if required license files are missing.
+  - Runtime now depends on a dedicated license seal file.
 
 ### 🔧 Changed
 
 - 📘 **README licensing notice moved to the top**:
-  - Added a prominent “License required to run” section near the start of the documentation.
-  - Documented the mandatory Drako variables using placeholders only.
+  - Replaced the oversized setup block with a short summary and a link to the dedicated license docs.
+  - Documented the mandatory KayX variables using placeholders only.
 - 🌐 **License support messaging**:
   - Invalid-license flows now direct users to Discord support in English.
 - 🔌 **REST-only license validation**:
-  - The project now uses the Drako REST API flow and matches the `/api/client` request format.
+  - The project now uses the KayX/Drako REST API flow and matches the `/api/client` request format.
 
 ### 🐛 Fixed
 

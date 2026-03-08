@@ -14,6 +14,8 @@
 	·
 	<a href="SETUP.md"><strong>Setup</strong></a>
 	·
+	<a href="docs/license-system.md"><strong>License Docs</strong></a>
+	·
 	<a href="TROUBLESHOOTING.md"><strong>Troubleshooting</strong></a>
 	·
 	<a href="CHANGELOG.md"><strong>Changelog</strong></a>
@@ -25,47 +27,8 @@
 	<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-brightgreen" />
 	<img alt="Auth" src="https://img.shields.io/badge/Auth-NextAuth-orange" />
 	<img alt="License" src="https://img.shields.io/badge/License-AGPL--3.0-informational" />
-	<img alt="Activation" src="https://img.shields.io/badge/Activation-Drako%20License-red" />
+	<img alt="Activation" src="https://img.shields.io/badge/Activation-KayX%20License-red" />
 </p>
-
----
-
-## 🚨 License required to run
-
-> [!IMPORTANT]
-> This codebase now requires a valid **KayX / Drako Licenses** activation to start in development and production.
-> Licenses are distributed through the creator's **Discord server**.
-
-<p align="center">
-	<strong>Need a license?</strong><br/>
-	Request your activation key through Discord support:<br/>
-	<a href="https://discord.gg/YOUR_INVITE"><strong>Join Discord Support</strong></a>
-</p>
-
-### Required environment variables
-
-These 3 variables are mandatory:
-
-```env
-KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
-KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
-```
-
-Recommended alongside them:
-
-```env
-KAYX_API_TOKEN=YOUR_API_KEY
-LICENSE_FAIL_OPEN=false
-LICENSE_CACHE_TTL_MS=300000
-```
-
-### What happens if the license is missing or invalid?
-
-- the app startup is blocked
-- the website redirects to the license screen
-- protected API routes return `403`
-- users are instructed to open a ticket in Discord
 
 ---
 
@@ -88,6 +51,72 @@ LICENSE_CACHE_TTL_MS=300000
 - [🧯 Troubleshooting](#-troubleshooting)
 - [🔒 Security](#-security)
 - [📝 Changelog](#-changelog)
+
+---
+
+## 🚨 License required to run
+
+<p align="center">
+	<img alt="License required" src="https://img.shields.io/badge/License-Required-red?style=for-the-badge" />
+	<img alt="KayX activation" src="https://img.shields.io/badge/KayX-Activation-blueviolet?style=for-the-badge" />
+	<img alt="Discord support" src="https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
+</p>
+
+> [!IMPORTANT]
+> This project requires a valid **KayX License** in development and production.
+
+Required variables:
+
+```env
+KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
+KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
+KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
+KAYX_API_TOKEN=YOUR_API_KEY
+```
+
+Quick rules:
+
+- `localhost` only works if the website and the license bot are on the same machine
+- on Vercel, use a public IP or domain for `KAYX_LICENSE_API_URL`
+- startup and runtime are both protected
+
+Full guide:
+
+- [docs/license-system.md](docs/license-system.md)
+
+### 🔑 Mandatory variables
+
+These variables must be configured before the app can start:
+
+```env
+KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
+KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
+KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
+KAYX_API_TOKEN=YOUR_API_KEY
+```
+
+### ⚙️ Recommended extras
+
+```env
+KAYX_SHARED_SECRET=
+LICENSE_FAIL_OPEN=false
+LICENSE_CACHE_TTL_MS=300000
+```
+
+### 💬 Need a license?
+
+Request your activation key through Discord support and open a ticket if you have any setup or validation issue.
+
+<p>
+	<a href="https://discord.gg/wrld999"><strong>Join Discord Support</strong></a>
+</p>
+
+### 🛡️ If the license is missing or invalid
+
+- app startup is blocked
+- the website redirects to the license screen
+- protected API routes return `403`
+- users are told to open a Discord ticket
 
 ---
 
@@ -170,13 +199,15 @@ cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-4) Initialize the database (seed + initial admin):
+4) Fill the required `.env` values, including the KayX license settings.
+
+5) Initialize the database (seed + initial admin):
 
 ```bash
 npm run init-db
 ```
 
-5) Start the development server:
+6) Start the development server:
 
 ```bash
 npm run dev
@@ -333,6 +364,10 @@ Full reference available in `.env.example`.
 
 | Variable | Required | Purpose |
 |-----------|:--------:|----------|
+| `KAYX_LICENSE_KEY` | ✅ | Buyer license key generated in KayX / Drako |
+| `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID configured in the license panel |
+| `KAYX_LICENSE_API_URL` | ✅ | REST endpoint used to validate the license |
+| `KAYX_API_TOKEN` | ✅ | REST API token sent in the `Authorization` header |
 | `MONGODB_URI` | ✅ | MongoDB connection |
 | `NEXTAUTH_URL` | ✅ | Base URL (local: `http://localhost:3000`) |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth secret |
@@ -345,6 +380,9 @@ Full reference available in `.env.example`.
 | `ADMIN_PASSWORD` | Initial admin password (seed) |
 | `SITE_NAME` | Website name |
 | `SITE_URL` | Website URL |
+| `KAYX_SHARED_SECRET` | Extra shared secret if your license instance uses one |
+| `LICENSE_FAIL_OPEN` | Temporary fail-open behavior if the license API is down |
+| `LICENSE_CACHE_TTL_MS` | License validation cache duration in milliseconds |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console HTML tag content |
 | `BING_SITE_VERIFICATION` | Bing Webmaster Tools HTML tag content |
 | `MINECRAFT_SERVER_IP` | Server IP/host for status |
