@@ -25,47 +25,8 @@
 	<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-brightgreen" />
 	<img alt="Auth" src="https://img.shields.io/badge/Auth-NextAuth-orange" />
 	<img alt="License" src="https://img.shields.io/badge/License-AGPL--3.0-informational" />
-	<img alt="Activation" src="https://img.shields.io/badge/Activation-Drako%20License-red" />
+	<img alt="Activation" src="https://img.shields.io/badge/Activation-KayX%20License-red" />
 </p>
-
----
-
-## 🚨 License required to run
-
-> [!IMPORTANT]
-> This codebase now requires a valid **KayX License** activation to start in development and production.
-> Licenses are distributed through the creator's **Discord server**.
-
-<p align="center">
-	<strong>Need a license?</strong><br/>
-	Request your activation key through Discord support:<br/>
-	<a href="https://discord.gg/wrld999"><strong>Join Discord Support</strong></a>
-</p>
-
-### Required environment variables
-
-These 3 variables are mandatory:
-
-```env
-KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
-KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
-```
-
-Recommended alongside them:
-
-```env
-KAYX_API_TOKEN=YOUR_API_KEY
-LICENSE_FAIL_OPEN=false
-LICENSE_CACHE_TTL_MS=300000
-```
-
-### What happens if the license is missing or invalid?
-
-- the app startup is blocked
-- the website redirects to the license screen
-- protected API routes return `403`
-- users are instructed to open a ticket in Discord
 
 ---
 
@@ -88,6 +49,53 @@ LICENSE_CACHE_TTL_MS=300000
 - [🧯 Troubleshooting](#-troubleshooting)
 - [🔒 Security](#-security)
 - [📝 Changelog](#-changelog)
+
+---
+
+## 🚨 License required to run
+
+<p align="center">
+	<img alt="License required" src="https://img.shields.io/badge/License-Required-red?style=for-the-badge" />
+	<img alt="KayX activation" src="https://img.shields.io/badge/KayX-Activation-blueviolet?style=for-the-badge" />
+	<img alt="Discord support" src="https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
+</p>
+
+> [!IMPORTANT]
+> This project now requires a valid **KayX License** activation to run in both development and production.
+> License delivery and support are handled through the official **[Discord server](https://discord.gg/wrld999)**.
+
+### 🔑 Mandatory variables
+
+These 3 variables must be configured before the app can start:
+
+```env
+KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
+KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
+KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
+```
+
+### ⚙️ Recommended extras (optional)
+
+```env
+KAYX_API_TOKEN=YOUR_API_KEY
+LICENSE_FAIL_OPEN=false
+LICENSE_CACHE_TTL_MS=300000
+```
+
+### 💬 Need a license?
+
+Request your activation key through Discord support and open a ticket if you have any setup or validation issue.
+
+<p>
+	<a href="https://discord.gg/wrld999"><strong>Join Discord Support</strong></a>
+</p>
+
+### 🛡️ If the license is missing or invalid
+
+- App startup is blocked
+- The website redirects to the license screen
+- Protected API routes return `403`
+- Users are told to open a Discord ticket
 
 ---
 
