@@ -10,7 +10,7 @@ Complete guide for configuring, validating, and deploying the license system use
 - [2) Core files used by the license system](#2-core-files-used-by-the-license-system)
 - [3) What you need before starting](#3-what-you-need-before-starting)
 - [4) Configure the Discord Developer Portal](#4-configure-the-discord-developer-portal)
-- [5) Configure the KayX bot](#5-configure-the-kayx--drako-bot)
+- [5) Configure the KayX bot](#5-configure-the-kayx-bot)
 - [6) Configure this website locally](#6-configure-this-website-locally)
 - [7) Local testing flow](#7-local-testing-flow)
 - [8) Deploy on Vercel or VPS](#8-deploy-on-vercel-or-vps)
