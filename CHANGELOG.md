@@ -4,7 +4,7 @@
 
 ### ✨ Added
 
-- 🔐 **Mandatory Drako license activation flow**:
+- 🔐 **Mandatory KayX license activation flow**:
   - App startup now validates the project license before `npm run dev` and `npm start` continue.
   - The website enforces remote REST validation against the Drako licensing server.
 - 🖥️ **Styled startup license banner**:
