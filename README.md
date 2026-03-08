@@ -87,16 +87,10 @@ Full guide:
 
 ### 🛡️ If the license is missing or invalid
 
-<<<<<<< HEAD
-- app startup is blocked
-- the website redirects to the license screen
-- protected API routes return `403`
-- users are told to open a Discord ticket
-=======
 - App startup is blocked
 - The website redirects to the license screen
 - Protected API routes return `403`
-- Users are told to open a Discord ticket
+- Users are told to open a Discord ticket [here](https://discord.gg/wrld999)
 
 ---
 
