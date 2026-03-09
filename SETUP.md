@@ -1,251 +1,387 @@
-# Setup (Local + Production)
+<p align="center">
+	<img src="public/icon.png" alt="999Wrld Network" width="88" height="88" />
+</p>
 
-Practical, complete guide to run the project locally, initialize MongoDB, configure environment variables, and deploy to production.
+<h1 align="center">Setup Guide</h1>
+
+<p align="center">
+	Complete setup guide for local development, production deployment, environment variables,
+	uploads, email, payments, cron jobs and the required KayX license flow.
+</p>
+
+<p align="center">
+	<a href="README.md"><strong>README</strong></a>
+	·
+	<a href="docs/license-system.md"><strong>License Docs</strong></a>
+	·
+	<a href="TROUBLESHOOTING.md"><strong>Troubleshooting</strong></a>
+	·
+	<a href="CHANGELOG.md"><strong>Changelog</strong></a>
+</p>
+
+<p align="center">
+	<img alt="Local setup" src="https://img.shields.io/badge/Setup-Local%20%2B%20Production-2563eb" />
+	<img alt="MongoDB" src="https://img.shields.io/badge/Database-MongoDB-16a34a" />
+	<img alt="License" src="https://img.shields.io/badge/License-KayX%20Required-dc2626" />
+	<img alt="Deploy" src="https://img.shields.io/badge/Deploy-Vercel-black" />
+</p>
 
 ---
 
-## Table of Contents
+## 🧭 Table of Contents
 
-- [1) Requirements](#1-requirements)
-- [2) Local quickstart](#2-local-quickstart)
-- [3) Production (Vercel)](#3-production-vercel)
-- [4) Environment variables](#4-environment-variables)
-- [5) Uploads](#5-uploads)
-- [6) Email (Forgot password)](#6-email-forgot-password)
-- [7) Payments (PayPal/Stripe)](#7-payments-paypalstripe)
-- [8) Newsletter + Cron](#8-newsletter--cron)
-- [9) SEO + Search Console](#9-seo--search-console)
-- [10) Database (Compass)](#10-database-compass)
-- [11) Useful commands](#11-useful-commands)
+- [✅ Before you start](#-before-you-start)
+- [🚀 Local quickstart](#-local-quickstart)
+- [🔧 Core environment variables](#-core-environment-variables)
+- [📦 Feature-specific variables](#-feature-specific-variables)
+- [🌍 Production deployment](#-production-deployment)
+- [🖼️ Uploads](#️-uploads)
+- [✉️ Email](#️-email)
+- [💳 Payments](#-payments)
+- [🕒 Cron and automation](#-cron-and-automation)
+- [🗺️ SEO and verification](#️-seo-and-verification)
+- [🧪 Recommended validation checklist](#-recommended-validation-checklist)
+- [📜 Useful commands](#-useful-commands)
 
 ---
 
-## 1) Requirements
+## ✅ Before you start
+
+Make sure you already have:
 
 - Node.js **18.17+** (Node 20+ recommended)
 - npm
-- MongoDB (MongoDB Atlas recommended)
+- MongoDB Atlas or another reachable MongoDB instance
+- A valid **KayX License** configuration
+
+Recommended production services:
+
+- **MongoDB Atlas**
+- **Vercel**
+- **Vercel Blob** or **Cloudinary** for uploads
 
 ---
 
-## 2) Local quickstart
+## 🚀 Local quickstart
 
-### 2.1 Install dependencies
+### 1) Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2.2 Create `.env`
+### 2) Create `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Minimum required:
-
-- `MONGODB_URI`
-- `NEXTAUTH_URL=http://localhost:3000`
-- `NEXTAUTH_SECRET`
-
-Generate `NEXTAUTH_SECRET`:
+### 3) Generate `NEXTAUTH_SECRET`
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-### 2.3 Initialize database (seed + initial admin)
+### 4) Fill the minimum required values
+
+At minimum, configure:
+
+```env
+MONGODB_URI=
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=
+KAYX_LICENSE_KEY=
+KAYX_PRODUCT_ID=minecraft-server-web
+KAYX_LICENSE_API_URL=
+KAYX_API_TOKEN=
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me
+```
+
+### 5) Initialize the database
 
 ```bash
 npm run init-db
 ```
 
-### 2.4 Start the server
+This seeds the initial admin using `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+### 6) Start development
 
 ```bash
 npm run dev
 ```
 
-Open: http://localhost:3000
+Open: `http://localhost:3000`
 
-Entry points:
-
-- Login: `/auth/login`
-- Admin panel: `/admin`
-
----
-
-## 3) Production (Vercel)
-
-Recommended checklist:
-
-1) Set environment variables in Vercel (Production):
-   - `MONGODB_URI`
-   - `NEXTAUTH_URL=https://www.999wrldnetwork.es`
-   - `NEXTAUTH_SECRET`
-   - `SITE_NAME=999Wrld Network`
-   - `SITE_URL=https://www.999wrldnetwork.es`
-2) MongoDB Atlas:
-   - `Network Access` → allowlist your IP (or temporarily `0.0.0.0/0` for testing)
-   - Correct DB user/password
-3) Uploads in production: use **Vercel Blob** or **Cloudinary** (see section 5).
-4) Deploy.
+> [!IMPORTANT]
+> The app validates the license before development startup finishes.
+> If the license is invalid or incomplete, the site will not boot.
 
 ---
 
-## 4) Environment variables
+## 🔧 Core environment variables
 
-The full reference is in `.env.example`. Summary:
+The full reference lives in `.env.example`. These are the ones you will use first.
 
-### Required
+| Variable | Required | Purpose |
+|---|:---:|---|
+| `MONGODB_URI` | ✅ | MongoDB connection string |
+| `NEXTAUTH_URL` | ✅ | Base URL for auth callbacks |
+| `NEXTAUTH_SECRET` | ✅ | Secret for NextAuth sessions/JWT |
+| `ADMIN_EMAIL` | ✅ | Initial seeded admin email |
+| `ADMIN_PASSWORD` | ✅ | Initial seeded admin password |
+| `KAYX_LICENSE_KEY` | ✅ | Buyer license key |
+| `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID from the license panel |
+| `KAYX_LICENSE_API_URL` | ✅ | REST endpoint used for validation |
+| `KAYX_API_TOKEN` | ✅ | API token used in license requests |
+| `SITE_NAME` | Recommended | Brand name across SEO and emails |
+| `SITE_URL` | Recommended | Final site URL for SEO, links and emails |
 
-- `MONGODB_URI`
-- `NEXTAUTH_URL`
-- `NEXTAUTH_SECRET`
+### License-related optional variables
 
-### Recommended (production)
-
-- `SITE_NAME`
-- `SITE_URL` (for SEO, email links, and sitemap)
-
-### Optional licensing protection
-
-This project is configured to validate licenses with KayX / Drako Licenses Lite.
-
-Set these values:
-
-- `KAYX_LICENSE_KEY=XXXX-XXXX-XXXX`
-- `KAYX_PRODUCT_ID=minecraft-server-web`
-- `KAYX_LICENSE_API_URL=https://tu-api-o-bot.com/api/client`
-
-Optional hardening:
-
-- `KAYX_API_TOKEN` for API auth
-- `KAYX_SHARED_SECRET` for an extra private header if your setup uses one
-- `LICENSE_FAIL_OPEN=false` to block the site if your license API is down
-
-Licensing is always enforced: invalid or missing licenses are redirected to `/licencia` and API requests return `403`.
-
-Drako compatibility notes:
-
-- for the common Drako client endpoint `/api/client`, the app sends `licensekey`, `product` and `hwid`
-- for Drako API v2, the app also sends `key`, `licenseKey`, `license`, `productId`, `productName`, `domain`, `host`, `url` and `hwid`
-- it validates only through the REST API using `POST`
-- `KAYX_API_TOKEN` is required; on `/api/client` it is usually `WebServerSettings.ApiKey`, on API v2 it must have the `auth` permission
-- it accepts common Drako-style responses like `valid`, `success`, `active`, nested `data.valid`, or nested `license.valid`
-
-Backward compatibility aliases are also accepted:
-
-- `DRAKO_LICENSE_API_URL`
-- `DRAKO_LICENSE_KEY`
-- `DRAKO_PRODUCT_ID`
-- `DRAKO_API_TOKEN`
-- `DRAKO_SHARED_SECRET`
-- `DRAKO_LICENSE_API_URL`
-- `DRAKO_LICENSE_KEY`
-- `DRAKO_PRODUCT_ID`
-- `DRAKO_API_TOKEN`
-- `DRAKO_SHARED_SECRET`
-
-### Minecraft server status
-
-- `MINECRAFT_SERVER_IP` / `MINECRAFT_SERVER_PORT`
-- `MC_ONLINE_MODE` (`true` online-mode / `false` offline-mode)
+| Variable | Purpose |
+|---|---|
+| `KAYX_SHARED_SECRET` | Extra shared secret if your license API expects one |
+| `LICENSE_FAIL_OPEN` | Let runtime continue temporarily if the license API is down |
+| `LICENSE_CACHE_TTL_MS` | Cache duration for runtime validation |
 
 ---
 
-## 5) Uploads
+## 📦 Feature-specific variables
 
-- Local/dev: files are written to `public/uploads/...`.
-- Vercel/prod: ephemeral filesystem → configure a provider.
+### Minecraft widgets / linking
 
-Options:
+- `MINECRAFT_SERVER_IP`
+- `MINECRAFT_SERVER_PORT`
+- `MC_ONLINE_MODE`
+- `RCON_HOST`
+- `RCON_PORT`
+- `RCON_PASSWORD`
 
-- **Vercel Blob**: `BLOB_READ_WRITE_TOKEN`
-- **Cloudinary**: `CLOUDINARY_URL` or `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`
+### Public client-side variables
+
+- `NEXT_PUBLIC_MINECRAFT_SERVER_IP`
+- `NEXT_PUBLIC_MINECRAFT_SERVER_PORT`
+- `NEXT_PUBLIC_DISCORD_URL`
+- `NEXT_PUBLIC_TIKTOK_URL`
+- `NEXT_PUBLIC_YOUTUBE_URL`
+- `NEXT_PUBLIC_STAFF_APPLICATIONS_OPEN`
+
+### Uploads
+
+- `BLOB_READ_WRITE_TOKEN`
+- `CLOUDINARY_URL`
+- or `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+### Email
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+### Payments
+
+PayPal:
+
+- `PAYPAL_ENV`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+
+Stripe:
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+### Cron / automation
+
+- `CRON_SECRET`
+
+### AI features
+
+- `GROQ_API_KEY`
+- `GROQ_MODEL`
+- `TICKETS_AI_ENABLED`
+- `TICKETS_AI_PROVIDER`
+- `OLLAMA_BASE_URL`
+- `OLLAMA_MODEL`
 
 ---
 
-## 6) Email (Forgot password)
+## 🌍 Production deployment
 
-To make password reset work in production, configure SMTP:
+Recommended target: **Vercel**
 
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+### Deployment checklist
 
-Notes:
+1. Add all required environment variables in your hosting provider.
+2. Set `NEXTAUTH_URL` and `SITE_URL` to the real domain.
+3. Ensure MongoDB Atlas allows the deployment environment.
+4. Configure a persistent upload provider.
+5. Make sure the KayX license API is reachable from production.
+6. Redeploy after any environment-variable change.
 
-- If SMTP is not configured, the endpoint may still return OK but it won’t send emails.
-- In Vercel also set `SITE_URL` and `NEXTAUTH_URL` to your real domain.
+### Vercel notes
+
+- `npm run build` is used for the build.
+- `npm start` runs through `scripts/start.mjs`, so the production server validates the license before booting.
+- Local filesystem uploads are not safe on Vercel because the filesystem is ephemeral.
+- Preview and Production environments may have different env values, so verify both when debugging.
+
+### Self-hosted notes
+
+- Local filesystem uploads can work if storage is persistent.
+- If the website and the license API are on different machines, do **not** use `localhost` for the license endpoint.
+- Check firewall, reverse proxy, port exposure, and TLS if production cannot reach the license service.
 
 ---
 
-## 7) Payments (PayPal/Stripe)
+## 🖼️ Uploads
 
-Optional (if you use the store/checkout):
+The upload helper works in this order:
 
-- PayPal: `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-- Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
+1. **Cloudinary** if configured
+2. **Vercel Blob** if `BLOB_READ_WRITE_TOKEN` is present
+3. **Local filesystem** fallback in development/self-hosted environments
+
+### Recommended production setups
+
+**Vercel Blob**
+
+```env
+BLOB_READ_WRITE_TOKEN=
+```
+
+**Cloudinary**
+
+```env
+CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+```
+
+Or the three-variable version:
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
 
 ---
 
-## 8) Newsletter + Cron
+## ✉️ Email
 
-The newsletter cron endpoint is:
+To enable password reset and newsletter delivery, configure SMTP:
+
+```env
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=999Wrld Network <no-reply@yourdomain.com>
+```
+
+Without SMTP:
+
+- Password reset emails will not send
+- Newsletter sending will be skipped/fail depending on the flow
+
+---
+
+## 💳 Payments
+
+Configure these only if you use the store checkout.
+
+### PayPal
+
+```env
+PAYPAL_ENV=sandbox
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+```
+
+### Stripe
+
+```env
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+Use matching test/live credentials to avoid broken checkout behavior.
+
+---
+
+## 🕒 Cron and automation
+
+Important endpoint:
 
 - `/api/cron/newsletter-weekly`
 
-Recommendation:
+Authorization supports:
 
-- Define `CRON_SECRET` for safe manual testing.
+- `User-Agent: vercel-cron/1.0`
+- `x-cron-secret`
+- `?secret=` when `CRON_SECRET` is configured
 
-Example:
+Example manual test:
 
 ```bash
 curl -i "https://YOUR_DOMAIN/api/cron/newsletter-weekly?secret=YOUR_CRON_SECRET"
 ```
 
-
 ---
 
-## 9) SEO + Search Console
+## 🗺️ SEO and verification
 
-Includes:
+For production SEO, configure:
+
+- `SITE_URL`
+- `GOOGLE_SITE_VERIFICATION`
+- `BING_SITE_VERIFICATION`
+
+The app includes:
 
 - `GET /sitemap.xml`
 - `GET /robots.txt`
-- Canonical URLs + OpenGraph/Twitter
-- JSON-LD (Organization/WebSite + NewsArticle/DiscussionForumPosting)
-
-Recommended for production:
-
-1) `SITE_URL=https://www.999wrldnetwork.es`
-2) Verification:
-   - `GOOGLE_SITE_VERIFICATION`
-   - `BING_SITE_VERIFICATION`
-3) In Search Console: submit `https://www.999wrldnetwork.es/sitemap.xml`
+- canonical metadata
+- OpenGraph / Twitter metadata
+- JSON-LD for site and content pages
 
 ---
 
-## 10) Database (Compass)
+## 🧪 Recommended validation checklist
 
-Recommended: **MongoDB Compass**
+Before considering setup complete, verify:
 
-1) Download: https://www.mongodb.com/try/download/compass
-2) Connect using your `MONGODB_URI`
-3) Inspect collections (`users`, `products`, `blogposts`, `forumposts`, ...)
+1. The app starts with `npm run dev`
+2. Login works
+3. Admin access works
+4. License validation works
+5. Uploads work with the configured provider
+6. Password reset emails send correctly
+7. Payments use the correct environment
+8. `sitemap.xml` and `robots.txt` respond correctly
+
+Recommended commands:
+
+```bash
+npm run lint
+npm run build
+```
 
 ---
 
-## 11) Useful commands
+## 📜 Useful commands
 
-- Dev: `npm run dev`
-- Build: `npm run build`
-- Local prod: `npm run build && npm start`
-- Linter: `npm run lint`
-- Seed DB: `npm run init-db`
-- Project stats: `npm run stats`
+- `npm run dev`
+- `npm run build`
+- `npm start`
+- `npm run lint`
+- `npm run init-db`
+- `npm run deliveries:worker`
+- `npm run stats`
 
-If something fails, check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
-Note: **HeidiSQL does not work with MongoDB** (it’s for SQL).
-
-
+If anything fails, continue with **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.

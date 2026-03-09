@@ -1,50 +1,94 @@
-# 🔧 Troubleshooting
+<p align="center">
+	<img src="public/icon.png" alt="999Wrld Network" width="88" height="88" />
+</p>
 
-Quick diagnosis guide for common issues in local development and production (Vercel): login/auth, MongoDB, blank screen, uploads, cron/newsletter, SEO, and build.
+<h1 align="center">Troubleshooting</h1>
+
+<p align="center">
+	Quick diagnosis guide for the most common local and production problems:
+	startup issues, license failures, auth, MongoDB, uploads, cron, payments and SEO.
+</p>
+
+<p align="center">
+	<a href="README.md"><strong>README</strong></a>
+	·
+	<a href="SETUP.md"><strong>Setup</strong></a>
+	·
+	<a href="docs/license-system.md"><strong>License Docs</strong></a>
+	·
+	<a href="CHANGELOG.md"><strong>Changelog</strong></a>
+</p>
+
+<p align="center">
+	<img alt="Troubleshooting" src="https://img.shields.io/badge/Guide-Debugging-f59e0b" />
+	<img alt="Startup" src="https://img.shields.io/badge/Startup-License%20Aware-dc2626" />
+	<img alt="Deploy" src="https://img.shields.io/badge/Deploy-Vercel-black" />
+</p>
 
 ---
 
-## Table of Contents
+## 🧭 Table of Contents
 
-- [Quick checklist](#quick-checklist)
-- [Blank screen / chunks 404](#blank-screen--chunks-404)
-- [Auth / Login](#auth--login)
-- [MongoDB Atlas](#mongodb-atlas)
-- [Vercel (deploy + env)](#vercel-deploy--env)
-- [Uploads (images)](#uploads-images)
-- [Cron / Newsletter](#cron--newsletter)
-- [SEO (sitemap/robots)](#seo-sitemaprobots)
-- [Build / Dependencies](#build--dependencies)
-- [What to share](#what-to-share)
+- [⚡ Quick checklist](#-quick-checklist)
+- [🚨 App does not reach Ready](#-app-does-not-reach-ready)
+- [🔐 Redirected to `/licencia`](#-redirected-to-licencia)
+- [👤 Auth / login issues](#-auth--login-issues)
+- [🗄️ MongoDB issues](#️-mongodb-issues)
+- [🌍 Production-only issues](#-production-only-issues)
+- [🖼️ Upload issues](#️-upload-issues)
+- [✉️ Email issues](#️-email-issues)
+- [🕒 Newsletter cron issues](#-newsletter-cron-issues)
+- [💳 Payment issues](#-payment-issues)
+- [🗺️ SEO issues](#️-seo-issues)
+- [📤 What to share when asking for help](#-what-to-share-when-asking-for-help)
 
 ---
 
-## Quick checklist
+## ⚡ Quick checklist
 
-Run these commands in order (good starting point for most issues):
+Good first pass for most problems:
 
 ```bash
-# 1) Clear Next.js cache/build
 rm -rf .next
-
-# 2) Ensure deps
 npm install
-
-# 3) Check minimum env vars
-cat .env | grep -E "MONGODB_URI|NEXTAUTH_URL|NEXTAUTH_SECRET" || true
-
-# 4) Start
 npm run dev
 ```
 
+Then confirm the minimum `.env` values exist:
+
+- `MONGODB_URI`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `KAYX_LICENSE_KEY`
+- `KAYX_PRODUCT_ID`
+- `KAYX_LICENSE_API_URL`
+- `KAYX_API_TOKEN`
+
 ---
 
-## Blank screen / chunks 404
+## 🚨 App does not reach Ready
 
-Typical symptoms:
+Typical causes:
 
-- Terminal shows `GET / 200` but nothing renders.
-- In `Network` (F12) you see 404s for `/_next/static/chunks/...`.
+### 1) License validation failed
+
+Symptoms:
+
+- `npm run dev` stops early
+- `npm start` stops early
+- the terminal shows a license authentication or integrity error
+
+Check:
+
+- `KAYX_LICENSE_KEY`
+- `KAYX_PRODUCT_ID`
+- `KAYX_LICENSE_API_URL`
+- `KAYX_API_TOKEN`
+- whether the license API is reachable from your machine/server
+
+If startup fails because of licensing, read **[docs/license-system.md](docs/license-system.md)** first.
+
+### 2) Corrupted Next.js cache
 
 Fix:
 
@@ -53,148 +97,213 @@ rm -rf .next
 npm run dev
 ```
 
-If it persists:
+### 3) Dependencies are out of sync
+
+Fix:
 
 ```bash
-rm -rf .next node_modules
+rm -rf node_modules .next
 npm install
 npm run dev
 ```
 
+### 4) The server starts but the banner looks wrong
+
+The project uses a custom dev wrapper in `scripts/dev.mjs`.
+
+If the process is alive but the terminal UI looks stuck, verify whether Next is still serving requests before assuming the app is down.
+
 ---
 
-## Auth / Login
+## 🔐 Redirected to `/licencia`
 
-### "Login doesn’t work / can’t sign in"
+This means runtime validation failed in middleware.
+
+Common reasons:
+
+- missing license environment variables
+- wrong product ID
+- wrong API token
+- unreachable license server
+- invalid or expired license
+
+Useful check:
+
+- open `/api/license/status`
+
+That endpoint helps confirm whether the problem is startup-only or runtime validation.
+
+---
+
+## 👤 Auth / login issues
+
+### Login does not work
 
 Check:
 
 - `NEXTAUTH_URL`
-  - Local: `http://localhost:3000`
-  - Production: `https://www.999wrldnetwork.es`
-- `NEXTAUTH_SECRET` (stable, long and random; must not change between deploys)
+- `NEXTAUTH_SECRET`
+- MongoDB connection
+- whether the initial admin was seeded
 
-Generate a secret:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-### Error: "Unable to find next-auth secret"
-
-`NEXTAUTH_SECRET` is missing or invalid → set a new one and restart.
-
-### Create initial admin
+Create the initial admin again if needed:
 
 ```bash
 npm run init-db
 ```
 
-Admin login:
+### Missing NextAuth secret
 
-- Email: `ADMIN_EMAIL`
-- Password: `ADMIN_PASSWORD`
+Generate a new secret:
 
----
-
-## MongoDB Atlas
-
-### "MongoServerError: Authentication failed"
-
-- Wrong password in `MONGODB_URI`.
-- If the password contains symbols, use URL-encoding.
-
-Example:
-
-```env
-# ❌ WRONG
-MONGODB_URI=mongodb+srv://user:<db_password>@cluster...
-
-# ✅ RIGHT
-MONGODB_URI=mongodb+srv://user:YourRealPassword123@cluster...
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-### "Network error / Cannot connect"
-
-- Atlas → **Network Access** → add your IP.
-- For temporary debugging: `0.0.0.0/0` (not recommended long-term).
+Restart the app afterwards.
 
 ---
 
-## Vercel (deploy + env)
+## 🗄️ MongoDB issues
 
-### I changed env vars in Vercel but nothing changes
+### Authentication failed
 
-- Vercel env vars apply per deployment → **Redeploy**.
-- Make sure they’re set for **Production**.
+Usually one of these:
 
-### Weird behavior only in production
+- wrong username/password in `MONGODB_URI`
+- password contains special characters and is not encoded correctly
+- wrong cluster host or database name
 
-- Confirm `SITE_URL` and `NEXTAUTH_URL` point to the final domain.
-- Check you don’t have different values between Preview and Production.
+### Cannot connect to Atlas
 
----
+Check:
 
-## Uploads (images)
-
-On Vercel the filesystem is ephemeral: uploading to `public/uploads` will not persist.
-
-Solutions:
-
-- Vercel Blob: set `BLOB_READ_WRITE_TOKEN`
-- Cloudinary: set `CLOUDINARY_URL` (or separate credentials)
+- Atlas **Network Access** allowlist
+- database user permissions
+- exact connection string copied from Atlas
 
 ---
 
-## Cron / Newsletter
+## 🌍 Production-only issues
 
-### Cron returns 401/403
+### Works locally but not on Vercel
 
-- If `CRON_SECRET` exists, call it with `?secret=...`.
-- If not, some endpoints expect `User-Agent: vercel-cron/1.0`.
+Check:
 
-### Newsletter doesn’t send
+- Production environment variables are actually set
+- the project was redeployed after env changes
+- `SITE_URL` and `NEXTAUTH_URL` match the final domain
+- the license API is reachable from Vercel
 
-- Missing SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
-- Also check provider spam/bounces.
+### Environment changes do nothing
+
+Redeploy. Vercel does not apply new environment variables to old deployments.
 
 ---
 
-## SEO (sitemap/robots)
+## 🖼️ Upload issues
 
-### Sitemap/canonical uses the wrong domain
+### Uploads work locally but disappear in production
 
-- Set `SITE_URL` in production (e.g. `https://www.999wrldnetwork.es`).
-- Confirm `NEXTAUTH_URL` also points to the final domain.
+That is expected if you rely on local filesystem storage on Vercel.
+
+Use one of these instead:
+
+- `BLOB_READ_WRITE_TOKEN` for Vercel Blob
+- `CLOUDINARY_URL`
+- or the separate Cloudinary credentials
+
+### Upload rejected
+
+The upload helper accepts common image formats and rejects invalid types or oversized files.
+
+---
+
+## ✉️ Email issues
+
+### Password reset or newsletter emails are not sending
+
+Check:
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+If SMTP is missing, email-dependent features will not deliver real messages.
+
+---
+
+## 🕒 Newsletter cron issues
+
+### Route returns `401` or `403`
+
+Use one of these:
+
+- Vercel cron with `User-Agent: vercel-cron/1.0`
+- `x-cron-secret: YOUR_SECRET`
+- `?secret=YOUR_SECRET`
+
+### Newsletter does not send
+
+Check:
+
+- SMTP is configured
+- `SITE_URL` or `NEXTAUTH_URL` is set
+- newsletter automation is enabled in admin settings
+- the request is happening on the configured weekday/time slot
+
+---
+
+## 💳 Payment issues
+
+### Store checkout fails
+
+Check the provider you are using.
+
+**PayPal**
+
+- `PAYPAL_ENV`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+
+**Stripe**
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Also confirm you are not mixing test and live keys.
+
+---
+
+## 🗺️ SEO issues
+
+### Wrong domain in sitemap, canonical tags, or email links
+
+Check:
+
+- `SITE_URL`
+- `NEXTAUTH_URL`
 
 ### Search Console verification fails
 
-- Set `GOOGLE_SITE_VERIFICATION` (and optionally `BING_SITE_VERIFICATION`) and redeploy.
+Check:
+
+- `GOOGLE_SITE_VERIFICATION`
+- `BING_SITE_VERIFICATION`
+
+Redeploy after changing them.
 
 ---
 
-## Build / Dependencies
+## 📤 What to share when asking for help
 
-### Error: "Cannot find module 'memory-pager'"
+If you need deeper debugging, share:
 
-```bash
-npm install memory-pager sparse-bitfield
-```
-
-### Verify before deploying
-
-```bash
-npm run lint
-npm run build
-```
-
----
-
-## What to share
-
-If you need help, share:
-
-- The exact error message (terminal and/or browser console)
-- Node version: `node -v`
-- OS
-- Values (without secrets) for: `NEXTAUTH_URL` and whether `SITE_URL` is set
+- the exact error message
+- whether the issue is local or production-only
+- your Node version from `node -v`
+- which area is failing: auth, license, uploads, email, payments, cron, or deploy
+- relevant terminal output without leaking secrets
