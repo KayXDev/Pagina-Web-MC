@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/session';
 import ShopOrder from '@/models/ShopOrder';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
 import { ensureStockDeductedForOrder } from '@/lib/stock';
+import { runOrderPostPaymentEffects } from '@/lib/shopPostPayment';
 
 const schema = z.object({
   orderId: z.string().min(1),
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
     }
 
     const res = await ensureDeliveryForOrder(String(order._id));
+    await runOrderPostPaymentEffects(String(order._id));
 
     return NextResponse.json({
       ok: true,

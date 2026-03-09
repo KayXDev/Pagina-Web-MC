@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { formatDateTime } from '@/lib/utils';
 import { t, type Lang } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { getTicketSlaState } from '@/lib/ticketSla';
 
 interface Ticket {
   _id: string;
@@ -17,6 +18,13 @@ interface Ticket {
   message: string;
   status: string;
   priority: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  assignedAt?: string;
+  firstStaffReplyAt?: string;
+  responseDueAt?: string;
+  resolutionDueAt?: string;
+  resolvedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +56,7 @@ export default function AdminTicketsPage() {
   const [ticketDetailsLoading, setTicketDetailsLoading] = useState(false);
   const [ticketReplies, setTicketReplies] = useState<TicketReply[]>([]);
   const [replyText, setReplyText] = useState('');
+  const [assignedStaffDraft, setAssignedStaffDraft] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<any | null>(null);
@@ -210,6 +219,12 @@ export default function AdminTicketsPage() {
       if (!response.ok) {
         throw new Error(data.error || t(lang, 'admin.tickets.loadConversationError'));
       }
+      if ((data as any)?.ticket) {
+        setSelectedTicket((current) => {
+          if (!current || current._id !== ticketId) return current;
+          return { ...current, ...((data as any).ticket as Ticket) };
+        });
+      }
       setTicketReplies(data.replies || []);
     } catch (error: any) {
       toast.error(error.message || t(lang, 'admin.tickets.loadConversationError'));
@@ -338,6 +353,20 @@ export default function AdminTicketsPage() {
     }
   };
 
+  const getSlaBadge = (ticket: Ticket) => {
+    const state = getTicketSlaState(ticket);
+    if (state === 'BREACHED') {
+      return <Badge variant="danger">{lang === 'es' ? 'SLA vencido' : 'SLA breached'}</Badge>;
+    }
+    if (state === 'RESOLVED_LATE') {
+      return <Badge variant="warning">{lang === 'es' ? 'Cerrado fuera de SLA' : 'Closed late'}</Badge>;
+    }
+    if (state === 'RESOLVED') {
+      return <Badge variant="success">{lang === 'es' ? 'SLA cumplido' : 'SLA met'}</Badge>;
+    }
+    return <Badge variant="info">{lang === 'es' ? 'En SLA' : 'On SLA'}</Badge>;
+  };
+
   const inProgressTickets = tickets.filter((t) => t.status === 'IN_PROGRESS');
   const openTickets = tickets.filter((t) => t.status === 'OPEN');
   const closedTickets = tickets.filter((t) => t.status === 'CLOSED');
@@ -377,6 +406,7 @@ export default function AdminTicketsPage() {
 
   const openDetails = (ticket: Ticket) => {
     setSelectedTicket(ticket);
+    setAssignedStaffDraft(String(ticket.assignedStaffName || ''));
     setReplyText('');
     setAiError(null);
     setAiResult(null);
@@ -668,6 +698,7 @@ export default function AdminTicketsPage() {
                           <div className="flex flex-col items-end gap-2 shrink-0">
                             {getStatusBadge(ticket.status)}
                             {getPriorityBadge(ticket.priority)}
+                            {getSlaBadge(ticket)}
                           </div>
                         </div>
                       </button>
@@ -698,6 +729,12 @@ export default function AdminTicketsPage() {
                       <span className="truncate">{selectedTicket.username}</span>
                       <span>•</span>
                       <span className="truncate">{selectedTicket.email}</span>
+                      {selectedTicket.assignedStaffName ? (
+                        <>
+                          <span>•</span>
+                          <span>{lang === 'es' ? 'Asignado a' : 'Assigned to'}: {selectedTicket.assignedStaffName}</span>
+                        </>
+                      ) : null}
                       <span>•</span>
                       <span>
                         {t(lang, 'admin.tickets.created')}: {formatDateTime(selectedTicket.createdAt)}
@@ -755,6 +792,73 @@ export default function AdminTicketsPage() {
                     >
                       <span>{t(lang, 'admin.tickets.closeTicket')}</span>
                     </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-black/20">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                      {lang === 'es' ? 'Asignación / workflow' : 'Assignment / workflow'}
+                    </div>
+                    <div className="space-y-3">
+                      <Input
+                        value={assignedStaffDraft}
+                        onChange={(e) => setAssignedStaffDraft(e.target.value)}
+                        placeholder={lang === 'es' ? 'Nombre del responsable' : 'Assignee name'}
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => updateTicket(selectedTicket._id, { assignToMe: true })}
+                        >
+                          <span>{lang === 'es' ? 'Asignarme' : 'Assign to me'}</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => updateTicket(selectedTicket._id, { assignedStaffName: assignedStaffDraft })}
+                        >
+                          <span>{lang === 'es' ? 'Guardar responsable' : 'Save assignee'}</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            setAssignedStaffDraft('');
+                            updateTicket(selectedTicket._id, { clearAssignment: true });
+                          }}
+                        >
+                          <span>{lang === 'es' ? 'Liberar' : 'Clear'}</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-black/20">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {lang === 'es' ? 'SLA del ticket' : 'Ticket SLA'}
+                      </div>
+                      {getSlaBadge(selectedTicket)}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-gray-500">{lang === 'es' ? 'Primer reply antes de' : 'First reply due'}</div>
+                        <div className="text-gray-900 dark:text-white font-semibold">{selectedTicket.responseDueAt ? formatDateTime(selectedTicket.responseDueAt) : '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">{lang === 'es' ? 'Resolver antes de' : 'Resolution due'}</div>
+                        <div className="text-gray-900 dark:text-white font-semibold">{selectedTicket.resolutionDueAt ? formatDateTime(selectedTicket.resolutionDueAt) : '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">{lang === 'es' ? 'Primera respuesta staff' : 'First staff reply'}</div>
+                        <div className="text-gray-900 dark:text-white font-semibold">{selectedTicket.firstStaffReplyAt ? formatDateTime(selectedTicket.firstStaffReplyAt) : '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">{lang === 'es' ? 'Cierre' : 'Resolved at'}</div>
+                        <div className="text-gray-900 dark:text-white font-semibold">{selectedTicket.resolvedAt ? formatDateTime(selectedTicket.resolvedAt) : '-'}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

@@ -11,6 +11,13 @@ export interface ITicket {
   message: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  assignedAt?: Date;
+  firstStaffReplyAt?: Date;
+  responseDueAt?: Date;
+  resolutionDueAt?: Date;
+  resolvedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +64,29 @@ const TicketSchema = new Schema<ITicket>(
       type: String,
       enum: ['LOW', 'MEDIUM', 'HIGH'],
       default: 'MEDIUM',
+    },
+    assignedStaffId: {
+      type: String,
+      default: '',
+    },
+    assignedStaffName: {
+      type: String,
+      default: '',
+    },
+    assignedAt: {
+      type: Date,
+    },
+    firstStaffReplyAt: {
+      type: Date,
+    },
+    responseDueAt: {
+      type: Date,
+    },
+    resolutionDueAt: {
+      type: Date,
+    },
+    resolvedAt: {
+      type: Date,
     },
   },
   {

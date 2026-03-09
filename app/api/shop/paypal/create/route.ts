@@ -2,18 +2,24 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import dbConnect from '@/lib/mongodb';
 import ShopOrder from '@/models/ShopOrder';
-import { resolveMinecraftAccount } from '@/lib/minecraftAccount';
 import { getCurrentUser } from '@/lib/session';
 import { paypalCreateOrder } from '@/lib/paypal';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
 import { ensureStockDeductedForOrder } from '@/lib/stock';
 import { buildPricingFromItems } from '@/lib/shopPricing';
-import { applyOrderIncentives } from '@/lib/referrals';
+import { resolveCheckoutTarget } from '@/lib/shopCheckout';
+import { runOrderPostPaymentEffects } from '@/lib/shopPostPayment';
 
 const schema = z.object({
-  minecraftUsername: z.string().min(1),
+  minecraftUsername: z.string().default(''),
   productId: z.string().min(1).optional(),
   couponCode: z.string().max(40).optional(),
+  gift: z
+    .object({
+      recipientUsername: z.string().max(40).optional(),
+      message: z.string().max(240).optional(),
+    })
+    .optional(),
   items: z
     .array(
       z.object({
@@ -49,20 +55,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
 
-    const onlineMode = (process.env.MC_ONLINE_MODE || 'true').toLowerCase() !== 'false';
-    const resolved = await resolveMinecraftAccount({
-      usernameRaw: parsed.data.minecraftUsername,
-      onlineMode,
-      timeoutMs: 5000,
-    });
-
-    if (!resolved) {
-      return NextResponse.json({ error: 'Usuario de Minecraft inválido o no encontrado' }, { status: 400 });
-    }
-
     await dbConnect();
 
     const user = await getCurrentUser().catch(() => null);
+    let target;
+    try {
+      target = await resolveCheckoutTarget({
+        minecraftUsername: parsed.data.minecraftUsername,
+        gift: parsed.data.gift,
+        buyer: user,
+      });
+    } catch (error: any) {
+      return NextResponse.json({ error: error?.message || 'Datos inválidos' }, { status: 400 });
+    }
 
     let pricing;
     try {
@@ -97,8 +102,13 @@ export async function POST(request: Request) {
 
       const order = await ShopOrder.create({
         userId: user?.id || '',
-        minecraftUsername: resolved.username,
-        minecraftUuid: resolved.uuid,
+        minecraftUsername: target.minecraftUsername,
+        minecraftUuid: target.minecraftUuid,
+        isGift: target.gift.isGift,
+        giftRecipientUserId: target.gift.giftRecipientUserId,
+        giftRecipientUsername: target.gift.giftRecipientUsername,
+        giftRecipientMinecraftUsername: target.gift.giftRecipientMinecraftUsername,
+        giftMessage: target.gift.giftMessage,
         productId: first?.productId || '',
         productName: first?.productName || '',
         productPrice: first?.unitPrice || 0,
@@ -136,7 +146,7 @@ export async function POST(request: Request) {
       }
 
       await ensureDeliveryForOrder(String(order._id));
-      await applyOrderIncentives(String(order._id));
+      await runOrderPostPaymentEffects(String(order._id));
 
       return NextResponse.json({ free: true, orderId: String(order._id), status: 'PAID' });
     }
@@ -149,8 +159,13 @@ export async function POST(request: Request) {
 
     const order = await ShopOrder.create({
       userId: user?.id || '',
-      minecraftUsername: resolved.username,
-      minecraftUuid: resolved.uuid,
+      minecraftUsername: target.minecraftUsername,
+      minecraftUuid: target.minecraftUuid,
+      isGift: target.gift.isGift,
+      giftRecipientUserId: target.gift.giftRecipientUserId,
+      giftRecipientUsername: target.gift.giftRecipientUsername,
+      giftRecipientMinecraftUsername: target.gift.giftRecipientMinecraftUsername,
+      giftMessage: target.gift.giftMessage,
       productId: first?.productId || '',
       productName: first?.productName || '',
       productPrice: first?.unitPrice || 0,

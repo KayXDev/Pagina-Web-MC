@@ -16,6 +16,12 @@ export interface IShopOrder {
   userId?: string;
   minecraftUsername: string;
   minecraftUuid: string;
+  isGift?: boolean;
+  giftRecipientUserId?: string;
+  giftRecipientUsername?: string;
+  giftRecipientMinecraftUsername?: string;
+  giftMessage?: string;
+  giftNotifiedAt?: Date;
   // Backward-compatible single-product fields
   productId?: string;
   productName?: string;
@@ -61,6 +67,9 @@ export interface IShopOrder {
   referralRewardAmount?: number;
   referralRewardAppliedAt?: Date;
 
+  loyaltyPointsAwarded?: number;
+  loyaltyAppliedAt?: Date;
+
   subtotalPrice?: number;
   ip?: string;
   userAgent?: string;
@@ -73,6 +82,12 @@ const ShopOrderSchema = new Schema<IShopOrder>(
     userId: { type: String, default: '' },
     minecraftUsername: { type: String, required: true, trim: true },
     minecraftUuid: { type: String, required: true, trim: true },
+    isGift: { type: Boolean, default: false },
+    giftRecipientUserId: { type: String, default: '' },
+    giftRecipientUsername: { type: String, default: '' },
+    giftRecipientMinecraftUsername: { type: String, default: '' },
+    giftMessage: { type: String, default: '' },
+    giftNotifiedAt: { type: Date },
     productId: { type: String, default: '' },
     productName: { type: String, default: '' },
     productPrice: { type: Number, default: 0 },
@@ -121,6 +136,9 @@ const ShopOrderSchema = new Schema<IShopOrder>(
     referralDiscountAmount: { type: Number, default: 0 },
     referralRewardAmount: { type: Number, default: 0 },
     referralRewardAppliedAt: { type: Date },
+
+    loyaltyPointsAwarded: { type: Number, default: 0 },
+    loyaltyAppliedAt: { type: Date },
 
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },

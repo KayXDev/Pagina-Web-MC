@@ -4,6 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import Ticket from '@/models/Ticket';
 import TicketReply from '@/models/TicketReply';
 import Notification from '@/models/Notification';
+import { buildTicketSlaDates } from '@/lib/ticketSla';
 
 export async function GET(
   _request: Request,
@@ -59,6 +60,12 @@ export async function PATCH(
 
     if (body?.action === 'close') {
       ticket.status = 'CLOSED';
+      (ticket as any).resolvedAt = new Date();
+      if (!(ticket as any).responseDueAt || !(ticket as any).resolutionDueAt) {
+        const fallbackDates = buildTicketSlaDates(String((ticket as any).priority || 'MEDIUM'), new Date(ticket.createdAt || Date.now()));
+        (ticket as any).responseDueAt = (ticket as any).responseDueAt || fallbackDates.responseDueAt;
+        (ticket as any).resolutionDueAt = (ticket as any).resolutionDueAt || fallbackDates.resolutionDueAt;
+      }
       await ticket.save();
 
       if (isStaff && ticket.userId && ticket.userId !== user.id) {

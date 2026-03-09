@@ -12,6 +12,9 @@ export interface IUser {
   tags: string[];
   badges?: string[];
   balance?: number;
+  loyaltyPoints?: number;
+  loyaltyLifetimePoints?: number;
+  loyaltyLastEarnedAt?: Date;
   followersCountOverride?: number | null;
   followingCountOverride?: number | null;
   adminSections?: string[];
@@ -100,6 +103,19 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       default: 0,
       min: 0,
+    },
+    loyaltyPoints: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyLifetimePoints: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    loyaltyLastEarnedAt: {
+      type: Date,
     },
     followersCountOverride: {
       type: Number,
@@ -236,6 +252,34 @@ if (models.User) {
           type: Number,
           default: 0,
           min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('loyaltyPoints')) {
+      models.User.schema.add({
+        loyaltyPoints: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('loyaltyLifetimePoints')) {
+      models.User.schema.add({
+        loyaltyLifetimePoints: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
+      });
+    }
+
+    if (!models.User.schema.path('loyaltyLastEarnedAt')) {
+      models.User.schema.add({
+        loyaltyLastEarnedAt: {
+          type: Date,
         },
       });
     }

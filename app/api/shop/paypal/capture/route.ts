@@ -6,7 +6,7 @@ import { paypalCaptureOrder } from '@/lib/paypal';
 import { getCurrentUser } from '@/lib/session';
 import { ensureDeliveryForOrder } from '@/lib/deliveries';
 import { ensureStockDeductedForOrder } from '@/lib/stock';
-import { applyOrderIncentives } from '@/lib/referrals';
+import { runOrderPostPaymentEffects } from '@/lib/shopPostPayment';
 
 const schema = z.object({
   orderId: z.string().min(1),
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
     // Create (idempotent) delivery job for in-game commands.
     await ensureDeliveryForOrder(String(order._id));
-    await applyOrderIncentives(String(order._id));
+    await runOrderPostPaymentEffects(String(order._id));
 
     return NextResponse.json({ ok: true, status: 'PAID', orderId: String(order._id) });
   } catch (error: any) {

@@ -7,6 +7,7 @@ import Notification from '@/models/Notification';
 import User from '@/models/User';
 import Settings from '@/models/Settings';
 import { sendTicketDiscordWebhook } from '@/lib/ticketsDiscordWebhook';
+import { buildTicketSlaDates } from '@/lib/ticketSla';
 
 const TICKETS_DISCORD_WEBHOOK_KEY = 'tickets_discord_webhook';
 
@@ -74,11 +75,16 @@ export async function POST(request: Request) {
     const validatedData = ticketSchema.parse(body);
     
     await dbConnect();
+
+    const ticketPriority = String((validatedData as any).priority || 'MEDIUM');
+    const slaDates = buildTicketSlaDates(ticketPriority, new Date());
     
     const ticket = await Ticket.create({
       userId: user.id,
       username: user.name,
       email: user.email,
+      responseDueAt: slaDates.responseDueAt,
+      resolutionDueAt: slaDates.resolutionDueAt,
       ...validatedData,
     });
 

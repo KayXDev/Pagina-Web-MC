@@ -10,12 +10,19 @@ import { Badge, Button, Card, Textarea } from '@/components/ui';
 import { toast } from 'react-toastify';
 import { getDateLocale, t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { getTicketSlaState } from '@/lib/ticketSla';
 
 interface Ticket {
   _id: string;
   subject: string;
   category: string;
   status: string;
+  priority?: string;
+  assignedStaffName?: string;
+  firstStaffReplyAt?: string;
+  responseDueAt?: string;
+  resolutionDueAt?: string;
+  resolvedAt?: string;
   createdAt: string;
   updatedAt?: string;
   message: string;
@@ -234,6 +241,14 @@ export default function TicketChatView({
     }
   };
 
+  const getSlaBadge = (ticket: Ticket) => {
+    const state = getTicketSlaState(ticket);
+    if (state === 'BREACHED') return <Badge variant="danger">{lang === 'es' ? 'SLA vencido' : 'SLA breached'}</Badge>;
+    if (state === 'RESOLVED_LATE') return <Badge variant="warning">{lang === 'es' ? 'Fuera de SLA' : 'Resolved late'}</Badge>;
+    if (state === 'RESOLVED') return <Badge variant="success">{lang === 'es' ? 'En plazo' : 'On time'}</Badge>;
+    return <Badge variant="info">{lang === 'es' ? 'En seguimiento' : 'In SLA'}</Badge>;
+  };
+
   const getStatusBadge = (s: string) => {
     switch (s) {
       case 'OPEN':
@@ -323,6 +338,7 @@ export default function TicketChatView({
                 {ticketDetails?.ticket?.subject || t(lang, 'support.ticketChat')}
               </h2>
               {ticketDetails?.ticket?.status ? getStatusBadge(ticketDetails.ticket.status) : null}
+              {ticketDetails?.ticket ? getSlaBadge(ticketDetails.ticket) : null}
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'support.ticketChatHelp')}</p>
           </div>
@@ -345,6 +361,31 @@ export default function TicketChatView({
               <div className="text-gray-400">{t(lang, 'support.cannotLoadTicket')}</div>
             ) : (
               <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-black/20">
+                    <div className="text-xs text-gray-500">{lang === 'es' ? 'Asignado a' : 'Assigned to'}</div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {ticketDetails.ticket.assignedStaffName || (lang === 'es' ? 'Pendiente' : 'Pending')}
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-black/20">
+                    <div className="text-xs text-gray-500">{lang === 'es' ? 'Primer reply antes de' : 'First reply due'}</div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {ticketDetails.ticket.responseDueAt
+                        ? new Date(ticketDetails.ticket.responseDueAt).toLocaleString(getDateLocale(lang))
+                        : '-'}
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-black/20">
+                    <div className="text-xs text-gray-500">{lang === 'es' ? 'Resolución objetivo' : 'Resolution due'}</div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {ticketDetails.ticket.resolutionDueAt
+                        ? new Date(ticketDetails.ticket.resolutionDueAt).toLocaleString(getDateLocale(lang))
+                        : '-'}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-3 max-h-[520px] overflow-y-auto">
                   <div className="flex justify-end">
                     <div className="max-w-[85%] bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border border-minecraft-grass/30 rounded-md p-3">

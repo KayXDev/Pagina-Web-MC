@@ -5,6 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import Ticket from '@/models/Ticket';
 import TicketReply from '@/models/TicketReply';
 import Notification from '@/models/Notification';
+import { buildTicketSlaDates } from '@/lib/ticketSla';
 
 const replySchema = z.object({
   message: z.string().min(1, 'El mensaje es requerido').max(2000, 'Mensaje demasiado largo'),
@@ -55,10 +56,26 @@ export async function POST(
     }
 
     // Marca actividad en el ticket y, si responde staff, pásalo a EN PROCESO.
+    const now = new Date();
     if (isStaff && ticket.status === 'OPEN') {
       ticket.status = 'IN_PROGRESS';
     }
-    ticket.updatedAt = new Date();
+    if (isStaff) {
+      if (!(ticket as any).assignedStaffId) {
+        (ticket as any).assignedStaffId = String(user.id || '');
+        (ticket as any).assignedStaffName = String(user.name || 'Staff');
+        (ticket as any).assignedAt = now;
+      }
+      if (!(ticket as any).firstStaffReplyAt) {
+        (ticket as any).firstStaffReplyAt = now;
+      }
+    }
+    if (!(ticket as any).responseDueAt || !(ticket as any).resolutionDueAt) {
+      const fallbackDates = buildTicketSlaDates(String((ticket as any).priority || 'MEDIUM'), new Date(ticket.createdAt || now));
+      (ticket as any).responseDueAt = (ticket as any).responseDueAt || fallbackDates.responseDueAt;
+      (ticket as any).resolutionDueAt = (ticket as any).resolutionDueAt || fallbackDates.resolutionDueAt;
+    }
+    ticket.updatedAt = now;
     await ticket.save();
 
     return NextResponse.json(reply, { status: 201 });

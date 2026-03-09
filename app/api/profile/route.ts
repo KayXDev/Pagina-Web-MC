@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/session';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import Follow from '@/models/Follow';
+import LoyaltyEvent from '@/models/LoyaltyEvent';
+import { getLoyaltyTier } from '@/lib/loyalty';
 
 function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -35,7 +37,7 @@ export async function GET() {
     await dbConnect();
 
     const user = await User.findById(currentUser.id).select(
-      '_id username displayName email role tags badges balance followersCountOverride followingCountOverride avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin presenceStatus lastSeenAt'
+      '_id username displayName email role tags badges balance loyaltyPoints loyaltyLifetimePoints loyaltyLastEarnedAt followersCountOverride followingCountOverride avatar banner verified minecraftUsername minecraftUuid minecraftLinkedAt isBanned bannedReason createdAt updatedAt lastLogin presenceStatus lastSeenAt'
     );
 
     if (!user) {
@@ -43,9 +45,14 @@ export async function GET() {
     }
 
     const userId = user._id.toString();
-    const [followersCount, followingCount] = await Promise.all([
+    const [followersCount, followingCount, recentLoyaltyEvents] = await Promise.all([
       Follow.countDocuments({ followingId: userId }),
       Follow.countDocuments({ followerId: userId }),
+      LoyaltyEvent.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('type points amountSpent currency description createdAt')
+        .lean(),
     ]);
 
     const followersOverride = (user as any).followersCountOverride;
@@ -66,6 +73,10 @@ export async function GET() {
       tags: Array.isArray((user as any).tags) ? (user as any).tags : [],
       badges: Array.isArray((user as any).badges) ? (user as any).badges : [],
       balance: Number((user as any).balance || 0),
+      loyaltyPoints: Number((user as any).loyaltyPoints || 0),
+      loyaltyLifetimePoints: Number((user as any).loyaltyLifetimePoints || 0),
+      loyaltyLastEarnedAt: (user as any).loyaltyLastEarnedAt || null,
+      loyaltyTier: getLoyaltyTier(Number((user as any).loyaltyLifetimePoints || (user as any).loyaltyPoints || 0)),
       followersCountOverride: typeof followersOverride === 'number' ? followersOverride : null,
       followingCountOverride: typeof followingOverride === 'number' ? followingOverride : null,
       avatar: user.avatar || '',
@@ -83,6 +94,7 @@ export async function GET() {
       lastSeenAt: (user as any).lastSeenAt || null,
       followersCount: finalFollowers,
       followingCount: finalFollowing,
+      recentLoyaltyEvents: Array.isArray(recentLoyaltyEvents) ? recentLoyaltyEvents : [],
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

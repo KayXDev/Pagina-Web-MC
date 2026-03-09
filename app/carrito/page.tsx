@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
-import { FaCreditCard, FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from 'react-icons/fa';
+import { FaCreditCard, FaGift, FaMinus, FaPlus, FaShoppingCart, FaTags, FaTrash } from 'react-icons/fa';
 import PageHeader from '@/components/PageHeader';
 import { Badge, Button, Card, Input } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -45,6 +45,9 @@ export default function CartPage() {
   const [minecraftUsername, setMinecraftUsername] = useState('');
   const [minecraftUuid, setMinecraftUuid] = useState('');
   const [checkingMinecraft, setCheckingMinecraft] = useState(false);
+  const [giftEnabled, setGiftEnabled] = useState(false);
+  const [giftRecipientUsername, setGiftRecipientUsername] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
 
   const cartTitle = lang === 'es' ? 'Carrito' : 'Cart';
   const emptyLabel = lang === 'es' ? 'Tu carrito está vacío.' : 'Your cart is empty.';
@@ -60,6 +63,9 @@ export default function CartPage() {
     lang === 'es'
       ? 'Introduce y verifica tu username de Minecraft para poder pagar.'
       : 'Enter and verify your Minecraft username to checkout.';
+  const requiresMinecraftVerification = !giftEnabled;
+  const giftRecipientLabel = lang === 'es' ? 'Usuario destinatario' : 'Recipient username';
+  const giftMessageLabel = lang === 'es' ? 'Mensaje opcional' : 'Optional message';
 
   const localCartKey = 'shop.cart.items';
   const readLocalCart = (): CartItem[] => {
@@ -307,7 +313,15 @@ export default function CartPage() {
 
   const checkout = async () => {
     const username = minecraftUsername.trim();
-    if (!username) {
+    if (giftEnabled && status !== 'authenticated') {
+      toast.error(lang === 'es' ? 'Debes iniciar sesión para enviar regalos.' : 'You must be signed in to send gifts.');
+      return;
+    }
+    if (giftEnabled && !giftRecipientUsername.trim()) {
+      toast.error(lang === 'es' ? 'Indica el usuario que recibirá el regalo.' : 'Enter the username that will receive the gift.');
+      return;
+    }
+    if (requiresMinecraftVerification && !username) {
       toast.error(needMinecraftLabel);
       return;
     }
@@ -322,6 +336,12 @@ export default function CartPage() {
           minecraftUsername: username,
           items: cartItems,
           couponCode: couponCode.trim(),
+          gift: giftEnabled
+            ? {
+                recipientUsername: giftRecipientUsername.trim(),
+                message: giftMessage.trim(),
+              }
+            : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -360,7 +380,15 @@ export default function CartPage() {
 
   const checkoutStripeSession = async () => {
     const username = minecraftUsername.trim();
-    if (!username) {
+    if (giftEnabled && status !== 'authenticated') {
+      toast.error(lang === 'es' ? 'Debes iniciar sesión para enviar regalos.' : 'You must be signed in to send gifts.');
+      return;
+    }
+    if (giftEnabled && !giftRecipientUsername.trim()) {
+      toast.error(lang === 'es' ? 'Indica el usuario que recibirá el regalo.' : 'Enter the username that will receive the gift.');
+      return;
+    }
+    if (requiresMinecraftVerification && !username) {
       toast.error(needMinecraftLabel);
       return;
     }
@@ -375,6 +403,12 @@ export default function CartPage() {
           minecraftUsername: username,
           items: cartItems,
           couponCode: couponCode.trim(),
+          gift: giftEnabled
+            ? {
+                recipientUsername: giftRecipientUsername.trim(),
+                message: giftMessage.trim(),
+              }
+            : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -592,10 +626,63 @@ export default function CartPage() {
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-xs text-gray-400">{lang === 'es' ? 'Compra regalo' : 'Gift purchase'}</div>
+                      <div className="text-sm text-gray-300 mt-1">
+                        {lang === 'es'
+                          ? 'Entrega el pedido a otro usuario con cuenta Minecraft vinculada.'
+                          : 'Deliver this order to another user with a linked Minecraft account.'}
+                      </div>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-sm text-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={giftEnabled}
+                        onChange={(e) => setGiftEnabled(e.target.checked)}
+                        className="h-4 w-4 rounded border-white/20 bg-black/30"
+                      />
+                      <span className="inline-flex items-center gap-2">
+                        <FaGift className="text-minecraft-gold" />
+                        {lang === 'es' ? 'Activar' : 'Enable'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {giftEnabled ? (
+                    <div className="mt-3 grid grid-cols-1 gap-2">
+                      <Input
+                        value={giftRecipientUsername}
+                        onChange={(e) => setGiftRecipientUsername(e.target.value)}
+                        placeholder={giftRecipientLabel}
+                      />
+                      <Input
+                        value={giftMessage}
+                        onChange={(e) => setGiftMessage(e.target.value.slice(0, 240))}
+                        placeholder={giftMessageLabel}
+                      />
+                      <div className="text-xs text-gray-400">
+                        {status !== 'authenticated'
+                          ? lang === 'es'
+                            ? 'Necesitas iniciar sesión para enviar regalos.'
+                            : 'You need to sign in to send gifts.'
+                          : lang === 'es'
+                            ? 'El destinatario debe existir y tener su cuenta Minecraft enlazada.'
+                            : 'The recipient must exist and have a linked Minecraft account.'}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs text-gray-400">{minecraftLabel}</div>
                     <Badge variant={minecraftUuid ? 'success' : 'warning'}>
-                      {minecraftUuid
+                      {!requiresMinecraftVerification
+                        ? lang === 'es'
+                          ? 'No requerido'
+                          : 'Not required'
+                        : minecraftUuid
                         ? lang === 'es'
                           ? 'Verificado'
                           : 'Verified'
@@ -613,11 +700,12 @@ export default function CartPage() {
                         setMinecraftUuid('');
                       }}
                       placeholder={minecraftPlaceholder}
+                      disabled={!requiresMinecraftVerification}
                     />
 
                     <Button
                       variant="secondary"
-                      disabled={checkingMinecraft}
+                      disabled={checkingMinecraft || !requiresMinecraftVerification}
                       onClick={verifyMinecraft}
                       className="w-full"
                     >
@@ -625,7 +713,7 @@ export default function CartPage() {
                     </Button>
                   </div>
 
-                  {!minecraftUuid ? <div className="mt-2 text-xs text-yellow-400/90">{needMinecraftLabel}</div> : null}
+                  {requiresMinecraftVerification && !minecraftUuid ? <div className="mt-2 text-xs text-yellow-400/90">{needMinecraftLabel}</div> : null}
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
@@ -672,7 +760,7 @@ export default function CartPage() {
                 <div className="mt-4 space-y-2">
                   <Button
                     onClick={checkoutStripeSession}
-                    disabled={checkingOutStripe || savingCart || checkingOut || !minecraftUuid}
+                    disabled={checkingOutStripe || savingCart || checkingOut || (requiresMinecraftVerification ? !minecraftUuid : !giftRecipientUsername.trim())}
                     className="w-full justify-center text-center flex-wrap leading-tight"
                   >
                     <FaCreditCard />
@@ -682,7 +770,7 @@ export default function CartPage() {
                   <Button
                     onClick={checkout}
                     variant="secondary"
-                    disabled={checkingOut || savingCart || checkingOutStripe || !minecraftUuid}
+                    disabled={checkingOut || savingCart || checkingOutStripe || (requiresMinecraftVerification ? !minecraftUuid : !giftRecipientUsername.trim())}
                     className="w-full justify-center text-center flex-wrap leading-tight"
                   >
                     <FaShoppingCart />

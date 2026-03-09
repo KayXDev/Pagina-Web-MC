@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { FaIdBadge, FaClock, FaShieldAlt } from 'react-icons/fa';
-import { Card, Badge } from '@/components/ui';
+import { Card, Badge, Button } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { formatPrice } from '@/lib/utils';
 import { useProfile } from './_components/profile-context';
 
 export default function PerfilPage() {
@@ -19,6 +21,8 @@ export default function PerfilPage() {
   };
 
   if (status !== 'authenticated' || !session) return null;
+
+  const recentEvents = Array.isArray(details?.recentLoyaltyEvents) ? details.recentLoyaltyEvents : [];
 
   return (
     <div className="space-y-4">
@@ -97,6 +101,98 @@ export default function PerfilPage() {
           </div>
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card
+          hover={false}
+          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-gray-900 dark:text-white font-bold">
+                {lang === 'es' ? 'Programa de loyalty' : 'Loyalty program'}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {lang === 'es'
+                  ? 'Acumulas puntos automáticamente con cada compra pagada.'
+                  : 'You automatically earn points with every paid order.'}
+              </div>
+            </div>
+            <Badge variant="info">{details?.loyaltyTier || 'Bronze'}</Badge>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+              <div className="text-xs text-gray-500 uppercase tracking-wide">{lang === 'es' ? 'Puntos' : 'Points'}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{Number(details?.loyaltyPoints || 0)}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+              <div className="text-xs text-gray-500 uppercase tracking-wide">{lang === 'es' ? 'Histórico' : 'Lifetime'}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{Number(details?.loyaltyLifetimePoints || 0)}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+              <div className="text-xs text-gray-500 uppercase tracking-wide">{lang === 'es' ? 'Último abono' : 'Last reward'}</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                {loadingDetails ? t(lang, 'common.loading') : formatDateTime(details?.loyaltyLastEarnedAt ?? null)}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {recentEvents.length === 0 ? (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {lang === 'es' ? 'Todavía no tienes movimientos de puntos.' : 'You do not have any points activity yet.'}
+              </div>
+            ) : (
+              recentEvents.map((event, index) => (
+                <div
+                  key={event._id || `${event.type}-${index}`}
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">{event.description}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {event.createdAt ? formatDateTime(event.createdAt) : '-'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-minecraft-grass">+{Number(event.points || 0)} pts</div>
+                      <div className="text-xs text-gray-500">{formatPrice(Number(event.amountSpent || 0))}</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card
+          hover={false}
+          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        >
+          <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Licencia del producto' : 'Product license'}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {lang === 'es'
+              ? 'Consulta el estado de validación, la fecha de comprobación y la respuesta del sistema de licencias.'
+              : 'Check validation status, verification time, and the current licensing response.'}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              {lang === 'es'
+                ? 'El panel dedicado muestra el estado en tiempo real consumiendo la misma validación que protege la aplicación.'
+                : 'The dedicated panel shows real-time status using the same validation that protects the application.'}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Link href="/perfil/licencia">
+              <Button className="w-full justify-center">{lang === 'es' ? 'Abrir panel de licencia' : 'Open license panel'}</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

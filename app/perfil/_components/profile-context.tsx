@@ -14,6 +14,10 @@ export type ProfileDetails = {
   tags: string[];
   badges?: string[];
   balance?: number;
+  loyaltyPoints?: number;
+  loyaltyLifetimePoints?: number;
+  loyaltyLastEarnedAt?: string | null;
+  loyaltyTier?: string;
   followersCountOverride?: number | null;
   followingCountOverride?: number | null;
   avatar?: string;
@@ -31,6 +35,15 @@ export type ProfileDetails = {
   lastSeenAt?: string | null;
   followersCount?: number;
   followingCount?: number;
+  recentLoyaltyEvents?: Array<{
+    _id?: string;
+    type: string;
+    points: number;
+    amountSpent: number;
+    currency: string;
+    description: string;
+    createdAt?: string;
+  }>;
 };
 
 type ProfileContextValue = {

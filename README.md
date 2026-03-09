@@ -26,7 +26,7 @@
 	<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue" />
 	<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-brightgreen" />
 	<img alt="Auth" src="https://img.shields.io/badge/Auth-NextAuth-orange" />
-	<img alt="License" src="https://img.shields.io/badge/License-AGPL--3.0-informational" />
+	<img alt="License" src="https://img.shields.io/badge/License-Proprietary-informational" />
 	<img alt="Activation" src="https://img.shields.io/badge/Activation-KayX%20License-red" />
 </p>
 
@@ -488,7 +488,7 @@ Top file types (by non-empty lines):
 
 ## 📄 License
 
-This project is licensed under **AGPL-3.0**. See [LICENSE](LICENSE).
+This project is licensed under a **Proprietary / All Rights Reserved** license. See [LICENSE](LICENSE).
 
 ---
 
