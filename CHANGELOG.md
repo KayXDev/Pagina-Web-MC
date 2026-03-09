@@ -6,7 +6,7 @@
 
 - 🔐 **Mandatory KayX license activation flow**:
   - App startup now validates the project license before `npm run dev` and `npm start` continue.
-  - The website enforces remote REST validation against the KayX/Drako licensing server.
+  - The website enforces remote REST validation against the KayX licensing server.
 - 🖥️ **Styled startup license banner**:
   - Development startup now shows a polished terminal panel with license status, Discord ID, and cleaner error summaries.
 - 🎨 **Redesigned license-required page**:
