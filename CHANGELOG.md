@@ -26,7 +26,7 @@
 - 🌐 **License support messaging**:
   - Invalid-license flows now direct users to Discord support in English.
 - 🔌 **REST-only license validation**:
-  - The project now uses the KayX/Drako REST API flow and matches the `/api/client` request format.
+  - The project now uses the KayX REST API flow and matches the `/api/client` request format.
 
 ### 🐛 Fixed
 
