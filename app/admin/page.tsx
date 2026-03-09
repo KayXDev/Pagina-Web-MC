@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FaUsers,
@@ -13,6 +13,8 @@ import {
   FaShieldAlt,
   FaCog,
   FaSyncAlt,
+  FaExclamationTriangle,
+  FaKey,
 } from 'react-icons/fa';
 import { Card, Badge, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -20,6 +22,7 @@ import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getTicketSlaState } from '@/lib/ticketSla';
 
 interface DashboardData {
   stats: {
@@ -33,6 +36,8 @@ interface DashboardData {
     ticketsOpen: number;
     ticketsInProgress: number;
     ticketsClosed: number;
+    ticketsSlaBreached: number;
+    ticketsAwaitingFirstReply: number;
     postsPublished: number;
     postsDrafts: number;
     forumPosts: number;
@@ -77,6 +82,17 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [ticketFeedFilter, setTicketFeedFilter] = useState<'ALL' | 'BREACHED' | 'WAITING_RESPONSE'>('ALL');
+  const filteredRecentTickets = useMemo(() => {
+    const tickets = Array.isArray(data?.recentTickets) ? data.recentTickets : [];
+    if (ticketFeedFilter === 'BREACHED') {
+      return tickets.filter((ticket) => getTicketSlaState(ticket) === 'BREACHED');
+    }
+    if (ticketFeedFilter === 'WAITING_RESPONSE') {
+      return tickets.filter((ticket) => !ticket.firstStaffReplyAt && ticket.status !== 'CLOSED');
+    }
+    return tickets;
+  }, [data?.recentTickets, ticketFeedFilter]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -172,6 +188,13 @@ export default function AdminDashboard() {
       icon: <FaNewspaper className="text-3xl text-minecraft-diamond" />,
       href: '/admin/blog',
       accent: 'bg-minecraft-diamond/10 text-minecraft-diamond',
+    },
+    {
+      title: lang === 'es' ? 'SLA vencidos' : 'SLA breached',
+      value: data.stats.ticketsSlaBreached,
+      icon: <FaExclamationTriangle className="text-3xl text-minecraft-redstone" />,
+      href: '/admin/tickets',
+      accent: 'bg-minecraft-redstone/10 text-minecraft-redstone',
     },
   ];
 
@@ -310,10 +333,31 @@ export default function AdminDashboard() {
               <FaHistory />
               <span>{t(lang, 'admin.dashboard.goLogs')}</span>
             </Button>
+            <Button variant="secondary" onClick={() => router.push('/admin/licencia')} className="justify-start sm:col-span-2">
+              <FaKey />
+              <span>{lang === 'es' ? 'Abrir panel de licencia del proyecto' : 'Open project license panel'}</span>
+            </Button>
           </div>
 
           <div className="mt-6">
             <div className="h-px bg-gray-200 dark:bg-white/10 mb-4" />
+
+            <div className="mb-4 rounded-xl border border-gray-200 bg-gradient-to-r from-minecraft-diamond/10 to-transparent p-4 dark:border-white/10 dark:bg-gradient-to-r dark:from-white/10 dark:to-transparent">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <FaKey className="text-minecraft-diamond" />
+                    <span>{lang === 'es' ? 'Panel de licencia del proyecto' : 'Project license panel'}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    {lang === 'es'
+                      ? 'Ahora esta vista vive solo en admin y sirve para controlar la validez y el tiempo restante de la licencia que protege el proyecto.'
+                      : 'This view now lives only in admin and is used to monitor validity and remaining time for the project license.'}
+                  </p>
+                </div>
+                <Badge variant="info">/admin/licencia</Badge>
+              </div>
+            </div>
 
             <div className="mb-4">
               <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t(lang, 'admin.menu.tickets')}</div>
@@ -350,6 +394,10 @@ export default function AdminDashboard() {
                   <span className="text-gray-600 dark:text-gray-400">
                     <span className="inline-block h-2 w-2 rounded-full bg-gray-400 mr-1" />
                     {t(lang, 'support.status.closed')}: {data.stats.ticketsClosed}
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    <span className="inline-block h-2 w-2 rounded-full bg-minecraft-redstone mr-1" />
+                    {lang === 'es' ? 'SLA vencidos' : 'SLA breached'}: {data.stats.ticketsSlaBreached}
                   </span>
                 </div>
               </div>
@@ -419,26 +467,58 @@ export default function AdminDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
-                <FaTicketAlt />
-                <span>{t(lang, 'admin.dashboard.recentTicketsTitle')}</span>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FaTicketAlt />
+                  <span>{t(lang, 'admin.dashboard.recentTicketsTitle')}</span>
+                </div>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'ALL', label: lang === 'es' ? 'Todos' : 'All' },
+                    { id: 'BREACHED', label: lang === 'es' ? 'SLA' : 'SLA' },
+                    { id: 'WAITING_RESPONSE', label: lang === 'es' ? 'Sin respuesta' : 'Waiting' },
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setTicketFeedFilter(filter.id as 'ALL' | 'BREACHED' | 'WAITING_RESPONSE')}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] transition-colors ${
+                        ticketFeedFilter === filter.id
+                          ? 'border-minecraft-grass/40 bg-minecraft-grass/10 text-gray-900 dark:text-white'
+                          : 'border-gray-200 bg-white text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-3">
-                {data.recentTickets.length === 0 ? (
+                {filteredRecentTickets.length === 0 ? (
                   <p className="text-gray-600 dark:text-gray-400">{t(lang, 'admin.dashboard.emptyRecentTickets')}</p>
                 ) : (
-                  data.recentTickets.slice(0, 4).map((ticket) => (
+                  filteredRecentTickets.slice(0, 4).map((ticket) => (
                     <div
                       key={ticket._id}
                       className="p-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                     >
                       <div className="flex items-center justify-between mb-2 gap-3">
                         <p className="text-gray-900 dark:text-white font-medium truncate">{ticket.subject}</p>
-                        <Badge variant={ticketBadgeVariant(ticket.status)}>{ticket.status}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={ticketBadgeVariant(ticket.status)}>{ticket.status}</Badge>
+                          <Badge variant={getTicketSlaState(ticket) === 'BREACHED' ? 'danger' : 'info'}>
+                            {getTicketSlaState(ticket) === 'BREACHED'
+                              ? (lang === 'es' ? 'SLA vencido' : 'SLA breached')
+                              : (lang === 'es' ? 'En SLA' : 'On SLA')}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <p className="text-gray-600 dark:text-gray-400 truncate">{ticket.username}</p>
-                        <p className="text-gray-500 dark:text-gray-500">{formatDateTime(ticket.createdAt)}</p>
+                        <p className="text-gray-600 dark:text-gray-400 truncate">
+                          {ticket.username}
+                          {ticket.assignedStaffName ? ` • ${ticket.assignedStaffName}` : ''}
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-500">{formatDateTime(ticket.updatedAt || ticket.createdAt)}</p>
                       </div>
                     </div>
                   ))

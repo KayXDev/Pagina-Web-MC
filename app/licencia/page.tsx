@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { cookies, headers } from 'next/headers';
 import { getLangFromCookieStore } from '@/lib/i18n';
 import { validateLicense } from '@/lib/license';
+import { getStoredLicenseMetadata } from '@/lib/license-settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,8 @@ export default async function LicenciaPage() {
     pathname: '/licencia',
     userAgent: headerStore.get('user-agent') || '',
   });
+  const storedLicense = await getStoredLicenseMetadata();
+  const effectiveExpiresAt = storedLicense.expiresAt || result.expiresAt || null;
 
   const isEs = lang === 'es';
   const title = isEs ? 'Licencia requerida' : 'License required';
@@ -32,28 +35,26 @@ export default async function LicenciaPage() {
   const setupTitle = isEs ? 'Configuración recomendada' : 'Recommended setup';
   const detailTitle = isEs ? 'Estado de validación' : 'Validation status';
   const discordUrl = process.env.DISCORD_URL || process.env.NEXT_PUBLIC_DISCORD_URL || 'https://discord.gg/TU_INVITE';
-  const supportTitle = 'Need help?';
-  const supportText = 'If you have any problem with your license, please join our Discord server and open a ticket.';
+  const supportTitle = isEs ? 'Necesitas ayuda?' : 'Need help?';
+  const supportText = isEs
+    ? 'Si tienes cualquier problema con tu licencia, entra al Discord de soporte y abre un ticket con el estado mostrado en esta pantalla.'
+    : 'If you have any problem with your license, join the support Discord server and open a ticket with the status shown on this page.';
   const instructions = isEs
     ? [
-        'Añade tu KAYX_LICENSE_KEY generada desde tu panel o bot de licencias.',
+        'Añade tu KAYX_LICENSE_KEY emitida para esta instalación.',
         'Usa el nombre exacto del producto en KAYX_PRODUCT_ID.',
-        'Configura KAYX_LICENSE_API_URL con tu endpoint REST, normalmente /api/client.',
-        'Rellena KAYX_API_TOKEN con la API key del bot para autenticar la petición.',
+        'No intentes configurar la URL del validador o el token interno desde .env: ahora vienen embebidos en el proyecto.',
+        'Si eres admin, revisa el monitor interno en /admin/licencia después de iniciar sesión.',
       ]
     : [
-        'Add your KAYX_LICENSE_KEY generated in your licensing panel.',
+        'Add the KAYX_LICENSE_KEY issued for this installation.',
         'Use the exact product name in KAYX_PRODUCT_ID.',
-        'Set KAYX_LICENSE_API_URL to your REST endpoint, usually /api/client.',
-        'Fill KAYX_API_TOKEN with the bot API key used to authenticate the request.',
+        'Do not try to configure the validator URL or internal token from .env: they are now embedded in the project.',
+        'If you are an admin, review the internal monitor at /admin/licencia after signing in.',
       ];
   const envExample = [
     'KAYX_LICENSE_KEY=XXXX-XXXX-XXXX',
     'KAYX_PRODUCT_ID=minecraft-server-web',
-    'KAYX_LICENSE_API_URL=http://127.0.0.1:3000/api/client',
-    'KAYX_API_TOKEN=YOUR_API_KEY',
-    'KAYX_SHARED_SECRET=',
-    'LICENSE_FAIL_OPEN=false',
   ];
 
   return (
@@ -120,7 +121,7 @@ export default async function LicenciaPage() {
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-white">.env</h2>
                   <span className="rounded-full border border-cyan-400/15 bg-cyan-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-cyan-200">
-                    KayX REST
+                    Minimal env
                   </span>
                 </div>
                 <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/30 p-4 font-mono text-sm leading-7 text-slate-300">
@@ -160,6 +161,17 @@ export default async function LicenciaPage() {
                       {new Date(result.checkedAt).toLocaleString(lang === 'es' ? 'es-ES' : 'en-US')}
                     </div>
                   </div>
+
+                  {effectiveExpiresAt ? (
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                        {isEs ? 'License expiry' : 'License expiry'}
+                      </div>
+                      <div className="mt-2 text-sm font-medium text-slate-200">
+                        {new Date(effectiveExpiresAt).toLocaleString(lang === 'es' ? 'es-ES' : 'en-US')}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -179,31 +191,19 @@ export default async function LicenciaPage() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <h2 className="text-lg font-semibold text-white">{isEs ? 'Herramientas rápidas' : 'Quick tools'}</h2>
+                <h2 className="text-lg font-semibold text-white">{isEs ? 'Siguiente revisión' : 'Next check'}</h2>
                 <p className="mt-2 text-sm text-slate-400">
                   {isEs
-                    ? 'Usa el endpoint JSON para revisar la respuesta exacta del sistema de licencias.'
-                    : 'Use the JSON endpoint to inspect the exact response from the license system.'}
+                    ? 'Los administradores pueden revisar el estado completo desde /admin/licencia. Los usuarios normales deben contactar con soporte.'
+                    : 'Admins can review the full status from /admin/licencia. Regular users should contact support.'}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <Link
-                    href="/api/license/status"
-                    className="inline-flex items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 transition-colors hover:bg-cyan-500/15"
-                  >
-                    {isEs ? 'Ver estado JSON' : 'View JSON status'}
-                  </Link>
+                  <div className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white">
+                    /admin/licencia
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="md:col-span-2 flex flex-wrap gap-3">
-              <Link
-                href="/api/license/status"
-                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                {isEs ? 'Ver estado JSON' : 'View JSON status'}
-              </Link>
             </div>
           </div>
         </div>

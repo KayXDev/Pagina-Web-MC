@@ -61,8 +61,6 @@ Then confirm the minimum `.env` values exist:
 - `NEXTAUTH_SECRET`
 - `KAYX_LICENSE_KEY`
 - `KAYX_PRODUCT_ID`
-- `KAYX_LICENSE_API_URL`
-- `KAYX_API_TOKEN`
 
 ---
 
@@ -82,9 +80,8 @@ Check:
 
 - `KAYX_LICENSE_KEY`
 - `KAYX_PRODUCT_ID`
-- `KAYX_LICENSE_API_URL`
-- `KAYX_API_TOKEN`
 - whether the license API is reachable from your machine/server
+- embedded license defaults in [lib/license-defaults.mjs](lib/license-defaults.mjs)
 
 If startup fails because of licensing, read **[docs/license-system.md](docs/license-system.md)** first.
 
@@ -123,15 +120,14 @@ Common reasons:
 
 - missing license environment variables
 - wrong product ID
-- wrong API token
 - unreachable license server
 - invalid or expired license
 
 Useful check:
 
-- open `/api/license/status`
+- if you are an admin, open `/admin/licencia`
 
-That endpoint helps confirm whether the problem is startup-only or runtime validation.
+That panel helps confirm whether the problem is startup-only or runtime validation.
 
 ---
 

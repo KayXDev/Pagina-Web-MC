@@ -43,6 +43,7 @@ export type ProfileDetails = {
     currency: string;
     description: string;
     createdAt?: string;
+    meta?: Record<string, any>;
   }>;
 };
 

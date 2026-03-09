@@ -12,6 +12,7 @@ const schema = z.object({
     })
   ),
   couponCode: z.string().max(40).optional(),
+  loyaltyPointsToRedeem: z.number().int().min(0).optional(),
 });
 
 export async function POST(request: Request) {
@@ -29,12 +30,15 @@ export async function POST(request: Request) {
       rawItems: parsed.data.items,
       couponCode: parsed.data.couponCode,
       buyerUserId: user?.id || '',
+      loyaltyPointsToRedeem: parsed.data.loyaltyPointsToRedeem || 0,
     });
 
     return NextResponse.json({
       subtotal: pricing.subtotal,
       coupon: pricing.coupon,
       referral: pricing.referral,
+      loyalty: pricing.loyalty,
+      loyaltyEarned: pricing.loyaltyEarned,
       totalPrice: pricing.totalPrice,
     });
   } catch (err: any) {

@@ -4,6 +4,7 @@ import ReferralProfile from '@/models/ReferralProfile';
 import Settings from '@/models/Settings';
 import ShopOrder from '@/models/ShopOrder';
 import User from '@/models/User';
+import { calculateLoyaltyDiscount, getLoyaltyEarningPreview, getLoyaltyEarningRate, getLoyaltyRedemptionRate } from '@/lib/loyalty';
 
 type CartInputItem = { productId: string; quantity: number };
 
@@ -31,6 +32,17 @@ export type PricingBreakdown = {
     discountPercent: number;
     discountAmount: number;
     rewardAmount: number;
+  };
+  loyalty: null | {
+    pointsUsed: number;
+    discountAmount: number;
+    availablePoints: number;
+    pointsPerCurrencyUnit: number;
+  };
+  loyaltyEarned: {
+    points: number;
+    basedOnTotal: number;
+    pointsPerCurrencyUnit: number;
   };
 };
 
@@ -60,6 +72,7 @@ export async function buildPricingFromItems(params: {
   rawItems: CartInputItem[];
   couponCode?: string;
   buyerUserId?: string;
+  loyaltyPointsToRedeem?: number;
 }) : Promise<PricingBreakdown> {
   const normalizedItems = normalizeCartItems(params.rawItems || []);
   if (!normalizedItems.length) {
@@ -115,6 +128,7 @@ export async function buildPricingFromItems(params: {
 
   let coupon: PricingBreakdown['coupon'] = null;
   let referral: PricingBreakdown['referral'] = null;
+  let loyalty: PricingBreakdown['loyalty'] = null;
 
   let runningTotal = subtotal;
 
@@ -187,40 +201,62 @@ export async function buildPricingFromItems(params: {
     ).lean();
 
     if (alreadyUsedReferral) {
-      return {
-        orderItems,
-        subtotal,
-        totalPrice: round2(Math.max(0, runningTotal)),
-        coupon,
-        referral: null,
-      };
-    }
+      referral = null;
+    } else {
+      const buyer = await User.findById(buyerUserId, { _id: 1, referredByCode: 1, referredByUserId: 1 }).lean();
+      const referralCode = normalizeReferralCode(String((buyer as any)?.referredByCode || ''));
+      const referrerUserId = String((buyer as any)?.referredByUserId || '').trim();
 
-    const buyer = await User.findById(buyerUserId, { _id: 1, referredByCode: 1, referredByUserId: 1 }).lean();
-    const referralCode = normalizeReferralCode(String((buyer as any)?.referredByCode || ''));
-    const referrerUserId = String((buyer as any)?.referredByUserId || '').trim();
+      if (referralCode && referrerUserId && buyerUserId !== referrerUserId) {
+        const profile = await ReferralProfile.findOne({ code: referralCode, userId: referrerUserId, active: true }).lean();
+        if (profile) {
+          const setting = await Settings.findOne({ key: 'referral_discount_percent' }).lean();
+          const discountPercentRaw = Number(setting?.value || process.env.REFERRAL_DISCOUNT_PERCENT || 5);
+          const discountPercent = Math.max(0, Math.min(100, round2(discountPercentRaw)));
+          const rewardAmount = Math.max(0, round2(Number(process.env.REFERRAL_REWARD_BALANCE || 2)));
 
-    if (referralCode && referrerUserId && buyerUserId !== referrerUserId) {
-      const profile = await ReferralProfile.findOne({ code: referralCode, userId: referrerUserId, active: true }).lean();
-      if (profile) {
-        const setting = await Settings.findOne({ key: 'referral_discount_percent' }).lean();
-        const discountPercentRaw = Number(setting?.value || process.env.REFERRAL_DISCOUNT_PERCENT || 5);
-        const discountPercent = Math.max(0, Math.min(100, round2(discountPercentRaw)));
-        const rewardAmount = Math.max(0, round2(Number(process.env.REFERRAL_REWARD_BALANCE || 2)));
+          let discountAmount = round2((runningTotal * discountPercent) / 100);
+          discountAmount = Math.min(discountAmount, runningTotal);
 
-        let discountAmount = round2((runningTotal * discountPercent) / 100);
-        discountAmount = Math.min(discountAmount, runningTotal);
+          if (discountAmount > 0) {
+            runningTotal = round2(runningTotal - discountAmount);
+          }
 
-        if (discountAmount > 0) {
-          runningTotal = round2(runningTotal - discountAmount);
+          referral = {
+            code: String((profile as any).code || referralCode),
+            referrerUserId,
+            discountPercent,
+            discountAmount,
+            rewardAmount,
+          };
         }
+      }
+    }
+  }
 
-        referral = {
-          code: String((profile as any).code || referralCode),
-          referrerUserId,
-          discountPercent,
+  if (buyerUserId) {
+    const requestedPoints = Math.max(0, Math.floor(Number(params.loyaltyPointsToRedeem || 0)));
+    if (requestedPoints > 0) {
+      const buyer = await User.findById(buyerUserId, { _id: 1, loyaltyPoints: 1 }).lean();
+      const availablePoints = Math.max(0, Math.floor(Number((buyer as any)?.loyaltyPoints || 0)));
+      const cappedByTotal = Math.floor(runningTotal * getLoyaltyRedemptionRate());
+      const pointsUsed = Math.max(0, Math.min(requestedPoints, availablePoints, cappedByTotal));
+      const discountAmount = Math.min(round2(runningTotal), calculateLoyaltyDiscount(pointsUsed));
+
+      if (pointsUsed > 0 && discountAmount > 0) {
+        runningTotal = round2(runningTotal - discountAmount);
+        loyalty = {
+          pointsUsed,
           discountAmount,
-          rewardAmount,
+          availablePoints,
+          pointsPerCurrencyUnit: getLoyaltyRedemptionRate(),
+        };
+      } else {
+        loyalty = {
+          pointsUsed: 0,
+          discountAmount: 0,
+          availablePoints,
+          pointsPerCurrencyUnit: getLoyaltyRedemptionRate(),
         };
       }
     }
@@ -232,5 +268,11 @@ export async function buildPricingFromItems(params: {
     totalPrice: round2(Math.max(0, runningTotal)),
     coupon,
     referral,
+    loyalty,
+    loyaltyEarned: buyerUserId ? getLoyaltyEarningPreview(round2(Math.max(0, runningTotal))) : {
+      points: 0,
+      basedOnTotal: round2(Math.max(0, runningTotal)),
+      pointsPerCurrencyUnit: getLoyaltyEarningRate(),
+    },
   };
 }

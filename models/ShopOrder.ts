@@ -69,6 +69,9 @@ export interface IShopOrder {
 
   loyaltyPointsAwarded?: number;
   loyaltyAppliedAt?: Date;
+  loyaltyPointsUsed?: number;
+  loyaltyDiscountAmount?: number;
+  loyaltyRedeemedAt?: Date;
 
   subtotalPrice?: number;
   ip?: string;
@@ -139,6 +142,9 @@ const ShopOrderSchema = new Schema<IShopOrder>(
 
     loyaltyPointsAwarded: { type: Number, default: 0 },
     loyaltyAppliedAt: { type: Date },
+    loyaltyPointsUsed: { type: Number, default: 0 },
+    loyaltyDiscountAmount: { type: Number, default: 0 },
+    loyaltyRedeemedAt: { type: Date },
 
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },

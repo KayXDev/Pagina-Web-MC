@@ -10,6 +10,7 @@ const checkoutSchema = z.object({
   minecraftUsername: z.string().default(''),
   productId: z.string().min(1).optional(),
   couponCode: z.string().max(40).optional(),
+  loyaltyPointsToRedeem: z.number().int().min(0).optional(),
   gift: z
     .object({
       recipientUsername: z.string().max(40).optional(),
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
         rawItems,
         couponCode: parsed.data.couponCode,
         buyerUserId: user?.id || '',
+        loyaltyPointsToRedeem: parsed.data.loyaltyPointsToRedeem || 0,
       });
     } catch (err: any) {
       const msg = String(err?.message || 'Error');
@@ -108,6 +110,8 @@ export async function POST(request: Request) {
       referralDiscountPercent: pricing.referral?.discountPercent || 0,
       referralDiscountAmount: pricing.referral?.discountAmount || 0,
       referralRewardAmount: pricing.referral?.rewardAmount || 0,
+      loyaltyPointsUsed: pricing.loyalty?.pointsUsed || 0,
+      loyaltyDiscountAmount: pricing.loyalty?.discountAmount || 0,
       currency: process.env.SHOP_CURRENCY || 'EUR',
       status: 'PENDING',
       provider: 'MANUAL',
@@ -135,6 +139,12 @@ export async function POST(request: Request) {
         ? {
             code: (order as any).referralCode,
             discountAmount: (order as any).referralDiscountAmount || 0,
+          }
+        : null,
+      loyalty: Number((order as any).loyaltyPointsUsed || 0) > 0
+        ? {
+            pointsUsed: Number((order as any).loyaltyPointsUsed || 0),
+            discountAmount: Number((order as any).loyaltyDiscountAmount || 0),
           }
         : null,
       totalPrice: (order as any).totalPrice || 0,

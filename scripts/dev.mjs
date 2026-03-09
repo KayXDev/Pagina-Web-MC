@@ -5,7 +5,15 @@ import { createRequire } from 'module';
 import { runLicenseStartupCheck } from './license-check.mjs';
 
 const require = createRequire(import.meta.url);
-const licenseCheck = await runLicenseStartupCheck();
+let licenseCheck = {
+  ok: true,
+  state: 'checking',
+  title: 'Checking license',
+  message: 'License check running in background.',
+  product: process.env.KAYX_PRODUCT_ID || process.env.DRAKO_PRODUCT_ID || 'minecraft-server-web',
+  hwid: process.env.KAYX_HWID || process.env.DRAKO_HWID || os.hostname() || 'unknown-host',
+  url: process.env.KAYX_LICENSE_URL || process.env.DRAKO_LICENSE_URL || '',
+};
 
 const host = process.env.NEXT_DEV_HOST || '127.0.0.1';
 const port = Number.parseInt(process.env.NEXT_DEV_PORT || '3000', 10);
@@ -85,7 +93,9 @@ function banner({ readyLabel, license } = {}) {
 
   if (license) {
     lines.push(color('────────────────────────────────', ansi.gray));
-    if (license.ok) {
+    if (license.state === 'checking') {
+      lines.push(`${color('License: ', ansi.gray)} ${color('CHECKING', ansi.yellow)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
+    } else if (license.ok) {
       lines.push(`${color('License: ', ansi.gray)} ${color('VALID', ansi.green)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
       lines.push(`${color('Discord: ', ansi.gray)} ${color(String(license.discordId || 'unknown'), ansi.cyan)}`);
       lines.push(`${color('HWID:    ', ansi.gray)} ${color(String(license.hwid || 'unknown'), ansi.dim)}`);
@@ -162,10 +172,6 @@ if (isTTY) {
   process.stdout.write(banner({ license: licenseCheck }).text);
 }
 
-if (!licenseCheck.ok) {
-  process.exit(1);
-}
-
 const nextBin = require.resolve('next/dist/bin/next');
 const child = spawn(process.execPath, [nextBin, 'dev', '-H', host, '-p', String(port)], {
   stdio: ['inherit', 'pipe', 'pipe'],
@@ -173,6 +179,37 @@ const child = spawn(process.execPath, [nextBin, 'dev', '-H', host, '-p', String(
 });
 
 let seenReady = false;
+
+void runLicenseStartupCheck().then((result) => {
+  licenseCheck = result;
+
+  if (!seenReady) {
+    if (isTTY) {
+      drawBoxInPlace(banner({ license: licenseCheck }));
+    } else {
+      process.stdout.write(banner({ license: licenseCheck }).text);
+    }
+  }
+
+  if (!result.ok) {
+    process.stderr.write(`\n${color(result.title || 'License Authentication failed', ansi.red)}\n`);
+    process.stderr.write(`${color(result.detail || result.message || 'License validation failed', ansi.yellow)}\n`);
+    try {
+      child.kill('SIGTERM');
+    } catch {
+      // ignore
+    }
+    setTimeout(() => process.exit(1), 50);
+  }
+}).catch((error) => {
+  process.stderr.write(`${color(error instanceof Error ? error.message : 'License check failed', ansi.red)}\n`);
+  try {
+    child.kill('SIGTERM');
+  } catch {
+    // ignore
+  }
+  setTimeout(() => process.exit(1), 50);
+});
 
 function pipeStream(stream, write) {
   let buffer = '';

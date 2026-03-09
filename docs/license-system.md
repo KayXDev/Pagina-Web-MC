@@ -2,11 +2,11 @@
 	<img src="../public/icon.png" alt="999Wrld Network" width="88" height="88" />
 </p>
 
-<h1 align="center">KayX License System</h1>
+<h1 align="center">License System</h1>
 
 <p align="center">
-	Important setup and behavior notes for the mandatory license protection used by this project.
-	Only the parts that actually matter day to day.
+	Updated guide for the current license model used by this project.
+	This version reflects the embedded validation defaults and the admin-only monitoring panel.
 </p>
 
 <p align="center">
@@ -19,95 +19,95 @@
 	<a href="../CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
-<p align="center">
-	<img alt="License required" src="https://img.shields.io/badge/License-Required-dc2626" />
-	<img alt="Runtime protection" src="https://img.shields.io/badge/Protection-Startup%20%2B%20Runtime-7c3aed" />
-	<img alt="Support" src="https://img.shields.io/badge/Support-Discord-5865F2" />
-</p>
+---
+
+## What changed
+
+The license flow is now simpler for the installer and stricter for the project owner:
+
+- only `KAYX_LICENSE_KEY` and `KAYX_PRODUCT_ID` are required in `.env`
+- the validation URL and internal token are embedded in code
+- the project license monitor is available only in the admin panel
+- the profile-facing license panel is no longer part of the user area
+
+The embedded defaults live in [lib/license-defaults.mjs](../lib/license-defaults.mjs).
 
 ---
 
-## 🧭 Table of Contents
+## Required env values
 
-- [🚨 What it does](#-what-it-does)
-- [🔧 Required variables](#-required-variables)
-- [⚙️ How validation works](#️-how-validation-works)
-- [💻 Local setup](#-local-setup)
-- [🌍 Production notes](#-production-notes)
-- [🛡️ Common failure cases](#️-common-failure-cases)
-- [🧪 Useful debug endpoint](#-useful-debug-endpoint)
-
----
-
-## 🚨 What it does
-
-This project uses a **mandatory KayX license check** in two places:
-
-1. **Startup validation**
-2. **Runtime validation**
-
-Practical result:
-
-- `npm run dev` will not finish booting without a valid license
-- `npm start` will not start the production server without a valid license
-- middleware blocks normal runtime access when validation fails
-- invalid requests are redirected to `/licencia`
-- protected API routes return `403`
-
----
-
-## 🔧 Required variables
-
-At minimum, configure these in `.env`:
+Minimum `.env` setup:
 
 ```env
 KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
 KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
-KAYX_API_TOKEN=YOUR_API_KEY
 ```
 
-Optional hardening / behavior variables:
+You do not need to expose these in `.env` anymore:
 
-```env
-KAYX_SHARED_SECRET=
+- license validation URL
+- license API token
+- shared secret
+- fail-open flag
+- license cache TTL
+
+Those values are kept internal so buyers cannot repoint validation to another endpoint.
+
+---
+
+## Embedded defaults
+
+The project currently reads these fixed values from [lib/license-defaults.mjs](../lib/license-defaults.mjs):
+
+```js
+LICENSE_VALIDATION_URL=http://999wrld.vps.boxtoplay.com/api/client
+LICENSE_API_TOKEN=999wrld.vps.boxtoplay.com
+LICENSE_SHARED_SECRET=''
 LICENSE_FAIL_OPEN=false
 LICENSE_CACHE_TTL_MS=300000
 ```
 
-### What each one means
-
-- `KAYX_LICENSE_KEY`: your buyer/license key
-- `KAYX_PRODUCT_ID`: must exactly match the configured product in the license panel
-- `KAYX_LICENSE_API_URL`: the REST endpoint this app calls to validate the license
-- `KAYX_API_TOKEN`: API token used in the validation request
-- `KAYX_SHARED_SECRET`: optional extra secret if your setup expects one
+If you change the real license server path or token, update that file and redeploy.
 
 ---
 
-## ⚙️ How validation works
+## How it works
 
-### Startup
+### Startup check
 
-- `npm run dev` uses a startup check before Next.js is considered ready
-- `npm start` runs through `scripts/start.mjs`
-- invalid config, integrity failures, or invalid license responses stop startup immediately
+- `npm run dev` runs a license startup validation before Next.js is considered ready
+- `npm start` does the same through the production startup script
+- if validation fails, startup stops immediately
 
-### Runtime
+### Runtime check
 
-- middleware validates requests while the app is running
-- bypass paths such as the license page and status endpoint remain available
-- if runtime validation fails, users are sent to `/licencia`
+- the app validates the license during runtime too
+- failed validation sends users to `/licencia`
+- protected API access is blocked when the runtime check fails
 
-This means the license API must be reachable from the environment where the app runs.
+### Admin monitor
+
+Admins can inspect the current status in:
+
+- `/admin/licencia`
+
+That panel is intended for project operators, not end users. It shows:
+
+- current validation status
+- last successful or failed check
+- expiration date if returned by the license server
+- remaining time if expiration is present
+- reason and raw validator message
+
+The status endpoint used by that panel is now admin-only.
 
 ---
 
-## 💻 Local setup
+## Local setup
 
 1. Copy `.env.example` to `.env`
-2. Fill the required `KAYX_*` values
-3. Make sure the license API is reachable from your machine
+2. Fill `KAYX_LICENSE_KEY`
+3. Fill `KAYX_PRODUCT_ID`
 4. Run:
 
 ```bash
@@ -116,66 +116,70 @@ npm run init-db
 npm run dev
 ```
 
-If the license is valid, the app starts normally.
-If not, startup stops and the terminal shows the reason.
+If startup stops, the terminal banner will show the reason.
 
 ---
 
-## 🌍 Production notes
+## Production notes
 
 When deploying:
 
-- do not use `localhost` unless the license service is actually running in the same environment
-- ensure the license endpoint is publicly reachable from the deployment
-- set all required `KAYX_*` variables in the host dashboard
-- redeploy after any env change
+- set `KAYX_LICENSE_KEY` in the host environment
+- set `KAYX_PRODUCT_ID` in the host environment
+- make sure the embedded license endpoint is reachable from the deployment
+- redeploy after any change to env or license defaults
 
-Recommended pattern:
-
-- app on **Vercel** or a VPS
-- license API on a reachable VPS/domain
-- HTTPS enabled for the license endpoint
+If the fixed endpoint changes, update [lib/license-defaults.mjs](../lib/license-defaults.mjs) before deploying.
 
 ---
 
-## 🛡️ Common failure cases
+## Common failure cases
 
-### App will not start
+### App does not boot
 
 Usually one of these:
 
-- missing `KAYX_*` configuration
-- wrong API token
-- wrong product ID
-- unreachable license API
-- invalid or expired license
-- license integrity files were removed or altered
+- `KAYX_LICENSE_KEY` is missing
+- `KAYX_PRODUCT_ID` is missing or wrong
+- the embedded endpoint is unreachable
+- the license key is invalid or expired
+- license integrity files were altered or removed
 
-### App starts but redirects to `/licencia`
+### `/licencia` appears during runtime
 
-Startup passed, but runtime validation is failing in middleware.
+Startup passed, but runtime validation failed later.
 
-### Works locally but fails in production
+Check:
 
-Usually one of these:
+- current env values
+- connectivity to the embedded license endpoint
+- the admin monitor at `/admin/licencia`
 
-- `KAYX_LICENSE_API_URL` still points to `localhost`
-- the license service is not exposed publicly
-- firewall or reverse proxy rules block access
-- production env variables are incomplete
+### Admin panel shows invalid or expired
 
----
+Go to `/admin/licencia` and review:
 
-## 🧪 Useful debug endpoint
+- expiration date
+- remaining time
+- reason
+- validator message
 
-Use:
-
-- `/api/license/status`
-
-That endpoint helps confirm the current runtime validation result and is the first place to check before changing code.
+That page is now the canonical operational view for license health.
 
 ---
 
-> [!TIP]
-> Keep it simple: if startup stops, read the license error first.
-> Most license problems are configuration or connectivity issues, not application bugs.
+## Related files
+
+- [lib/license.ts](../lib/license.ts)
+- [scripts/license-check.mjs](../scripts/license-check.mjs)
+- [lib/license-defaults.mjs](../lib/license-defaults.mjs)
+- [app/admin/licencia/page.tsx](../app/admin/licencia/page.tsx)
+- [app/licencia/page.tsx](../app/licencia/page.tsx)
+
+---
+
+## Rule of thumb
+
+If a buyer or admin can modify the validation endpoint from `.env`, the protection bar is too low.
+
+This project now keeps that part internal on purpose.

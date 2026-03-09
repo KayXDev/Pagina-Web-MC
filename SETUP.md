@@ -92,8 +92,6 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=
 KAYX_LICENSE_KEY=
 KAYX_PRODUCT_ID=minecraft-server-web
-KAYX_LICENSE_API_URL=
-KAYX_API_TOKEN=
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me
 ```
@@ -133,18 +131,11 @@ The full reference lives in `.env.example`. These are the ones you will use firs
 | `ADMIN_PASSWORD` | ✅ | Initial seeded admin password |
 | `KAYX_LICENSE_KEY` | ✅ | Buyer license key |
 | `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID from the license panel |
-| `KAYX_LICENSE_API_URL` | ✅ | REST endpoint used for validation |
-| `KAYX_API_TOKEN` | ✅ | API token used in license requests |
 | `SITE_NAME` | Recommended | Brand name across SEO and emails |
 | `SITE_URL` | Recommended | Final site URL for SEO, links and emails |
 
-### License-related optional variables
-
-| Variable | Purpose |
-|---|---|
-| `KAYX_SHARED_SECRET` | Extra shared secret if your license API expects one |
-| `LICENSE_FAIL_OPEN` | Let runtime continue temporarily if the license API is down |
-| `LICENSE_CACHE_TTL_MS` | Cache duration for runtime validation |
+Internal fixed license settings live in [lib/license-defaults.mjs](lib/license-defaults.mjs).
+The operational license monitor is available at `/admin/licencia` for admins.
 
 ---
 

@@ -1,4 +1,11 @@
 import { EXPECTED_LICENSE_RUNTIME_SEAL, LICENSE_RUNTIME_SEAL } from '@/lib/license-seal';
+import {
+  LICENSE_API_TOKEN,
+  LICENSE_CACHE_TTL_MS,
+  LICENSE_FAIL_OPEN,
+  LICENSE_SHARED_SECRET,
+  LICENSE_VALIDATION_URL,
+} from '@/lib/license-defaults.mjs';
 
 export type LicenseValidationStatus = 'disabled' | 'valid' | 'invalid' | 'unconfigured' | 'error';
 
@@ -37,7 +44,7 @@ let licenseCache:
     }
   | null = null;
 
-const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
+const DEFAULT_CACHE_TTL_MS = LICENSE_CACHE_TTL_MS;
 const MIN_CACHE_TTL_MS = 5 * 1000;
 const REQUEST_TIMEOUT_MS = 8 * 1000;
 
@@ -73,28 +80,15 @@ function isLegacyDrakoClientEndpoint(url: string) {
 }
 
 function getLicenseConfig(): LicenseConfig {
-  const cacheTtlCandidate = Number(process.env.LICENSE_CACHE_TTL_MS || DEFAULT_CACHE_TTL_MS);
+  const cacheTtlCandidate = Number(LICENSE_CACHE_TTL_MS || DEFAULT_CACHE_TTL_MS);
 
   return {
-    validationUrl: firstNonEmpty(
-      process.env.KAYX_LICENSE_API_URL,
-      process.env.KAYX_API_URL,
-      process.env.DRAKO_LICENSE_API_URL,
-      process.env.DRAKO_API_URL,
-      process.env.LICENSE_VALIDATION_URL,
-      process.env.LICENSE_API_URL
-    ),
+    validationUrl: LICENSE_VALIDATION_URL,
     licenseKey: firstNonEmpty(process.env.KAYX_LICENSE_KEY, process.env.DRAKO_LICENSE_KEY, process.env.LICENSE_KEY),
     productId: firstNonEmpty(process.env.KAYX_PRODUCT_ID, process.env.DRAKO_PRODUCT_ID, process.env.LICENSE_PRODUCT_ID, 'minecraft-server-web'),
-    apiToken: firstNonEmpty(
-      process.env.KAYX_API_TOKEN,
-      process.env.KAYX_AUTH_TOKEN,
-      process.env.DRAKO_API_TOKEN,
-      process.env.DRAKO_AUTH_TOKEN,
-      process.env.LICENSE_API_TOKEN
-    ),
-    sharedSecret: firstNonEmpty(process.env.KAYX_SHARED_SECRET, process.env.DRAKO_SHARED_SECRET, process.env.LICENSE_SHARED_SECRET),
-    failOpen: readBool(process.env.LICENSE_FAIL_OPEN, false),
+    apiToken: LICENSE_API_TOKEN,
+    sharedSecret: LICENSE_SHARED_SECRET,
+    failOpen: LICENSE_FAIL_OPEN,
     cacheTtlMs:
       Number.isFinite(cacheTtlCandidate) && cacheTtlCandidate >= MIN_CACHE_TTL_MS
         ? cacheTtlCandidate
@@ -159,6 +153,140 @@ function getReasonFromPayload(data: Record<string, unknown> | null, fallback: st
   const candidate = nestedData || nestedLicense || data;
 
   return String(candidate.reason || candidate.status || candidate.result || data.status_overview || fallback);
+}
+
+function normalizeDateLike(value: unknown): string | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const normalized = value > 1_000_000_000_000 ? value : value * 1000;
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (/^\d+$/.test(trimmed)) {
+      return normalizeDateLike(Number(trimmed));
+    }
+
+    const date = new Date(trimmed);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  return null;
+}
+
+function collectCandidateRecords(root: Record<string, unknown> | null, depth = 0, seen = new Set<Record<string, unknown>>()) {
+  if (!root || depth > 4 || seen.has(root)) return [] as Record<string, unknown>[];
+  seen.add(root);
+
+  const records = [root];
+  for (const value of Object.values(root)) {
+    const nested = toRecord(value);
+    if (nested) records.push(...collectCandidateRecords(nested, depth + 1, seen));
+  }
+
+  return records;
+}
+
+function extractFirstString(data: Record<string, unknown> | null, keys: string[]) {
+  const candidates = collectCandidateRecords(data);
+
+  for (const record of candidates) {
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) return value.trim();
+      if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+    }
+  }
+
+  return null;
+}
+
+function extractFirstDate(data: Record<string, unknown> | null, keys: string[]) {
+  const candidates = collectCandidateRecords(data);
+
+  for (const record of candidates) {
+    for (const key of keys) {
+      const normalized = normalizeDateLike(record[key]);
+      if (normalized) return normalized;
+    }
+  }
+
+  for (const record of candidates) {
+    for (const [key, value] of Object.entries(record)) {
+      const normalizedKey = key.toLowerCase();
+      if (!keys.some((candidate) => normalizedKey.includes(candidate.toLowerCase()))) continue;
+      const normalized = normalizeDateLike(value);
+      if (normalized) return normalized;
+    }
+  }
+
+  return null;
+}
+
+function maskLicenseValue(value: string) {
+  const normalized = String(value || '').trim();
+  if (!normalized) return null;
+  if (normalized.length <= 8) return normalized;
+  return `${normalized.slice(0, 4)}...${normalized.slice(-4)}`;
+}
+
+function getExtractedLicenseInfo(
+  data: Record<string, unknown> | null,
+  config: LicenseConfig,
+  options: LicenseValidationOptions,
+  checkedAt?: number
+) {
+  const host = getHostWithoutPort(options.host || options.origin) || null;
+  const expiresAt = extractFirstDate(data, [
+    'expiresAt',
+    'expires_at',
+    'expiryAt',
+    'expiry_at',
+    'expirationAt',
+    'expiration_at',
+    'expiryDate',
+    'expiry_date',
+    'expirationDate',
+    'expiration_date',
+    'expires',
+    'expiry',
+    'expiration',
+    'endDate',
+    'end_date',
+    'renewalDate',
+    'renewal_date',
+    'validUntil',
+    'valid_until',
+  ]);
+
+  return {
+    licenseId:
+      extractFirstString(data, ['licenseId', 'license_id', 'id', 'keyId', 'key_id']) ||
+      maskLicenseValue(config.licenseKey),
+    productId:
+      extractFirstString(data, ['productId', 'product_id', 'product', 'productName', 'product_name']) ||
+      config.productId ||
+      null,
+    domain:
+      extractFirstString(data, ['domain', 'host', 'site', 'url']) ||
+      host,
+    issuedAt:
+      extractFirstDate(data, ['issuedAt', 'issued_at', 'createdAt', 'created_at', 'startDate', 'start_date']) ||
+      null,
+    expiresAt,
+    expirySource: expiresAt ? 'validator' : null,
+    validationUrl: config.validationUrl || null,
+    checkedHost: host,
+    checkedOrigin: options.origin || null,
+    checkedAt: checkedAt ? new Date(checkedAt).toISOString() : null,
+  };
 }
 
 async function parseResponsePayload(response: Response) {
@@ -266,7 +394,7 @@ export async function validateLicense(options: LicenseValidationOptions = {}): P
   if (!config.validationUrl) {
     return buildFailureResult(
       'unconfigured',
-      'Missing LICENSE_VALIDATION_URL. Configure your licensing server endpoint.',
+      'Missing embedded license validation URL.',
       'missing-validation-url'
     );
   }
@@ -278,7 +406,7 @@ export async function validateLicense(options: LicenseValidationOptions = {}): P
   if (!config.apiToken) {
     return buildFailureResult(
       'unconfigured',
-      'Missing KAYX_API_TOKEN/DRAKO_API_TOKEN. Configure the REST API key from WebServerSettings.ApiKey or an API key with auth permission.',
+      'Missing embedded license API token.',
       'missing-api-token'
     );
   }
@@ -300,29 +428,34 @@ export async function validateLicense(options: LicenseValidationOptions = {}): P
     clearTimeout(timeoutId);
 
     if (response.ok && data && isTruthyResult(data)) {
+      const checkedAt = Date.now();
+      const extractedLicenseInfo = getExtractedLicenseInfo(data, config, options, checkedAt);
       const result: LicenseValidationResult = {
         ok: true,
         status: 'valid',
         message: getMessageFromPayload(data, 'License validated successfully.'),
         reason: getReasonFromPayload(data, 'valid'),
-        checkedAt: Date.now(),
-        expiresAt:
-          typeof data.expiresAt === 'string'
-            ? data.expiresAt
-            : typeof toRecord(data.data)?.expiresAt === 'string'
-              ? (toRecord(data.data)?.expiresAt as string)
-              : null,
-        meta: data,
+        checkedAt,
+        expiresAt: extractedLicenseInfo.expiresAt,
+        meta: {
+          ...data,
+          extractedLicenseInfo,
+        },
       };
       licenseCache = { cacheKey, value: result, ts: Date.now() };
       return result;
     }
 
+    const extractedLicenseInfo = getExtractedLicenseInfo(data, config, options, Date.now());
     const failure = buildFailureResult(
       'invalid',
       getMessageFromPayload(data, 'License validation failed.'),
       getReasonFromPayload(data, `http-${response.status}`),
-      data || { httpStatus: response.status }
+      {
+        ...(data || {}),
+        httpStatus: response.status,
+        extractedLicenseInfo,
+      }
     );
 
     licenseCache = { cacheKey, value: failure, ts: Date.now() };
@@ -331,14 +464,16 @@ export async function validateLicense(options: LicenseValidationOptions = {}): P
     clearTimeout(timeoutId);
 
     if (config.failOpen) {
+      const checkedAt = Date.now();
       const result: LicenseValidationResult = {
         ok: true,
         status: 'valid',
         message: 'License server unavailable; continuing because LICENSE_FAIL_OPEN=true.',
         reason: 'fail-open',
-        checkedAt: Date.now(),
+        checkedAt,
         meta: {
           error: error instanceof Error ? error.message : 'unknown-error',
+          extractedLicenseInfo: getExtractedLicenseInfo(null, config, options, checkedAt),
         },
       };
       licenseCache = { cacheKey, value: result, ts: Date.now() };

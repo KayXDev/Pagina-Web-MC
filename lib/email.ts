@@ -97,3 +97,38 @@ export async function sendEmailVerificationCodeEmail(params: { to: string; code:
 
   await sendMail({ to: params.to, subject, text, html });
 }
+
+export async function sendGiftReceivedEmail(params: {
+  to: string;
+  recipientUsername: string;
+  senderUsername: string;
+  itemsLabel: string;
+  giftMessage?: string;
+}) {
+  const siteName = String(process.env.SITE_NAME || '999Wrld Network').trim();
+  const subject = `${siteName} • Has recibido un regalo`;
+  const text = [
+    `Hola ${params.recipientUsername},`,
+    '',
+    `${params.senderUsername} te ha enviado un regalo en ${siteName}.`,
+    `Contenido: ${params.itemsLabel}`,
+    params.giftMessage ? `Mensaje: ${params.giftMessage}` : '',
+    '',
+    'Puedes entrar al panel para revisar tu actividad.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const html = `
+  <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5; color: #111827;">
+    <h2 style="margin: 0 0 12px 0;">Has recibido un regalo</h2>
+    <p style="margin: 0 0 12px 0;">Hola <b>${params.recipientUsername}</b>,</p>
+    <p style="margin: 0 0 12px 0;"><b>${params.senderUsername}</b> te ha enviado un regalo en <b>${siteName}</b>.</p>
+    <p style="margin: 0 0 12px 0;"><b>Contenido:</b> ${params.itemsLabel}</p>
+    ${params.giftMessage ? `<p style="margin: 0 0 12px 0;"><b>Mensaje:</b> ${params.giftMessage}</p>` : ''}
+    <p style="margin: 0; color:#6b7280;">Puedes entrar al panel para revisar tu actividad.</p>
+  </div>
+  `;
+
+  await sendMail({ to: params.to, subject, text, html });
+}

@@ -25,6 +25,17 @@ type ReferralWebhookInput = {
   isTest?: boolean;
 };
 
+type GiftWebhookInput = {
+  webhookUrl: string;
+  siteName: string;
+  siteUrl?: string;
+  orderId: string;
+  recipientLabel: string;
+  senderLabel: string;
+  giftMessage?: string;
+  itemsLabel: string;
+};
+
 function isDiscordWebhookUrl(url: string) {
   return /^https:\/\/(?:discord\.com|discordapp\.com)\/api\/webhooks\//.test(url);
 }
@@ -136,6 +147,38 @@ export async function sendReferralRewardWebhook(input: ReferralWebhookInput) {
             inline: false,
           },
         ],
+      },
+    ],
+  });
+}
+
+export async function sendGiftReceivedWebhook(input: GiftWebhookInput) {
+  const profileUrl = input.siteUrl ? `${String(input.siteUrl).replace(/\/$/, '')}/perfil` : '';
+
+  const description = [
+    '**A gifted purchase has been delivered successfully.**',
+    '',
+    `> **Order ID:** \`${String(input.orderId || '-')}\``,
+    `> **Recipient:** ${String(input.recipientLabel || '-')}`,
+    `> **Sender:** ${String(input.senderLabel || '-')}`,
+    `> **Items:** ${String(input.itemsLabel || '-')}`,
+    input.giftMessage ? `> **Message:** ${String(input.giftMessage)}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+    .slice(0, 4096);
+
+  await sendDiscordWebhook(input.webhookUrl, {
+    username: `${input.siteName} Gifts`,
+    allowed_mentions: { parse: [] },
+    embeds: [
+      {
+        title: 'Gift Delivered',
+        url: profileUrl || undefined,
+        color: 0xf59e0b,
+        description,
+        timestamp: new Date().toISOString(),
+        footer: { text: `${input.siteName} | Gifts` },
       },
     ],
   });

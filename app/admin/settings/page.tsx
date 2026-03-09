@@ -17,6 +17,7 @@ export default function AdminMaintenancePage() {
     maintenance_message: 'Estamos en mantenimiento. Vuelve más tarde.',
     maintenance_paths: '',
     maintenance_discord_webhook: '',
+    shop_gift_discord_webhook: '',
   });
 
   const MAINTENANCE_ROUTE_OPTIONS: Array<{ path: string; labelKey: string }> = [
@@ -344,6 +345,23 @@ export default function AdminMaintenancePage() {
             placeholder="https://discord.com/api/webhooks/..."
           />
           <p className="text-xs text-gray-500 mt-2">{t(lang, 'admin.settings.webhookHint')}</p>
+        </Card>
+
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="text-gray-900 dark:text-white font-semibold mb-2">
+            {lang === 'es' ? 'Webhook Discord de regalos' : 'Gift Discord webhook'}
+          </div>
+          <Input
+            type="text"
+            value={settings.shop_gift_discord_webhook}
+            onChange={(e) => setSettings({ ...settings, shop_gift_discord_webhook: e.target.value })}
+            placeholder="https://discord.com/api/webhooks/..."
+          />
+          <p className="text-xs text-gray-500 mt-2">
+            {lang === 'es'
+              ? 'Recibe una notificación en Discord cuando un regalo se entregue al destinatario.'
+              : 'Receive a Discord notification when a gift is delivered to its recipient.'}
+          </p>
         </Card>
 
         <Button type="submit" className="w-full" size="lg" disabled={saving}>

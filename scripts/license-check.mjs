@@ -5,7 +5,11 @@ import path from 'path';
 import process from 'process';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { EXPECTED_LICENSE_RUNTIME_SEAL, LICENSE_RUNTIME_SEAL, REQUIRED_LICENSE_FILES } from '../lib/license-seal.js';
+import {
+  LICENSE_API_TOKEN,
+  LICENSE_VALIDATION_URL,
+} from '../lib/license-defaults.mjs';
+import { EXPECTED_LICENSE_RUNTIME_SEAL, LICENSE_RUNTIME_SEAL, REQUIRED_LICENSE_FILES } from '../lib/license-seal.mjs';
 
 dotenv.config();
 
@@ -47,10 +51,10 @@ function prettifyLicenseStatus(status) {
 }
 
 export async function runLicenseStartupCheck() {
-  const url = String(process.env.KAYX_LICENSE_API_URL || process.env.DRAKO_LICENSE_API_URL || '').trim();
+  const url = String(LICENSE_VALIDATION_URL || '').trim();
   const licensekey = String(process.env.KAYX_LICENSE_KEY || process.env.DRAKO_LICENSE_KEY || '').trim();
   const product = String(process.env.KAYX_PRODUCT_ID || process.env.DRAKO_PRODUCT_ID || '').trim();
-  const apiKey = String(process.env.KAYX_API_TOKEN || process.env.DRAKO_API_TOKEN || '').trim();
+  const apiKey = String(LICENSE_API_TOKEN || '').trim();
   const hwid = String(process.env.KAYX_HWID || process.env.DRAKO_HWID || os.hostname() || 'unknown-host').trim();
 
   if (LICENSE_RUNTIME_SEAL !== EXPECTED_LICENSE_RUNTIME_SEAL) {
@@ -84,7 +88,7 @@ export async function runLicenseStartupCheck() {
       ok: false,
       state: 'error',
       title: 'License Authentication failed',
-      message: 'Missing KayX license configuration in .env',
+      message: 'Missing required KayX license configuration in .env',
       product,
       hwid,
       url,

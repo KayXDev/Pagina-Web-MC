@@ -32,6 +32,8 @@ export async function GET() {
       postsDrafts,
       forumPosts,
       applicationsNew,
+      ticketsSlaBreached,
+      ticketsAwaitingFirstReply,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ isBanned: true }),
@@ -47,6 +49,17 @@ export async function GET() {
       BlogPost.countDocuments({ isPublished: false }),
       ForumPost.countDocuments(),
       StaffApplication.countDocuments({ status: 'NEW' }),
+      Ticket.countDocuments({
+        status: { $in: ['OPEN', 'IN_PROGRESS'] },
+        $or: [
+          { firstStaffReplyAt: { $exists: false }, responseDueAt: { $lt: new Date() } },
+          { resolvedAt: { $exists: false }, resolutionDueAt: { $lt: new Date() } },
+        ],
+      }),
+      Ticket.countDocuments({
+        status: { $in: ['OPEN', 'IN_PROGRESS'] },
+        firstStaffReplyAt: { $exists: false },
+      }),
     ]);
 
     const [recentUsers, recentTickets, recentApplications, recentLogs, recentBlogPosts, recentForumPosts] =
@@ -56,7 +69,11 @@ export async function GET() {
           .limit(5)
           .select('-password')
           .lean(),
-        Ticket.find().sort({ createdAt: -1 }).limit(5).lean(),
+        Ticket.find()
+          .sort({ updatedAt: -1, createdAt: -1 })
+          .limit(8)
+          .select('subject username status priority assignedStaffName firstStaffReplyAt responseDueAt resolutionDueAt resolvedAt createdAt updatedAt')
+          .lean(),
         StaffApplication.find()
           .sort({ createdAt: -1 })
           .limit(5)
@@ -95,6 +112,8 @@ export async function GET() {
         postsDrafts,
         forumPosts,
         applicationsNew,
+        ticketsSlaBreached,
+        ticketsAwaitingFirstReply,
       },
       recentUsers,
       recentTickets,

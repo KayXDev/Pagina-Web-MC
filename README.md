@@ -71,9 +71,9 @@ Required variables:
 ```env
 KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
 KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
-KAYX_API_TOKEN=YOUR_API_KEY
 ```
+
+Internal fixed license settings live in [lib/license-defaults.mjs](lib/license-defaults.mjs).
 
 Full guide:
 
@@ -334,11 +334,11 @@ Full reference available in `.env.example`.
 |-----------|:--------:|----------|
 | `KAYX_LICENSE_KEY` | ✅ | Buyer license key generated in KayX / Drako |
 | `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID configured in the license panel |
-| `KAYX_LICENSE_API_URL` | ✅ | REST endpoint used to validate the license |
-| `KAYX_API_TOKEN` | ✅ | REST API token sent in the `Authorization` header |
 | `MONGODB_URI` | ✅ | MongoDB connection |
 | `NEXTAUTH_URL` | ✅ | Base URL (local: `http://localhost:3000`) |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth secret |
+
+Runtime license monitoring is available to admins at `/admin/licencia`.
 
 ### Optional
 
@@ -348,9 +348,6 @@ Full reference available in `.env.example`.
 | `ADMIN_PASSWORD` | Initial admin password (seed) |
 | `SITE_NAME` | Website name |
 | `SITE_URL` | Website URL |
-| `KAYX_SHARED_SECRET` | Extra shared secret if your license instance uses one |
-| `LICENSE_FAIL_OPEN` | Temporary fail-open behavior if the license API is down |
-| `LICENSE_CACHE_TTL_MS` | License validation cache duration in milliseconds |
 | `GOOGLE_SITE_VERIFICATION` | Google Search Console HTML tag content |
 | `BING_SITE_VERIFICATION` | Bing Webmaster Tools HTML tag content |
 | `MINECRAFT_SERVER_IP` | Server IP/host for status |

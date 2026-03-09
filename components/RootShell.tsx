@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FloatingThemeToggle from '@/components/FloatingThemeToggle';
 import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function RootShell({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
       </div>
       <NewsletterPopup />
       <Navbar />
+      <FloatingThemeToggle />
       <main className="flex-grow pt-16">{children}</main>
       <Footer />
     </div>

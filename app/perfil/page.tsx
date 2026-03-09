@@ -157,7 +157,9 @@ export default function PerfilPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-minecraft-grass">+{Number(event.points || 0)} pts</div>
+                      <div className={`text-sm font-bold ${Number(event.points || 0) >= 0 ? 'text-minecraft-grass' : 'text-minecraft-redstone'}`}>
+                        {Number(event.points || 0) > 0 ? '+' : ''}{Number(event.points || 0)} pts
+                      </div>
                       <div className="text-xs text-gray-500">{formatPrice(Number(event.amountSpent || 0))}</div>
                     </div>
                   </div>
@@ -167,31 +169,6 @@ export default function PerfilPage() {
           </div>
         </Card>
 
-        <Card
-          hover={false}
-          className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
-        >
-          <div className="text-gray-900 dark:text-white font-bold">{lang === 'es' ? 'Licencia del producto' : 'Product license'}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {lang === 'es'
-              ? 'Consulta el estado de validación, la fecha de comprobación y la respuesta del sistema de licencias.'
-              : 'Check validation status, verification time, and the current licensing response.'}
-          </div>
-
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              {lang === 'es'
-                ? 'El panel dedicado muestra el estado en tiempo real consumiendo la misma validación que protege la aplicación.'
-                : 'The dedicated panel shows real-time status using the same validation that protects the application.'}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Link href="/perfil/licencia">
-              <Button className="w-full justify-center">{lang === 'es' ? 'Abrir panel de licencia' : 'Open license panel'}</Button>
-            </Link>
-          </div>
-        </Card>
       </div>
     </div>
   );

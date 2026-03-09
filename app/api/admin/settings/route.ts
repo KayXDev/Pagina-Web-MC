@@ -89,6 +89,7 @@ export async function PATCH(request: Request) {
       'tickets_discord_webhook',
       'shop_coupon_discord_webhook',
       'shop_referral_discord_webhook',
+      'shop_gift_discord_webhook',
       'services_status_interval_minutes',
       'services_status_auto_enabled',
       'newsletter_auto_enabled',
