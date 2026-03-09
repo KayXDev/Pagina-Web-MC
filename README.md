@@ -75,12 +75,6 @@ KAYX_LICENSE_API_URL=http://YOUR_SERVER:3001/api/client
 KAYX_API_TOKEN=YOUR_API_KEY
 ```
 
-Quick rules:
-
-- `localhost` only works if the website and the license bot are on the same machine
-- on Vercel, use a public IP or domain for `KAYX_LICENSE_API_URL`
-- startup and runtime are both protected
-
 Full guide:
 
 - [Check **DOCS** right here](docs/license-system.md)
