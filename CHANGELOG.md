@@ -1,5 +1,26 @@
 # 📝 Changelog
 
+### 2026-03-09 ✅ 🆕 Latest
+
+### ✨ Added
+
+- 📘 **Release-ready documentation pass**:
+  - Added polished setup, troubleshooting, and license documentation aligned with the current project structure.
+  - Kept the main documentation flow connected across README, setup, troubleshooting, and release notes.
+
+### 🔧 Changed
+
+- 🧾 **Documentation presentation refreshed**:
+  - Restored the original README style and updated companion docs to match its visual tone.
+  - Simplified the license guide to focus on the parts that matter most during setup and deployment.
+- 📦 **Release version bump**:
+  - Project version is now `1.0.1`.
+
+### 🐛 Fixed
+
+- 🗂️ **Docs consistency issues**:
+  - Improved alignment between setup instructions, troubleshooting guidance, and the mandatory KayX license flow.
+
 ### 2026-03-08 ✅ 🆕 Latest
 
 ### ✨ Added
