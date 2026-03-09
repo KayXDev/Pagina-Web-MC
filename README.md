@@ -50,7 +50,7 @@
 - [🌍 Deploy](#-deploy)
 - [🧯 Troubleshooting](#-troubleshooting)
 - [🔒 Security](#-security)
-- [📝 Changelog](#-changelog)
+- [📝 Changelog](CHANGELOG.md)
 
 ---
 
