@@ -4,6 +4,42 @@
 
 ### ✨ Added
 
+- 🛡️ **Admin-only license monitoring panel**:
+  - Added a dedicated project license page at `/admin/licencia`.
+  - Added a protected admin API to inspect the live license status without exposing it to normal users.
+- 🎁 **Loyalty admin tooling**:
+  - Added a full loyalty management page at `/admin/loyalty`.
+  - Added admin API support to inspect balances, review recent loyalty activity, adjust totals, and send points manually.
+- 🧩 **Shared admin section banner system**:
+  - Added a reusable modern banner component for admin sections.
+  - Rolled route-aware banner metadata into the admin layout so sections can show consistent headers.
+
+### 🔧 Changed
+
+- 💎 **Navbar liquid-glass behavior refined**:
+  - The desktop active pill now reacts directly on click and morphs with a more directional liquid-glass motion.
+  - Highlight movement and pill deformation were tuned to feel less rigid during category changes.
+- 🛒 **Cart and checkout flow redesigned**:
+  - Rebuilt the cart layout into clearer product, perks, verification, and checkout blocks.
+  - Added loyalty redemption and loyalty earning preview into the pricing flow across preview and payment providers.
+- 🔐 **License flow centralized for operators**:
+  - Moved operational license review into the admin panel and removed the user-facing profile license panel.
+  - Updated public license messaging and docs to reflect embedded validation defaults and the new admin monitor.
+- 📊 **Admin operational views expanded**:
+  - Dashboard now highlights ticket SLA issues and links directly to the project license panel.
+  - Logs view was rebuilt into a more readable activity feed with filters and summary cards.
+
+### 🐛 Fixed
+
+- ⏳ **Real license expiry visibility**:
+  - License expiry and remaining time now read from the embedded Mongo-backed license metadata flow instead of relying only on validator payload fields.
+- 🧮 **Build validation issue in stored license lookup**:
+  - Fixed the typed collection access in the stored license metadata helper so the production build passes cleanly again.
+
+### 2026-03-09
+
+### ✨ Added
+
 - 📘 **Release-ready documentation pass**:
   - Added polished setup, troubleshooting, and license documentation aligned with the current project structure.
   - Kept the main documentation flow connected across README, setup, troubleshooting, and release notes.
