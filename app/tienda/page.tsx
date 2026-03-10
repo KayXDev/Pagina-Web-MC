@@ -429,7 +429,7 @@ export default function TiendaPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'shop.title')}
         description={t(lang, 'shop.headerDesc')}
@@ -438,12 +438,12 @@ export default function TiendaPage() {
 
       {/* Gate: Require Minecraft username before showing shop */}
       {!shopUnlocked ? (
-        <div className="max-w-3xl mx-auto">
+        <div className="mx-auto max-w-3xl">
           <Card
             hover={false}
-            className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl p-0 overflow-hidden"
+            className="overflow-hidden rounded-[30px] border border-gray-200 bg-white/80 p-0 dark:border-white/10 dark:bg-gray-950/25"
           >
-            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-gray-950/30">
+            <div className="border-b border-gray-200 bg-gray-50 px-5 py-5 dark:border-white/10 dark:bg-gray-950/30 sm:px-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-gray-900 dark:text-white text-xl font-semibold">{t(lang, 'shop.minecraftTitle')}</div>
@@ -458,12 +458,12 @@ export default function TiendaPage() {
               </div>
             </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-12 md:gap-5">
                 <div className="md:col-span-5">
-                  <div className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 p-4">
+                  <div className="rounded-[24px] border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 sm:h-20 sm:w-20">
                         {minecraftResolved?.uuid ? (
                           <div className="relative w-full h-full">
                             <Image
@@ -499,7 +499,7 @@ export default function TiendaPage() {
                 </div>
 
                 <div className="md:col-span-7">
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 p-4">
+                  <div className="rounded-[24px] border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-black/20">
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">{t(lang, 'shop.minecraftLabel')}</div>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex-1">
@@ -519,7 +519,7 @@ export default function TiendaPage() {
                         variant="secondary"
                         disabled={checkingMinecraft}
                         onClick={checkMinecraft}
-                        className="whitespace-nowrap"
+                        className="w-full whitespace-nowrap sm:w-auto"
                       >
                         {t(lang, 'shop.minecraftCheck')}
                       </Button>
@@ -533,13 +533,13 @@ export default function TiendaPage() {
       ) : (
         <>
           {/* Minecraft Account (summary) */}
-          <div className="max-w-5xl mx-auto mb-8 flex justify-center">
+          <div className="mx-auto mb-8 flex max-w-5xl justify-center">
             <Card
               hover={false}
-              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl p-4 w-full max-w-md"
+              className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white/80 p-4 dark:border-white/10 dark:bg-gray-950/25"
             >
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 sm:h-16 sm:w-16">
                   {minecraftResolved?.uuid ? (
                     <div className="relative w-full h-full">
                       <Image
@@ -585,7 +585,7 @@ export default function TiendaPage() {
                         // ignore
                       }
                     }}
-                    className="whitespace-nowrap"
+                    className="w-full whitespace-nowrap sm:w-auto"
                   >
                     <span>{signOutLabel}</span>
                   </Button>
@@ -595,13 +595,13 @@ export default function TiendaPage() {
           </div>
 
           {/* Category Filter */}
-          <div className="flex flex-col gap-4 mb-12">
-            <div className="flex flex-wrap justify-center sm:justify-start gap-3 flex-1">
+          <div className="mb-10 flex flex-col gap-4 sm:mb-12">
+            <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-start sm:overflow-visible sm:px-0">
               {categories.map((category) => (
                 <button
                   key={category.value}
                   onClick={() => setSelectedCategory(category.value)}
-                  className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
+                  className={`shrink-0 rounded-full px-5 py-2.5 font-medium transition-all duration-200 ${
                     selectedCategory === category.value
                       ? 'bg-minecraft-grass text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-900/50 dark:text-gray-300 dark:hover:bg-gray-800'
@@ -614,7 +614,7 @@ export default function TiendaPage() {
 
             <Card
               hover={false}
-              className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl"
+              className="rounded-[28px] border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Input
@@ -654,7 +654,7 @@ export default function TiendaPage() {
                   <span>{lang === 'es' ? 'Limpiar filtros' : 'Clear filters'}</span>
                 </Button>
               </div>
-              <div className="mt-3 flex items-center gap-3">
+              <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"
                   onClick={() => setWishlistOnly((v) => !v)}
@@ -676,7 +676,7 @@ export default function TiendaPage() {
 
           {/* Products Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="shimmer h-96">
                   <div></div>
@@ -685,7 +685,7 @@ export default function TiendaPage() {
             </div>
           ) : (
             <AnimatedSection>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
                 {filteredProducts.map((product, index) => (
                   <motion.div
                     key={product._id}
@@ -693,9 +693,9 @@ export default function TiendaPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="h-full flex flex-col">
+                    <Card className="h-full rounded-[30px] flex flex-col overflow-hidden">
                       {/* Product Image */}
-                      <div className="relative w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 overflow-hidden">
+                      <div className="relative mb-4 h-48 w-full overflow-hidden rounded-[22px] bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 sm:h-52">
                         <button
                           type="button"
                           onClick={() => toggleWishlist(product._id)}
@@ -725,8 +725,8 @@ export default function TiendaPage() {
 
                       {/* Product Info */}
                       <div className="flex-grow">
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white min-w-0 truncate">{product.name}</h3>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <h3 className="min-w-0 truncate text-xl font-bold text-gray-900 dark:text-white">{product.name}</h3>
                           <div className="shrink-0">
                             <Badge variant="info">{product.category}</Badge>
                           </div>
@@ -744,7 +744,7 @@ export default function TiendaPage() {
                           </div>
                         )}
 
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">{product.description}</p>
+                        <p className="mb-4 text-sm leading-6 text-gray-600 dark:text-gray-400 sm:text-base">{product.description}</p>
 
                         {/* Features */}
                         {product.features && product.features.length > 0 && (
@@ -760,8 +760,8 @@ export default function TiendaPage() {
                       </div>
 
                       {/* Price and Buy Button */}
-                      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center justify-between">
+                      <div className="mt-auto border-t border-gray-200 pt-4 dark:border-gray-800">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
                           <Button
                             onClick={() => addToCart(product._id)}
@@ -769,6 +769,7 @@ export default function TiendaPage() {
                               savingCart ||
                               (product.isUnlimited === false && Number(product.stock ?? 0) <= 0)
                             }
+                            className="w-full justify-center sm:w-auto"
                           >
                             <FaShoppingCart />
                             <span>{addToCartLabel}</span>

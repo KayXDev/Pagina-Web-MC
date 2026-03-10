@@ -4,6 +4,11 @@
 
 ### 🔧 Changed
 
+- 🧭 **Admin panel visual system redesigned**:
+  - Rebuilt the shared admin shell with a calmer glass layout, cleaner spacing, softer contrasts, and a more modern navigation hierarchy.
+  - Refreshed the shared admin section banner and dashboard cards so the panel feels more fluid and less saturated across desktop and mobile.
+  - Simplified the admin topbar and restored the missing admin CSS hooks after a globals stylesheet regression, including a new blue-cyan scrollbar and a more visible sticky header surface.
+
 - 💎 **Navbar pill movement now follows the real selected category**:
   - Kept the existing desktop liquid-glass pill style.
   - Removed the early click-ahead behavior so the pill now moves when the route actually changes.

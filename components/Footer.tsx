@@ -53,20 +53,20 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white/80 dark:bg-gray-950/70 backdrop-blur-md border-t border-minecraft-diamond/20 mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="mt-16 border-t border-minecraft-diamond/20 bg-slate-950/72 backdrop-blur-md dark:bg-gray-950/70 sm:mt-20">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-10">
           {/* About */}
-          <div>
-            <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">999Wrld Network</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5 xl:col-span-1">
+            <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">999Wrld Network</h3>
+            <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
               {t(lang, 'footer.about')}
             </p>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">{t(lang, 'footer.quickLinks')}</h3>
+          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+            <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
@@ -97,8 +97,8 @@ const Footer = () => {
           </div>
 
           {/* Legal */}
-          <div>
-            <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">{t(lang, 'footer.legal')}</h3>
+          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+            <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.legal')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/terminos" className="text-gray-600 dark:text-gray-400 hover:text-minecraft-grass transition-colors text-sm">
@@ -119,8 +119,8 @@ const Footer = () => {
           </div>
 
           {/* Social */}
-          <div>
-            <h3 className="text-gray-900 dark:text-white font-bold text-lg mb-4">{t(lang, 'footer.follow')}</h3>
+          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+            <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.follow')}</h3>
             <div className="flex items-center space-x-4">
               <a
                 href={process.env.NEXT_PUBLIC_DISCORD_URL || '#'}
@@ -173,7 +173,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
+        <div className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-800">
           <div className="flex flex-col items-center gap-3 mb-6">
             <div className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               {t(lang, 'footer.payments')}
@@ -197,7 +197,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <p className="text-center text-gray-600 dark:text-gray-400 text-sm flex items-center justify-center">
+          <p className="flex items-center justify-center text-center text-sm text-gray-600 dark:text-gray-400">
             © {currentYear} 999Wrld Network. {t(lang, 'footer.madeWith')}{' '}
             <FaHeart className="mx-1 text-red-500" /> {t(lang, 'footer.forCommunity')}
           </p>

@@ -155,25 +155,25 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-clip">
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative flex min-h-[72vh] items-center justify-center overflow-hidden sm:min-h-[76vh]">
         <div aria-hidden className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black"></div>
           <div className="absolute -top-40 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/18 blur-3xl"></div>
           <div className="absolute -bottom-48 left-1/3 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-grass/14 blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 text-center">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-14 pt-24 text-center sm:px-6 sm:pb-16 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] hover:bg-[position:100%_50%] transition-[background-position] duration-700 bg-clip-text text-transparent">
+            <h1 className="mb-5 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] bg-clip-text text-4xl font-bold text-transparent transition-[background-position] duration-700 hover:bg-[position:100%_50%] sm:text-5xl md:text-7xl">
               999Wrld Network
             </h1>
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="mx-auto mb-8 max-w-3xl text-base leading-7 text-gray-700 dark:text-gray-300 sm:text-xl md:text-2xl">
               {t(lang, 'home.hero.subtitle')}
             </p>
           </motion.div>
@@ -182,14 +182,14 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+            className="mb-12 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
           >
-            <Button size="lg" className="min-w-[200px]" type="button" onClick={handlePlayNow}>
+            <Button size="lg" className="w-full sm:min-w-[200px] sm:w-auto" type="button" onClick={handlePlayNow}>
               <FaPlay />
               <span>{t(lang, 'home.hero.playNow')}</span>
             </Button>
-            <Link href="/tienda">
-              <Button variant="secondary" size="lg" className="min-w-[200px]">
+            <Link href="/tienda" className="w-full sm:w-auto">
+              <Button variant="secondary" size="lg" className="w-full sm:min-w-[200px] sm:w-auto">
                 <FaShoppingCart />
                 <span>{t(lang, 'home.hero.viewShop')}</span>
               </Button>
@@ -200,7 +200,7 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="max-w-2xl mx-auto"
+            className="mx-auto max-w-2xl"
           >
             <div className="space-y-3">
               <ServerStatusWidget 
@@ -208,7 +208,7 @@ export default function HomePage() {
                 port={Number.isFinite(serverPort) ? serverPort : 25565}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <StaffOnlineWidget host={serverHost} port={Number.isFinite(serverPort) ? serverPort : 25565} />
                 <DiscordSupportWidget />
               </div>
@@ -219,13 +219,13 @@ export default function HomePage() {
 
       {/* Features Section */}
       <AnimatedSection>
-        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.why.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.why.subtitle')}</p>
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className="mb-12 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl md:text-5xl">{t(lang, 'home.why.title')}</h2>
+            <p className="text-base text-gray-600 dark:text-gray-400 sm:text-lg">{t(lang, 'home.why.subtitle')}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -234,10 +234,10 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="text-center h-full">
-                  <div className="flex justify-center mb-4">{feature.icon}</div>
+                <Card className="h-full rounded-[28px] text-center">
+                  <div className="mb-4 flex justify-center">{feature.icon}</div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-400 sm:text-base">{feature.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -247,13 +247,13 @@ export default function HomePage() {
 
       {/* Game Modes Section */}
       <AnimatedSection>
-        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">{t(lang, 'home.modes.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">{t(lang, 'home.modes.subtitle')}</p>
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+          <div className="mb-10 text-center sm:mb-12">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl md:text-5xl">{t(lang, 'home.modes.title')}</h2>
+            <p className="text-base text-gray-600 dark:text-gray-400 sm:text-lg">{t(lang, 'home.modes.subtitle')}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:gap-6">
             {gameModes.map((mode, index) => (
               <motion.div
                 key={index}
@@ -262,7 +262,7 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08 }}
               >
-                <Card hover className="text-center h-full">
+                <Card hover className="h-full rounded-[28px] text-center">
                   <div className="text-6xl mb-4">{mode.image}</div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{mode.name}</h3>
                   <p className="text-gray-600 dark:text-gray-400">{mode.description}</p>
@@ -275,15 +275,15 @@ export default function HomePage() {
 
       {/* Staff Form (closed) */}
       <AnimatedSection>
-        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">{t(lang, 'home.staffForm.title')}</h2>
+        <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+          <div className="mb-8 text-center sm:mb-10">
+            <h2 className="mb-3 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl md:text-5xl">{t(lang, 'home.staffForm.title')}</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg">
               {staffOpen ? t(lang, 'home.staffForm.openDesc') : t(lang, 'home.staffForm.subtitle')}
             </p>
           </div>
 
-          <Card hover={false} className="border-gray-200 dark:border-gray-800">
+          <Card hover={false} className="rounded-[30px] border-gray-200 dark:border-gray-800">
             <div className="mb-6">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {staffOpen ? t(lang, 'home.staffForm.openTitle') : t(lang, 'home.staffForm.closedTitle')}
@@ -313,7 +313,7 @@ export default function HomePage() {
                 value={staffForm.about}
                 onChange={(e) => setStaffForm((p) => ({ ...p, about: e.target.value }))}
               />
-              <Button disabled={!staffOpen || sendingStaff} variant="secondary" onClick={submitStaffApplication}>
+              <Button disabled={!staffOpen || sendingStaff} variant="secondary" onClick={submitStaffApplication} className="w-full sm:w-auto">
                 <span>{t(lang, 'home.staffForm.send')}</span>
               </Button>
             </div>
@@ -323,16 +323,16 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <AnimatedSection>
-        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <Card className="text-center bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 border-minecraft-grass">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <Card className="rounded-[34px] text-center bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 border-minecraft-grass">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
               {t(lang, 'home.cta.title')}
             </h2>
-            <p className="text-gray-700 dark:text-gray-300 text-lg mb-8">
+            <p className="mb-8 text-base text-gray-700 dark:text-gray-300 sm:text-lg">
               {t(lang, 'home.cta.subtitle')}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg">
+            <div className="flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
+              <Button size="lg" className="w-full sm:w-auto">
                 <FaPlay />
                 <span>{t(lang, 'home.cta.startPlaying')}</span>
               </Button>

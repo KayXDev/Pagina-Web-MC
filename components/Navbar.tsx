@@ -711,10 +711,10 @@ const Navbar = () => {
             exit={{ x: -360 }}
             transition={{ type: 'tween', duration: 0.2 }}
             ref={mobileDrawerPanelRef}
-            className="absolute inset-y-0 left-0 w-[80vw] max-w-[340px] bg-gray-950/95 backdrop-blur-sm border-r border-minecraft-diamond/15 shadow-xl"
+            className="absolute inset-y-0 left-0 w-[88vw] max-w-[380px] border-r border-white/10 bg-[linear-gradient(180deg,rgba(3,7,18,0.98),rgba(9,16,30,0.95))] shadow-[24px_0_80px_-40px_rgba(0,0,0,0.8)] backdrop-blur-xl"
           >
             <div className="h-full flex flex-col">
-              <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between gap-3">
+              <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between gap-3">
                 <Link
                   href="/"
                   onClick={() => {
@@ -725,7 +725,7 @@ const Navbar = () => {
                   className="flex items-center gap-3 min-w-0"
                 >
                   <div
-                    className={`w-9 h-9 rounded-md flex items-center justify-center overflow-hidden relative ${
+                    className={`relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-white/10 ${
                       brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-minecraft-grass'
                     }`}
                   >
@@ -740,7 +740,10 @@ const Navbar = () => {
                     )}
                     {brandIconStatus === 'ok' ? null : <span className="text-white font-bold text-lg">MC</span>}
                   </div>
-                  <div className="text-white font-bold truncate">999Wrld Network</div>
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-bold text-white">999Wrld Network</div>
+                    <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Minecraft community</div>
+                  </div>
                 </Link>
 
                 <button
@@ -748,14 +751,15 @@ const Navbar = () => {
                     setIsOpen(false);
                     setNotifOpenMobile(false);
                   }}
-                  className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10"
+                  className="rounded-2xl border border-white/10 p-2 text-gray-300 hover:text-white hover:bg-white/10"
                   aria-label="Close"
                 >
                   <FaTimes size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-3 py-3">
+              <div className="flex-1 overflow-y-auto px-4 py-4">
+                <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Navigation</div>
                 <div className="space-y-2">
                   {navItems.map((item) => {
                     const Icon = item.icon;
@@ -767,10 +771,10 @@ const Navbar = () => {
                           setIsOpen(false);
                           setNotifOpenMobile(false);
                         }}
-                        className={`block px-4 py-3 rounded-md text-base font-medium flex items-center space-x-3 ${
+                        className={`block rounded-[20px] px-4 py-3 text-base font-medium flex items-center space-x-3 border transition-colors ${
                           isActive(item.href)
-                            ? 'bg-gradient-to-r from-minecraft-grass to-minecraft-diamond text-white'
-                            : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                            ? 'border-transparent bg-gradient-to-r from-minecraft-grass to-minecraft-diamond text-white shadow-[0_24px_60px_-38px_rgba(71,209,232,0.55)]'
+                            : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10 hover:text-white'
                         }`}
                       >
                         <Icon />
@@ -780,7 +784,7 @@ const Navbar = () => {
                   })}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+                <div className="mt-5 border-t border-white/10 pt-4 space-y-2">
                   {session ? (
                     <>
                       {(session.user.role === 'ADMIN' || session.user.role === 'STAFF' || session.user.role === 'OWNER') && (
@@ -790,7 +794,7 @@ const Navbar = () => {
                             setIsOpen(false);
                             setNotifOpenMobile(false);
                           }}
-                          className="block px-4 py-3 rounded-md text-base font-medium bg-minecraft-diamond/15 text-minecraft-diamond border border-minecraft-diamond/20 flex items-center space-x-3"
+                          className="block rounded-[20px] px-4 py-3 text-base font-medium bg-minecraft-diamond/15 text-minecraft-diamond border border-minecraft-diamond/20 flex items-center space-x-3"
                         >
                           <FaCog />
                           <span>{t(lang, 'user.adminPanel')}</span>
@@ -804,7 +808,7 @@ const Navbar = () => {
                           setNotifOpenMobile(false);
                           setLoyaltyOpenMobile(false);
                         }}
-                        className="block px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:bg-white/10 flex items-center space-x-3"
+                        className="block rounded-[20px] px-4 py-3 text-base font-medium text-gray-300 border border-white/10 bg-white/[0.03] hover:bg-white/10 flex items-center space-x-3"
                       >
                         <FaUser />
                         <div className="min-w-0">
@@ -823,7 +827,7 @@ const Navbar = () => {
                                   setNotifOpenMobile(false);
                                   if (next) setLoyaltyOpenDesktop(false);
                                 }}
-                                className="w-full px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:bg-white/10 flex items-center gap-3"
+                                className="w-full rounded-[20px] px-4 py-3 text-base font-medium text-gray-300 border border-white/10 bg-white/[0.03] hover:bg-white/10 flex items-center gap-3"
                               >
                                 <FaAward className="text-minecraft-gold" />
                                 <span className="flex-1 text-left">{lang === 'es' ? 'Tus puntos loyalty' : 'Your loyalty points'}</span>
@@ -855,7 +859,7 @@ const Navbar = () => {
                               setLoyaltyOpenMobile(false);
                           if (next) fetchNotifications();
                         }}
-                        className="w-full px-4 py-3 rounded-md text-base font-medium text-gray-300 hover:bg-white/10 flex items-center gap-3 transition-transform duration-200 hover:scale-[1.02]"
+                        className="w-full rounded-[20px] px-4 py-3 text-base font-medium text-gray-300 border border-white/10 bg-white/[0.03] hover:bg-white/10 flex items-center gap-3 transition-transform duration-200 hover:scale-[1.01]"
                       >
                         <FaBell />
                         <span className="flex-1 text-left">{t(lang, 'nav.notifications')}</span>
@@ -950,7 +954,7 @@ const Navbar = () => {
                           setLoyaltyOpenMobile(false);
                           signOut();
                         }}
-                        className="w-full text-left px-4 py-3 rounded-md text-base font-medium text-red-400 hover:bg-red-500/20 flex items-center space-x-3"
+                        className="w-full text-left rounded-[20px] px-4 py-3 text-base font-medium text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/20 flex items-center space-x-3"
                       >
                         <FaSignOutAlt />
                         <span>{t(lang, 'user.logout')}</span>
@@ -963,7 +967,7 @@ const Navbar = () => {
                         setIsOpen(false);
                         setNotifOpenMobile(false);
                       }}
-                      className="block px-4 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 ring-1 ring-white/10 text-center"
+                      className="block rounded-[20px] px-4 py-3 text-base font-medium text-white bg-gradient-to-r from-minecraft-grass to-minecraft-diamond hover:from-minecraft-grass/90 hover:to-minecraft-diamond/90 ring-1 ring-white/10 text-center"
                     >
                       {t(lang, 'user.login')}
                     </Link>
@@ -981,10 +985,10 @@ const Navbar = () => {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-minecraft-diamond/10 bg-gray-950/78 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.28)]">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-minecraft-diamond/35 to-transparent" />
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center gap-4 lg:gap-6">
+        <div className="w-full px-3 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center gap-2 sm:gap-4 lg:gap-6">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 shrink-0 min-w-0">
+          <Link href="/" className="flex min-w-0 shrink-0 items-center space-x-2 sm:space-x-3">
             <div
               className={`relative flex h-10 w-10 items-center justify-center overflow-hidden ${
                 brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-minecraft-grass'
@@ -1001,7 +1005,7 @@ const Navbar = () => {
               )}
               {brandIconStatus === 'ok' ? null : <span className="text-white font-bold text-xl">MC</span>}
             </div>
-            <span className="hidden truncate text-xl font-black tracking-tight text-white sm:block">
+            <span className="hidden truncate text-lg font-black tracking-tight text-white sm:block lg:text-xl">
               999Wrld Network
             </span>
           </Link>
@@ -1367,7 +1371,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile controls */}
-          <div className="md:hidden ml-auto flex items-center gap-1">
+          <div className="md:hidden ml-auto flex items-center gap-0.5">
             <div className="relative">
               <motion.button
                 onClick={() => {
@@ -1381,7 +1385,7 @@ const Navbar = () => {
                     loadProductsIfNeeded();
                   }
                 }}
-                className="group relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                className="group relative rounded-xl p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
                 aria-label={lang === 'es' ? 'Carrito' : 'Cart'}
                 whileHover={{ scale: 1.12, y: -1, rotate: [0, -12, 10, -8, 0] }}
                 whileTap={{ scale: 0.98 }}
@@ -1480,7 +1484,7 @@ const Navbar = () => {
             {session?.user ? (
               <Link
                 href="/notificaciones"
-                className="group relative p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+                className="group relative rounded-xl p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
                 aria-label={t(lang, 'nav.notifications')}
                 title={t(lang, 'nav.notifications')}
               >
@@ -1505,7 +1509,7 @@ const Navbar = () => {
                   setLoyaltyOpenMobile(false);
                 }
               }}
-              className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
+              className="rounded-xl p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
             >
               {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </button>

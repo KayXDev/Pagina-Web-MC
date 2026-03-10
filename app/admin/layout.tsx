@@ -310,6 +310,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     content: menuItems.filter((m) => m.group === 'content' && canSee(m.key)),
     system: menuItems.filter((m) => m.group === 'system' && canSee(m.key)),
   };
+  const shellCopy = {
+    panel: t(lang, 'admin.panel.title'),
+  };
+  const navLinkClass = (active: boolean) =>
+    `admin-nav-link ${active ? 'admin-nav-link-active' : 'admin-nav-link-idle'}`;
+  const navIconClass = (active: boolean) =>
+    `admin-nav-icon ${active ? 'admin-nav-icon-active' : 'admin-nav-icon-idle'}`;
 
   const NavSection = ({
     title,
@@ -322,8 +329,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }) => {
     if (!items.length) return null;
     return (
-      <div className="mb-4">
-        <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 dark:text-gray-400 uppercase">{title}</div>
+      <div className="mb-5">
+        <div className="admin-nav-section-title">{title}</div>
         {items.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -332,19 +339,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               key={item.key}
               href={item.href}
               onClick={onNavigate}
-              className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border ${
-                active
-                  ? 'bg-minecraft-grass/10 border-minecraft-grass/20 text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-white'
-                  : 'border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
-              }`}
+              className={navLinkClass(active)}
             >
-              <span
-                className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                  active
-                    ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                    : 'bg-white border border-gray-200 text-gray-700 group-hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:group-hover:bg-white/10'
-                }`}
-              >
+              <span className={navIconClass(active)}>
                 <Icon />
               </span>
               <span className="font-medium truncate">{item.name}</span>
@@ -356,49 +353,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="h-[100dvh] md:flex relative overflow-hidden text-gray-900 dark:text-gray-100">
-      <div className="absolute inset-0 bg-gray-50 dark:bg-gray-950" />
-      <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white/80 dark:from-gray-950/20 dark:via-gray-950/60 dark:to-gray-950" />
+    <div className="admin-shell min-h-[100dvh] md:flex relative overflow-hidden text-slate-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(15,23,42,0.55),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(8,145,178,0.08),transparent_28%),linear-gradient(180deg,#050816_0%,#08101d_52%,#060b16_100%)]" />
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-72 md:flex-col border-r border-gray-200 dark:border-white/10 bg-white/75 dark:bg-gray-950/40 backdrop-blur-sm relative z-10 sticky top-0 h-screen">
-        <div className="p-5">
+      <aside className="admin-sidebar hidden md:flex md:w-[290px] md:flex-col relative z-10 sticky top-0 h-screen">
+        <div className="p-6">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 grid place-items-center text-minecraft-grass">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-slate-900 text-cyan-200 shadow-[0_18px_44px_-30px_rgba(0,0,0,0.7)]">
               <FaShieldAlt />
             </div>
             <div className="min-w-0">
-              <div className="text-xs text-gray-600 dark:text-gray-400 leading-none">{t(lang, 'admin.panel.title')}</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.panel.subtitle')}</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                {t(lang, 'admin.panel.title')}
+              </div>
+              <div className="text-lg font-bold text-white truncate">{t(lang, 'admin.panel.subtitle')}</div>
             </div>
           </div>
         </div>
 
-        <nav className="px-2 pb-4 overflow-y-auto flex-1">
+        <nav className="px-3 pb-4 overflow-y-auto flex-1">
           <NavSection title={t(lang, 'admin.menuGroups.main')} items={grouped.main} />
           <NavSection title={t(lang, 'admin.menuGroups.content')} items={grouped.content} />
           <NavSection title={t(lang, 'admin.menuGroups.system')} items={grouped.system} />
 
           {role === 'OWNER' && (
             <div className="mt-3">
-              <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 uppercase">
+              <div className="admin-nav-section-title">
                 {t(lang, 'admin.menu.permissions')}
               </div>
               <Link
                 href="/admin/permisos"
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border ${
-                  isActive('/admin/permisos')
-                    ? 'bg-minecraft-grass/10 border-minecraft-grass/20 text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-white'
-                    : 'border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
-                }`}
+                className={navLinkClass(isActive('/admin/permisos'))}
               >
-                <span
-                  className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                    isActive('/admin/permisos')
-                      ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                      : 'bg-white border border-gray-200 text-gray-700 group-hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:group-hover:bg-white/10'
-                  }`}
-                >
+                <span className={navIconClass(isActive('/admin/permisos'))}>
                   <FaKey />
                 </span>
                 <span className="font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
@@ -407,11 +395,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
         </nav>
 
-        <div className="mt-auto px-5 py-4 border-t border-gray-200 dark:border-white/10">
+        <div className="mt-auto px-6 py-5 border-t border-white/10">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'user.adminPanel')}</div>
-              <div className="text-sm text-gray-900 dark:text-gray-200 truncate">{userName}</div>
+              <div className="text-xs text-slate-500">{t(lang, 'user.adminPanel')}</div>
+              <div className="text-sm text-slate-100 truncate">{userName}</div>
             </div>
             {role && (
               <div className="shrink-0">
@@ -420,7 +408,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
 
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white mt-4">
+          <Link href="/" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white">
             <FaHome />
             <span>{t(lang, 'nav.home')}</span>
           </Link>
@@ -436,52 +424,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             aria-label={t(lang, 'common.close')}
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-[88vw] max-w-[360px] bg-white/95 dark:bg-gray-950/95 backdrop-blur border-r border-gray-200 dark:border-white/10 overflow-y-auto">
-            <div className="p-4 flex items-start justify-between gap-3 border-b border-gray-200 dark:border-white/10">
+          <aside className="absolute left-0 top-0 h-full w-[88vw] max-w-[360px] overflow-y-auto border-r border-white/10 bg-[#08101d]">
+            <div className="p-5 flex items-start justify-between gap-3 border-b border-white/10">
               <div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'admin.panel.title')}</div>
-                <div className="text-lg font-bold leading-tight">
-                  <span className="block text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-minecraft-grass dark:via-minecraft-diamond dark:to-minecraft-grass dark:bg-clip-text">
-                    {t(lang, 'admin.panel.subtitle')}
-                  </span>
-                </div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{t(lang, 'admin.panel.title')}</div>
+                <div className="text-lg font-bold leading-tight text-white">{t(lang, 'admin.panel.subtitle')}</div>
               </div>
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
+                className="rounded-xl border border-white/10 bg-slate-900 p-2 text-slate-300 hover:bg-slate-800 hover:text-white"
                 aria-label={t(lang, 'common.close')}
               >
                 <FaTimes />
               </button>
             </div>
 
-            <nav className="px-2 py-3">
+            <nav className="px-3 py-4">
               <NavSection title={t(lang, 'admin.menuGroups.main')} items={grouped.main} onNavigate={() => setSidebarOpen(false)} />
               <NavSection title={t(lang, 'admin.menuGroups.content')} items={grouped.content} onNavigate={() => setSidebarOpen(false)} />
               <NavSection title={t(lang, 'admin.menuGroups.system')} items={grouped.system} onNavigate={() => setSidebarOpen(false)} />
 
               {role === 'OWNER' && (
                 <div className="mt-3">
-                  <div className="px-3 mb-2 text-[11px] tracking-wider text-gray-500 uppercase">
+                  <div className="admin-nav-section-title">
                     {t(lang, 'admin.menu.permissions')}
                   </div>
                   <Link
                     href="/admin/permisos"
                     onClick={() => setSidebarOpen(false)}
-                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors border border-transparent border-l-2 ${
-                      isActive('/admin/permisos')
-                        ? 'bg-gray-100 border-gray-200 border-l-minecraft-grass text-gray-900 dark:bg-white/10 dark:border-white/10 dark:text-white'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-transparent hover:border-l-gray-200 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white dark:hover:border-l-white/10'
-                    }`}
+                    className={navLinkClass(isActive('/admin/permisos'))}
                   >
-                    <span
-                      className={`h-9 w-9 grid place-items-center rounded-lg transition-colors ${
-                        isActive('/admin/permisos')
-                          ? 'bg-minecraft-grass/15 text-minecraft-grass'
-                          : 'bg-white border border-gray-200 text-gray-700 group-hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:group-hover:bg-white/10'
-                      }`}
-                    >
+                    <span className={navIconClass(isActive('/admin/permisos'))}>
                       <FaKey />
                     </span>
                     <span className="font-medium truncate">{t(lang, 'admin.menu.permissions')}</span>
@@ -490,11 +464,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </nav>
 
-            <div className="px-4 py-5 border-t border-gray-200 dark:border-white/10">
+            <div className="px-5 py-5 border-t border-white/10">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'user.adminPanel')}</div>
-                  <div className="text-sm text-gray-900 dark:text-gray-200 truncate">{userName}</div>
+                  <div className="text-xs text-slate-500">{t(lang, 'user.adminPanel')}</div>
+                  <div className="text-sm text-slate-100 truncate">{userName}</div>
                 </div>
                 {role && (
                   <div className="shrink-0">
@@ -502,7 +476,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </div>
                 )}
               </div>
-              <Link href="/" onClick={() => setSidebarOpen(false)} className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white mt-3">
+              <Link href="/" onClick={() => setSidebarOpen(false)} className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white">
                 <FaHome />
                 <span>{t(lang, 'nav.home')}</span>
               </Link>
@@ -513,25 +487,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Content */}
       <div className="flex-1 min-w-0 relative z-10 h-[100dvh] overflow-y-auto">
-        <header className="sticky top-0 z-30 bg-white/75 dark:bg-gray-950/55 backdrop-blur border-b border-gray-200 dark:border-white/10">
-          <div className="px-4 md:px-8 py-3 flex items-center justify-between gap-3">
+        <header className="admin-topbar sticky top-0 z-30">
+          <div className="px-4 md:px-8 py-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white"
                 aria-label={t(lang, 'admin.panel.title')}
               >
                 <FaBars />
               </button>
               <div className="min-w-0">
-                <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'admin.panel.title')}</div>
-                <div className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">{activeLabel}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{shellCopy.panel}</div>
+                <div className="text-base md:text-lg font-semibold text-white truncate">{activeLabel}</div>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg bg-white border border-gray-200 px-1 py-1 dark:bg-white/5 dark:border-white/10">
+              <div className="admin-header-card flex items-center gap-1 px-1 py-1">
                 <LanguageSwitcher />
                 <ThemeToggle />
               </div>
@@ -539,16 +513,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 href="/"
                 aria-label={t(lang, 'nav.home')}
-                className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                className="admin-header-card sm:hidden inline-flex h-11 w-11 items-center justify-center text-slate-200"
               >
                 <FaHome />
               </Link>
 
               <div className="hidden sm:flex items-center gap-2">
-                <div className="px-3 py-2 rounded-lg bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 leading-none">{t(lang, 'user.adminPanel')}</div>
+                <div className="admin-header-card px-3 py-2.5">
+                  <div className="text-xs text-slate-500 leading-none">{t(lang, 'user.adminPanel')}</div>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="text-sm text-gray-900 dark:text-gray-200 max-w-[240px] truncate">{userName}</div>
+                    <div className="text-sm text-slate-100 max-w-[240px] truncate">{userName}</div>
                     {role && (
                       <Badge variant={role === 'OWNER' ? 'success' : role === 'ADMIN' ? 'info' : 'default'}>{role}</Badge>
                     )}
@@ -556,7 +530,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10"
+                  className="admin-header-card inline-flex items-center gap-2 px-3 py-2.5 text-slate-200"
                 >
                   <FaHome />
                   <span>{t(lang, 'nav.home')}</span>
@@ -567,7 +541,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         <main className="p-4 md:p-8">
-          <div className="max-w-[1400px] mx-auto space-y-6">
+          <div className="mx-auto max-w-[1480px] space-y-6 md:space-y-7">
             {currentSectionKey !== 'license' && sectionBannerMeta ? (
               <AdminSectionBanner
                 eyebrow={sectionBannerMeta.eyebrow}

@@ -213,16 +213,19 @@ export default function AdminDashboard() {
   }) => {
     return (
       <Link href={href} className="block group">
-        <Card className="p-6 rounded-2xl hover:bg-gray-50 dark:border-white/10 dark:bg-gray-950/35 dark:hover:bg-gray-950/45">
-          <div className="flex items-center justify-between gap-4">
+        <Card className="relative overflow-hidden rounded-[28px] p-6">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent dark:via-white/10" />
+          <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-slate-200/45 blur-3xl dark:bg-white/5" />
+
+          <div className="relative flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-1 truncate">{title}</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white leading-none">{value}</p>
+              <p className="mb-1 text-sm text-slate-500 dark:text-slate-400 truncate">{title}</p>
+              <p className="text-3xl font-bold leading-none tracking-[-0.04em] text-slate-950 dark:text-white">{value}</p>
             </div>
-            <div className={`h-12 w-12 rounded-xl grid place-items-center ${accent}`}>{icon}</div>
+            <div className={`grid h-12 w-12 place-items-center rounded-2xl ${accent}`}>{icon}</div>
           </div>
-          <div className="mt-4 h-px bg-gray-200 dark:bg-white/10" />
-          <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">
+          <div className="mt-4 h-px bg-slate-200/80 dark:bg-white/10" />
+          <div className="mt-3 text-sm font-medium text-slate-500 transition-colors group-hover:text-slate-900 dark:text-slate-400 dark:group-hover:text-slate-200">
             {t(lang, 'notifications.viewAll')}
           </div>
         </Card>
@@ -245,13 +248,13 @@ export default function AdminDashboard() {
   }) => {
     return (
       <Link href={href} className="block group">
-        <div className="rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors px-4 py-3 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+        <div className="rounded-[24px] border border-white/70 bg-white/80 px-4 py-3 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{title}</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{value}</div>
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 truncate">{title}</div>
+              <div className="text-lg font-bold leading-none text-slate-950 dark:text-white">{value}</div>
             </div>
-            <div className={`h-10 w-10 rounded-xl grid place-items-center ${accent}`}>{icon}</div>
+            <div className={`grid h-10 w-10 place-items-center rounded-2xl ${accent}`}>{icon}</div>
           </div>
         </div>
       </Link>
@@ -259,13 +262,16 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-transparent dark:bg-gradient-to-r dark:from-white dark:via-gray-200 dark:to-white dark:bg-clip-text">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            Operational overview
+          </div>
+          <h1 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-950 dark:text-white md:text-3xl">
             {t(lang, 'admin.dashboard.title')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t(lang, 'admin.dashboard.subtitle')}</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">{t(lang, 'admin.dashboard.subtitle')}</p>
         </div>
 
         <div className="flex gap-2">
@@ -310,10 +316,10 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card hover={false} className="rounded-2xl lg:col-span-1 dark:border-white/10 dark:bg-gray-950/25">
+        <Card hover={false} className="rounded-[28px] lg:col-span-1">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'admin.dashboard.quickActions')}</h2>
-            <span className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'admin.dashboard.quickActionsHint')}</span>
+            <h2 className="text-lg font-bold tracking-[-0.03em] text-slate-950 dark:text-white">{t(lang, 'admin.dashboard.quickActions')}</h2>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{t(lang, 'admin.dashboard.quickActionsHint')}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -450,7 +456,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        <Card hover={false} className="rounded-2xl lg:col-span-2 dark:border-white/10 dark:bg-gray-950/25">
+        <Card hover={false} className="rounded-[28px] lg:col-span-2">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'admin.dashboard.recentActivityTitle')}</h2>
             <div className="flex items-center gap-2">

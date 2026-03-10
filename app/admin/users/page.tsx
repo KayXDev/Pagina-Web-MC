@@ -156,30 +156,30 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <Card className="rounded-[30px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-11 w-11 rounded-xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white">
+            <div className="grid h-12 w-12 place-items-center rounded-[18px] border border-slate-200 bg-slate-950 text-white shadow-[0_28px_70px_-48px_rgba(15,23,42,0.6)] dark:border-white/10 dark:bg-white dark:text-slate-950">
               <FaUsers />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.users.title')}</h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.users.subtitle')}</p>
+              <h1 className="truncate text-2xl font-bold tracking-[-0.04em] text-gray-900 dark:text-white md:text-3xl">{t(lang, 'admin.users.title')}</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">{t(lang, 'admin.users.subtitle')}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-50 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
+          <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-end">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               {loading ? t(lang, 'common.loading') : `${filteredUsers.length} / ${users.length}`}
             </span>
 
-            <Button type="button" variant="secondary" onClick={fetchUsers} disabled={refreshing} className="h-9">
+            <Button type="button" variant="secondary" onClick={fetchUsers} disabled={refreshing} className="h-10">
               <FaSyncAlt />
               <span>{refreshing ? t(lang, 'common.loading') : t(lang, 'admin.dashboard.refresh')}</span>
             </Button>
 
             {isOwner ? (
-              <Button type="button" onClick={() => setShowCreateModal(true)} className="h-9">
+              <Button type="button" onClick={() => setShowCreateModal(true)} className="h-10">
                 <FaUsers />
                 <span>{t(lang, 'admin.users.create.cta')}</span>
               </Button>
@@ -265,10 +265,10 @@ export default function AdminUsersPage() {
       ) : null}
 
       {/* Search */}
-      <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+      <Card className="rounded-[30px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="w-full md:max-w-xl">
-            <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">{t(lang, 'admin.users.searchPlaceholder')}</label>
+            <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300">{t(lang, 'admin.users.searchPlaceholder')}</label>
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <Input
@@ -285,7 +285,7 @@ export default function AdminUsersPage() {
 
       {/* Users list */}
       {loading ? (
-        <Card className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <Card className="overflow-hidden rounded-[30px] p-0 border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20">
             <div className="text-sm font-semibold text-gray-900 dark:text-white">{t(lang, 'admin.users.title')}</div>
             <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
@@ -297,11 +297,11 @@ export default function AdminUsersPage() {
           </div>
         </Card>
       ) : filteredUsers.length === 0 ? (
-        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <Card className="rounded-[30px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="text-center py-12 text-gray-600 dark:text-gray-400">{t(lang, 'admin.users.noResults')}</div>
         </Card>
       ) : (
-        <Card className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+        <Card className="overflow-hidden rounded-[30px] p-0 border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
           <div className="divide-y divide-gray-200 dark:divide-white/10">
             {filteredUsers.map((user) => {
               const badges = Array.isArray(user.badges) ? user.badges : [];
@@ -319,18 +319,17 @@ export default function AdminUsersPage() {
                   href={`/admin/users/${encodeURIComponent(user._id)}`}
                   className="block"
                 >
-                  <div className="px-4 py-3 hover:bg-gray-50/70 dark:hover:bg-white/5 transition-colors">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
+                  <div className="px-4 py-4 transition-colors hover:bg-gray-50/70 dark:hover:bg-white/5 sm:px-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] border border-gray-200 bg-gray-100 font-semibold text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
                           {initials(user.username)}
                         </div>
                         <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 min-w-0">
-                            <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[320px]">{user.username}</div>
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <div className="max-w-[320px] truncate font-semibold text-gray-900 dark:text-white">{user.username}</div>
                             {verified ? <Badge variant="info">{t(lang, 'admin.users.verified')}</Badge> : null}
-                            {/* Badges next to verified */}
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 overflow-x-auto pb-1">
                               {badges.slice(0, 4).map((badgeId) => {
                                 const id = normalizeBadgeId(badgeId);
                                 const meta = badgeBySlug.get(id);
@@ -345,11 +344,11 @@ export default function AdminUsersPage() {
                               })}
                             </div>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[520px]">{user.email}</div>
+                          <div className="max-w-[520px] truncate text-xs text-gray-600 dark:text-gray-400">{user.email}</div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                         {getRoleBadge(user.role)}
                         {statusBadge}
                       </div>

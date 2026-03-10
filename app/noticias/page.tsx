@@ -48,7 +48,7 @@ export default function NoticiasPage() {
   }, []);
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'news.title')}
         description={t(lang, 'news.headerDesc')}
@@ -56,7 +56,7 @@ export default function NoticiasPage() {
       />
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="shimmer h-96">
               <div></div>
@@ -70,7 +70,7 @@ export default function NoticiasPage() {
         </div>
       ) : (
         <AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
             {posts.map((post, index) => (
               <motion.div
                 key={post._id}
@@ -79,9 +79,9 @@ export default function NoticiasPage() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Link href={`/noticias/${post.slug}`}>
-                  <Card hover className="h-full flex flex-col cursor-pointer">
+                  <Card hover className="h-full cursor-pointer rounded-[30px] flex flex-col overflow-hidden">
                     {/* Image */}
-                    <div className="relative w-full h-48 bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 rounded-md mb-4 overflow-hidden">
+                    <div className="relative mb-4 h-48 w-full overflow-hidden rounded-[22px] bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 sm:h-52">
                       {post.image ? (
                         <Image
                           src={post.image}
@@ -109,7 +109,7 @@ export default function NoticiasPage() {
                     )}
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 hover:text-minecraft-grass transition-colors">
+                    <h3 className="mb-2 text-xl font-bold text-gray-900 transition-colors hover:text-minecraft-grass dark:text-white">
                       {post.title}
                     </h3>
 
@@ -119,23 +119,23 @@ export default function NoticiasPage() {
                     </p>
 
                     {/* Meta */}
-                    <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between text-sm text-gray-600 dark:text-gray-500">
-                      <div className="flex items-center space-x-2">
+                    <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
                         <FaUser />
-                        <span>{post.author}</span>
+                        <span className="truncate">{post.author}</span>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-1">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-1">
                           <FaCalendar />
                           <span>{formatDate(post.publishedAt, getDateLocale(lang))}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1">
                           <FaHeart />
                           <span>
                             {post.likesCount || 0} {t(lang, 'news.likes')}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-1">
                           <FaEye />
                           <span>
                             {post.views} {t(lang, 'news.views')}

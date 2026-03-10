@@ -484,32 +484,32 @@ export default function AdminTicketsPage() {
       {/* Header */}
       <Card
         hover={false}
-        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        className="rounded-[30px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
       >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <span className="h-10 w-10 rounded-xl grid place-items-center bg-minecraft-grass/10 text-minecraft-grass border border-minecraft-grass/20 dark:border-white/10 dark:bg-white/5">
+            <div className="mb-1 flex items-center gap-3">
+              <span className="grid h-12 w-12 place-items-center rounded-[18px] border border-emerald-500/20 bg-slate-950 text-white shadow-[0_28px_70px_-48px_rgba(15,23,42,0.6)] dark:border-white/10 dark:bg-white dark:text-slate-950">
                 <FaTicketAlt />
               </span>
               <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">{t(lang, 'admin.tickets.headerDesc')}</p>
+                <h1 className="truncate text-2xl font-bold tracking-[-0.04em] text-gray-900 dark:text-white md:text-3xl">{t(lang, 'admin.tickets.ticketsLabel')}</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">{t(lang, 'admin.tickets.headerDesc')}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 justify-start md:justify-end">
-            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
+          <div className="flex flex-wrap gap-2 justify-start lg:justify-end">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               {t(lang, 'admin.tickets.total')}: {tickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               {t(lang, 'admin.tickets.inProgressCount')}: {inProgressTickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               {t(lang, 'admin.tickets.openCount')}: {openTickets.length}
             </span>
-            <span className="px-3 py-1.5 text-xs rounded-full bg-gray-100 border border-gray-200 text-gray-700 dark:bg-white/5 dark:border-white/10 dark:text-gray-200">
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
               {t(lang, 'admin.tickets.closedCount')}: {closedTickets.length}
             </span>
           </div>
@@ -518,7 +518,7 @@ export default function AdminTicketsPage() {
 
       <Card
         hover={false}
-        className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+        className="rounded-[30px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
       >
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="min-w-0">
@@ -602,14 +602,14 @@ export default function AdminTicketsPage() {
       </Card>
 
       {/* Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         {/* Inbox */}
         <section className={selectedTicket ? 'xl:col-span-5' : 'xl:col-span-12'} aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
           <Card
             hover={false}
-            className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+            className="overflow-hidden rounded-[30px] p-0 border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
           >
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-gray-950/40">
+            <div className="border-b border-gray-200 bg-gray-50 px-4 py-4 dark:border-white/10 dark:bg-gray-950/40 sm:px-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="text-gray-900 dark:text-white font-semibold">{t(lang, 'admin.tickets.ticketsLabel')}</div>
                 <div className="text-xs text-gray-500">
@@ -617,7 +617,7 @@ export default function AdminTicketsPage() {
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
+              <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1" role="tablist" aria-label={t(lang, 'admin.tickets.ticketsLabel')}>
                 <TabButton status="IN_PROGRESS" label={t(lang, 'admin.tickets.inProgress')} count={inProgressTickets.length} />
                 <TabButton status="OPEN" label={t(lang, 'admin.tickets.open')} count={openTickets.length} />
                 <TabButton status="CLOSED" label={t(lang, 'admin.tickets.closed')} count={closedTickets.length} />
@@ -640,7 +640,7 @@ export default function AdminTicketsPage() {
                   size="sm"
                   onClick={() => fetchTickets(undefined, { silent: true })}
                   disabled={refreshing}
-                  className="w-full md:w-auto justify-center"
+                    className="w-full justify-center md:w-auto"
                 >
                   <FaSyncAlt />
                   <span>{refreshing ? t(lang, 'common.loading') : t(lang, 'admin.dashboard.refresh')}</span>
@@ -668,12 +668,12 @@ export default function AdminTicketsPage() {
                         key={ticket._id}
                         type="button"
                         onClick={() => openDetails(ticket)}
-                        className={`w-full text-left px-4 py-3 transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/30 ${
+                        className={`w-full text-left px-4 py-4 transition-colors focus:outline-none focus:ring-2 focus:ring-minecraft-grass/30 sm:px-5 ${
                           active ? 'bg-gray-50 dark:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'
                         }`}
                         aria-current={active ? 'true' : undefined}
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 min-w-0">
                               <span
@@ -695,7 +695,7 @@ export default function AdminTicketsPage() {
                               {t(lang, 'admin.tickets.lastActivity')}: {formatDateTime(ticket.updatedAt || ticket.createdAt)}
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-2 shrink-0">
+                          <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end sm:shrink-0">
                             {getStatusBadge(ticket.status)}
                             {getPriorityBadge(ticket.priority)}
                             {getSlaBadge(ticket)}
@@ -715,7 +715,7 @@ export default function AdminTicketsPage() {
           <section className="xl:col-span-7" aria-label={t(lang, 'admin.tickets.chat')}>
             <Card
               hover={false}
-              className="rounded-2xl p-0 overflow-hidden border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+              className="overflow-hidden rounded-[30px] p-0 border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
             >
               <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 sticky top-[56px] xl:top-0 z-10 dark:border-white/10 dark:bg-gray-950/40">
                 <div className="flex items-start justify-between gap-4">
