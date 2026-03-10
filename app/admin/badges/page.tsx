@@ -289,7 +289,12 @@ export default function AdminBadgesPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-12 w-12 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center overflow-hidden dark:bg-white/5 dark:border-white/10">
-                  {b.icon ? <img src={b.icon} alt={b.slug} width={32} height={32} className="h-8 w-8 object-contain" /> : null}
+                  {b.icon ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={b.icon} alt={b.slug} width={32} height={32} className="h-8 w-8 object-contain" />
+                    </>
+                  ) : null}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

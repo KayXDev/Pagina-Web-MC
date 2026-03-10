@@ -26,9 +26,6 @@ const ReferralProfileSchema = new Schema<IReferralProfile>(
   { timestamps: true }
 );
 
-ReferralProfileSchema.index({ userId: 1 }, { unique: true });
-ReferralProfileSchema.index({ code: 1 }, { unique: true });
-
 const ReferralProfile =
   models.ReferralProfile || mongoose.model<IReferralProfile>('ReferralProfile', ReferralProfileSchema);
 

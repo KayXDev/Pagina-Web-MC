@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaClipboardList, FaTimes } from 'react-icons/fa';
@@ -53,7 +53,7 @@ export default function AdminPostulacionesPage() {
     return t(lang, 'admin.applications.status.rejected');
   };
 
-  const fetchOpen = async () => {
+  const fetchOpen = useCallback(async () => {
     setOpenLoading(true);
     try {
       const res = await fetch('/api/admin/settings', { cache: 'no-store' });
@@ -66,9 +66,9 @@ export default function AdminPostulacionesPage() {
     } finally {
       setOpenLoading(false);
     }
-  };
+  }, [lang]);
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/staff-applications');
@@ -81,12 +81,12 @@ export default function AdminPostulacionesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
-    fetchItems();
-    fetchOpen();
-  }, []);
+    void fetchItems();
+    void fetchOpen();
+  }, [fetchItems, fetchOpen]);
 
   const getInitial = (username: string) => {
     const v = String(username || '').trim();

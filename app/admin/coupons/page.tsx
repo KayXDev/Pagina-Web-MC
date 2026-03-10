@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaPercent, FaPlus, FaTrash } from 'react-icons/fa';
 import { Card, Button, Input, Select, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -48,7 +48,7 @@ export default function AdminCouponsPage() {
 
   const productNameById = new Map(products.map((p) => [String(p._id), String(p.name || p._id)]));
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/coupons', { cache: 'no-store' });
@@ -60,10 +60,10 @@ export default function AdminCouponsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
-    fetchCoupons();
+    void fetchCoupons();
 
     const fetchProducts = async () => {
       try {
@@ -76,7 +76,7 @@ export default function AdminCouponsPage() {
       }
     };
 
-    fetchProducts();
+    void fetchProducts();
 
     const fetchWebhook = async () => {
       try {
@@ -89,8 +89,8 @@ export default function AdminCouponsPage() {
       }
     };
 
-    fetchWebhook();
-  }, []);
+    void fetchWebhook();
+  }, [fetchCoupons]);
 
   const saveCouponWebhook = async () => {
     setSavingWebhook(true);

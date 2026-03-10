@@ -233,6 +233,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                       if (!finalLabel || !finalIcon) return null;
                       return (
                         <span key={badgeId} title={finalLabel} className="inline-flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={finalIcon} alt={finalLabel} width={16} height={16} className="shrink-0" />
                           <span className="sr-only">{finalLabel}</span>
                         </span>

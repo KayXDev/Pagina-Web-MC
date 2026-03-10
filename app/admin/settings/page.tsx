@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, Button, Input, Textarea, Badge } from '@/components/ui';
 import { FaCheck, FaCog, FaPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -84,11 +84,7 @@ export default function AdminMaintenancePage() {
     setSettings((prev) => ({ ...prev, maintenance_paths: stringifyMaintenancePaths(Array.from(next)) }));
   };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/settings');
       if (!response.ok) throw new Error(t(lang, 'admin.settings.loadError'));
@@ -99,7 +95,11 @@ export default function AdminMaintenancePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
+
+  useEffect(() => {
+    void fetchSettings();
+  }, [fetchSettings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

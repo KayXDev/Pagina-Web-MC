@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -106,7 +107,7 @@ const Navbar = () => {
   const cartMobileRef = useRef<HTMLDivElement | null>(null);
   const mobileDrawerPanelRef = useRef<HTMLDivElement | null>(null);
 
-  const resetDesktopNavMorph = () => {
+  const resetDesktopNavMorph = useCallback(() => {
     if (desktopNavMorphTimeoutRef.current) {
       clearTimeout(desktopNavMorphTimeoutRef.current);
       desktopNavMorphTimeoutRef.current = null;
@@ -119,9 +120,9 @@ const Navbar = () => {
       glareShift: 0,
       transformOrigin: 'center center',
     });
-  };
+  }, []);
 
-  const syncDesktopNavIndicatorToTarget = (target: HTMLAnchorElement | null, withMorph: boolean) => {
+  const syncDesktopNavIndicatorToTarget = useCallback((target: HTMLAnchorElement | null, withMorph: boolean) => {
     const container = desktopNavRef.current;
 
     if (!container || !target) {
@@ -169,7 +170,7 @@ const Navbar = () => {
     }
 
     desktopNavLastRectRef.current = nextRect;
-  };
+  }, [desktopNavIndicatorWidth, desktopNavIndicatorX, resetDesktopNavMorph]);
 
   useEffect(() => {
     setMounted(true);
@@ -639,16 +640,19 @@ const Navbar = () => {
     }
   };
 
-  const navItems = [
-    { name: t(lang, 'nav.home'), href: '/', icon: FaHome },
-    { name: t(lang, 'nav.shop'), href: '/tienda', icon: FaShoppingCart },
-    { name: t(lang, 'nav.vote'), href: '/vote', icon: FaVoteYea },
-    { name: t(lang, 'nav.rules'), href: '/normas', icon: FaBook },
-    { name: t(lang, 'nav.news'), href: '/noticias', icon: FaNewspaper },
-    { name: t(lang, 'nav.forum'), href: '/foro', icon: FaComments },
-    { name: t(lang, 'nav.partner'), href: '/partner', icon: FaShieldAlt },
-    { name: t(lang, 'nav.support'), href: '/soporte', icon: FaEnvelope },
-  ];
+  const navItems = useMemo(
+    () => [
+      { name: t(lang, 'nav.home'), href: '/', icon: FaHome },
+      { name: t(lang, 'nav.shop'), href: '/tienda', icon: FaShoppingCart },
+      { name: t(lang, 'nav.vote'), href: '/vote', icon: FaVoteYea },
+      { name: t(lang, 'nav.rules'), href: '/normas', icon: FaBook },
+      { name: t(lang, 'nav.news'), href: '/noticias', icon: FaNewspaper },
+      { name: t(lang, 'nav.forum'), href: '/foro', icon: FaComments },
+      { name: t(lang, 'nav.partner'), href: '/partner', icon: FaShieldAlt },
+      { name: t(lang, 'nav.support'), href: '/soporte', icon: FaEnvelope },
+    ],
+    [lang]
+  );
 
   const isActive = (href: string) => pathname === href;
   const routeActiveDesktopNavHref = navItems.find((item) => isActive(item.href))?.href || null;
@@ -680,13 +684,13 @@ const Navbar = () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('resize', onResize);
     };
-  }, [activeDesktopNavHref, desktopNavIndicatorWidth, desktopNavIndicatorX, navItems, pathname]);
+  }, [activeDesktopNavHref, navItems, pathname, syncDesktopNavIndicatorToTarget]);
 
   useEffect(() => {
     return () => {
       resetDesktopNavMorph();
     };
-  }, []);
+  }, [resetDesktopNavMorph]);
 
   const mobileDrawer = (
     <AnimatePresence>
@@ -730,11 +734,12 @@ const Navbar = () => {
                     }`}
                   >
                     {brandIconStatus !== 'error' && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src="/icon.png"
                         alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
+                        fill
+                        sizes="44px"
+                        className="object-cover"
                         onError={() => setBrandIconStatus('error')}
                       />
                     )}
@@ -995,11 +1000,12 @@ const Navbar = () => {
               }`}
             >
               {brandIconStatus !== 'error' && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src="/icon.png"
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
                   onError={() => setBrandIconStatus('error')}
                 />
               )}

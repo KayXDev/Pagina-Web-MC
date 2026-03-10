@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FaUserFriends, FaPlus } from 'react-icons/fa';
 import { Card, Button, Input, Badge } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -35,7 +35,7 @@ export default function AdminReferralsPage() {
   const [referralDiscountPercent, setReferralDiscountPercent] = useState('5');
   const [referralWebhook, setReferralWebhook] = useState('');
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/referrals', { cache: 'no-store' });
@@ -50,11 +50,11 @@ export default function AdminReferralsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
-    fetchProfiles();
-  }, []);
+    void fetchProfiles();
+  }, [fetchProfiles]);
 
   const createForUser = async () => {
     setCreating(true);

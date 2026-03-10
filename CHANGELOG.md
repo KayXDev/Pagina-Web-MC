@@ -22,6 +22,14 @@
   - Added separate code-only totals to `scripts/project-stats.mjs`.
   - The stats output now shows counted code files, total lines of code, non-empty lines of code, and a final total summary line.
 
+### 🐛 Fixed
+
+- 🧹 **Build warning cleanup completed**:
+  - Removed the remaining React Hook dependency warnings across admin pages, news, and the main navbar by stabilizing effect dependencies.
+  - Replaced the navbar logo rendering with `next/image` and isolated dynamic badge icon cases so the previous image warnings no longer pollute the build output.
+  - Removed duplicated unique index declarations from the coupon and referral Mongoose schemas.
+  - Verified the project again with a clean `next build` run with no warnings or type errors.
+
 ### 2026-03-09
 
 ### ✨ Added

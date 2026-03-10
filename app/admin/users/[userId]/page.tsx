@@ -287,6 +287,7 @@ export default function AdminUserDetailPage() {
                           const label = (lang === 'es' ? meta.labelEs : meta.labelEn) || meta.slug;
                           return (
                             <span key={id} className="inline-flex items-center justify-center" title={label}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={meta.icon}
                                 alt={label}
@@ -536,7 +537,12 @@ export default function AdminUserDetailPage() {
                         : 'border-gray-200 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5')
                     }
                   >
-                    {b.icon ? <img src={b.icon} alt={label} width={18} height={18} className="shrink-0" /> : null}
+                    {b.icon ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={b.icon} alt={label} width={18} height={18} className="shrink-0" />
+                      </>
+                    ) : null}
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{label}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{id}</div>

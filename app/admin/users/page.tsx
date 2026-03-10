@@ -337,6 +337,7 @@ export default function AdminUsersPage() {
                                 const label = (lang === 'es' ? meta.labelEs : meta.labelEn) || meta.slug;
                                 return (
                                   <span key={badgeId} title={label} className="inline-flex items-center justify-center">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img src={meta.icon} alt={label} width={16} height={16} className="shrink-0" />
                                     <span className="sr-only">{label}</span>
                                   </span>

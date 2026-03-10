@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaShoppingCart, FaUpload } from 'react-icons/fa';
 import Image from 'next/image';
@@ -45,11 +45,7 @@ export default function AdminProductsPage() {
     stock: 0,
   });
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/products');
       if (!response.ok) throw new Error(t(lang, 'admin.products.loadError'));
@@ -60,7 +56,11 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
+
+  useEffect(() => {
+    void fetchProducts();
+  }, [fetchProducts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPlus, FaEdit, FaTrash, FaNewspaper, FaEye } from 'react-icons/fa';
 import Image from 'next/image';
@@ -46,11 +46,7 @@ export default function AdminBlogPage() {
     setImagePreviewOk(true);
   }, [formData.image]);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/blog');
       if (!response.ok) throw new Error(t(lang, 'admin.blog.loadError'));
@@ -61,7 +57,11 @@ export default function AdminBlogPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
+
+  useEffect(() => {
+    void fetchPosts();
+  }, [fetchPosts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
