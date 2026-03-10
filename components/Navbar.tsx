@@ -64,7 +64,6 @@ const Navbar = () => {
   const [loyaltySummary, setLoyaltySummary] = useState<LoyaltyPreview | null>(null);
   const [loyaltyOpenDesktop, setLoyaltyOpenDesktop] = useState(false);
   const [loyaltyOpenMobile, setLoyaltyOpenMobile] = useState(false);
-  const [desktopNavPendingHref, setDesktopNavPendingHref] = useState<string | null>(null);
   const [desktopNavIndicatorVisible, setDesktopNavIndicatorVisible] = useState(false);
   const [desktopNavMorph, setDesktopNavMorph] = useState({
     scaleX: 1,
@@ -653,13 +652,7 @@ const Navbar = () => {
 
   const isActive = (href: string) => pathname === href;
   const routeActiveDesktopNavHref = navItems.find((item) => isActive(item.href))?.href || null;
-  const activeDesktopNavHref = desktopNavPendingHref || routeActiveDesktopNavHref;
-
-  useEffect(() => {
-    if (desktopNavPendingHref && desktopNavPendingHref === routeActiveDesktopNavHref) {
-      setDesktopNavPendingHref(null);
-    }
-  }, [desktopNavPendingHref, routeActiveDesktopNavHref]);
+  const activeDesktopNavHref = routeActiveDesktopNavHref;
 
   useEffect(() => {
     const syncDesktopNavIndicator = () => {
@@ -676,7 +669,7 @@ const Navbar = () => {
         return;
       }
 
-      syncDesktopNavIndicatorToTarget(target, desktopNavPendingHref === activeHref);
+      syncDesktopNavIndicatorToTarget(target, true);
     };
 
     const frame = window.requestAnimationFrame(syncDesktopNavIndicator);
@@ -687,7 +680,7 @@ const Navbar = () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('resize', onResize);
     };
-  }, [activeDesktopNavHref, desktopNavIndicatorWidth, desktopNavIndicatorX, desktopNavPendingHref, navItems, pathname]);
+  }, [activeDesktopNavHref, desktopNavIndicatorWidth, desktopNavIndicatorX, navItems, pathname]);
 
   useEffect(() => {
     return () => {
@@ -1059,12 +1052,6 @@ const Navbar = () => {
                     href={item.href}
                     ref={(node) => {
                       desktopNavItemRefs.current[item.href] = node;
-                    }}
-                    onClick={(event) => {
-                      if (item.href !== routeActiveDesktopNavHref) {
-                        setDesktopNavPendingHref(item.href);
-                        syncDesktopNavIndicatorToTarget(event.currentTarget, true);
-                      }
                     }}
                     className={`group relative inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
                       active

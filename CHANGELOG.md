@@ -1,6 +1,18 @@
 # 📝 Changelog
 
-### 2026-03-09 ✅ 🆕 Latest
+### 2026-03-10 ✅ 🆕 Latest
+
+### 🔧 Changed
+
+- 💎 **Navbar pill movement now follows the real selected category**:
+  - Kept the existing desktop liquid-glass pill style.
+  - Removed the early click-ahead behavior so the pill now moves when the route actually changes.
+
+- 📊 **Project stats script expanded**:
+  - Added separate code-only totals to `scripts/project-stats.mjs`.
+  - The stats output now shows counted code files, total lines of code, non-empty lines of code, and a final total summary line.
+
+### 2026-03-09
 
 ### ✨ Added
 

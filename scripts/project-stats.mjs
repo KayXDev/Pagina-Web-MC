@@ -38,6 +38,13 @@ const TEXT_EXTENSIONS = new Set([
   '.sql',
 ]);
 
+const NON_CODE_EXTENSIONS = new Set([
+  '.md',
+  '.txt',
+  '.env',
+  '.example',
+]);
+
 function isProbablyBinary(buffer) {
   // Heuristic: if there is a NUL byte, treat as binary.
   return buffer.includes(0);
@@ -75,8 +82,11 @@ async function walk(rootDir) {
     files: 0,
     directories: 0,
     textFiles: 0,
+    codeFiles: 0,
     totalLines: 0,
     nonEmptyLines: 0,
+    totalCodeLines: 0,
+    nonEmptyCodeLines: 0,
     byExt: {},
   };
 
@@ -127,13 +137,25 @@ async function walk(rootDir) {
       stats.totalLines += lineStats.total;
       stats.nonEmptyLines += lineStats.nonEmpty;
 
+      const isCodeFile = !NON_CODE_EXTENSIONS.has(ext);
+      if (isCodeFile) {
+        stats.codeFiles += 1;
+        stats.totalCodeLines += lineStats.total;
+        stats.nonEmptyCodeLines += lineStats.nonEmpty;
+      }
+
       if (!stats.byExt[ext]) {
-        stats.byExt[ext] = { files: 0, totalLines: 0, nonEmptyLines: 0 };
+        stats.byExt[ext] = { files: 0, totalLines: 0, nonEmptyLines: 0, codeFiles: 0, totalCodeLines: 0, nonEmptyCodeLines: 0 };
       }
 
       stats.byExt[ext].files += 1;
       stats.byExt[ext].totalLines += lineStats.total;
       stats.byExt[ext].nonEmptyLines += lineStats.nonEmpty;
+      if (isCodeFile) {
+        stats.byExt[ext].codeFiles += 1;
+        stats.byExt[ext].totalCodeLines += lineStats.total;
+        stats.byExt[ext].nonEmptyCodeLines += lineStats.nonEmpty;
+      }
     }
   }
 
@@ -153,8 +175,13 @@ function toMarkdown(stats) {
   lines.push(`| Total files | ${human(stats.files)} |`);
   lines.push(`| Total directories | ${human(stats.directories)} |`);
   lines.push(`| Text files counted | ${human(stats.textFiles)} |`);
+  lines.push(`| Code files counted | ${human(stats.codeFiles)} |`);
   lines.push(`| Total lines (text) | ${human(stats.totalLines)} |`);
   lines.push(`| Non-empty lines (text) | ${human(stats.nonEmptyLines)} |`);
+  lines.push(`| Total lines of code | ${human(stats.totalCodeLines)} |`);
+  lines.push(`| Non-empty lines of code | ${human(stats.nonEmptyCodeLines)} |`);
+  lines.push('');
+  lines.push(`Total: ${human(stats.totalCodeLines)} lines of code (${human(stats.nonEmptyCodeLines)} non-empty)`);
   lines.push('');
   lines.push('Top file types (by non-empty lines):');
   lines.push('');
