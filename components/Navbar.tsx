@@ -1415,7 +1415,7 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     ref={cartMobileRef}
-                    className="fixed top-16 left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-1rem)] max-w-[420px] rounded-2xl border border-gray-200/80 dark:border-minecraft-diamond/20 bg-white/95 dark:bg-gray-950/90 backdrop-blur-md shadow-2xl overflow-hidden z-50"
+                    className="fixed left-2 right-2 top-[calc(4rem+0.5rem)] z-50 flex max-h-[calc(100dvh-5rem)] flex-col rounded-2xl border border-gray-200/80 bg-white/95 shadow-2xl backdrop-blur-md overflow-hidden dark:border-minecraft-diamond/20 dark:bg-gray-950/90 sm:left-1/2 sm:right-auto sm:w-[calc(100vw-1rem)] sm:max-w-[420px] sm:-translate-x-1/2"
                   >
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900/60 dark:to-gray-950/40">
                       <div className="text-gray-900 dark:text-white font-semibold text-lg">{lang === 'es' ? 'Carrito' : 'Cart'}</div>
@@ -1425,7 +1425,7 @@ const Navbar = () => {
                     {cartLoading ? (
                       <div className="px-4 py-6 text-sm text-gray-600 dark:text-gray-400">{t(lang, 'common.loading')}</div>
                     ) : cartItems.length === 0 ? (
-                      <div className="px-4 py-7">
+                      <div className="min-h-0 flex-1 px-4 py-7 overflow-y-auto">
                         <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 p-6 text-center">
                           <div className="mx-auto h-14 w-14 rounded-xl grid place-items-center bg-minecraft-gold/15 text-minecraft-gold mb-3">
                             <FaShoppingCart size={24} />
@@ -1439,7 +1439,7 @@ const Navbar = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="max-h-[50vh] overflow-auto px-3 py-3 space-y-2">
+                      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-2">
                         {cartItems.slice(0, 5).map((it) => {
                           const p = cartProductById.get(String(it.productId));
                           const name = String(p?.name || (lang === 'es' ? 'Producto' : 'Product'));
