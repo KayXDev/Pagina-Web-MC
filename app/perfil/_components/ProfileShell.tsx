@@ -156,8 +156,8 @@ function InnerShell({ children }: { children: React.ReactNode }) {
   const following = loadingDetails ? null : details?.followingCount ?? 0;
 
   return (
-    <div className="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-      <div className="rounded-xl border border-white/10 bg-gray-950/40 overflow-hidden">
+    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-10 pt-20 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-gray-950/40">
         <div className="relative h-28 sm:h-36">
           {bannerUrl ? (
             <Image
@@ -194,16 +194,16 @@ function InnerShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="pt-4 flex items-start justify-end gap-2">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:items-start sm:justify-end">
             <Link href="/perfil/ajustes">
-              <Button variant="secondary" className="gap-2">
+              <Button variant="secondary" className="w-full gap-2 sm:w-auto">
                 <FaCog />
                 <span>{t(lang, 'profile.nav.settings')}</span>
               </Button>
             </Link>
             <Button
               variant="secondary"
-              className="gap-2 text-red-400"
+              className="w-full gap-2 text-red-400 sm:w-auto"
               onClick={() => {
                 signOut();
               }}
@@ -251,7 +251,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:items-center">
                 <div className="rounded-lg border border-gray-800 bg-gray-900/30 px-4 py-2">
                   <div className="text-xs text-gray-400">{t(lang, 'profile.followers')}</div>
                   <div className="text-white font-bold text-lg">
@@ -274,7 +274,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-3">
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-2">
               {tabs.map((tab) => {
                 const active = pathname === tab.href;
                 return (

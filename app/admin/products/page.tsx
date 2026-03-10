@@ -252,7 +252,7 @@ export default function AdminProductsPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white border border-gray-200 text-gray-900 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto dark:bg-gray-950/95 dark:border-white/10 dark:text-gray-100"
+            className="my-8 max-h-[calc(100vh-4rem)] w-full max-w-2xl overflow-y-auto rounded-[30px] border border-gray-200 bg-white p-5 text-gray-900 dark:border-white/10 dark:bg-gray-950/95 dark:text-gray-100 sm:p-6 md:p-8"
           >
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               {editingProduct
@@ -322,7 +322,7 @@ export default function AdminProductsPage() {
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <Input
                         type="file"
                         accept="image/png,image/jpeg,image/webp,image/gif"
@@ -342,7 +342,7 @@ export default function AdminProductsPage() {
                     </div>
 
                     {(formData as any).image ? (
-                      <div className="mt-3 flex items-center gap-3">
+                      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div className="relative h-12 w-12 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden grid place-items-center dark:border-white/10 dark:bg-white/5">
                           <Image
                             src={(formData as any).image}
@@ -441,8 +441,8 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div className="flex items-center space-x-6">
-                <label className="flex items-center space-x-2 cursor-pointer">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <label className="flex cursor-pointer items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={formData.isActive}
@@ -452,7 +452,7 @@ export default function AdminProductsPage() {
                   <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.products.active')}</span>
                 </label>
 
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <label className="flex cursor-pointer items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={formData.isUnlimited}
@@ -463,7 +463,7 @@ export default function AdminProductsPage() {
                 </label>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button type="submit" className="flex-1">
                   {editingProduct
                     ? t(lang, 'admin.products.form.submitUpdate')
@@ -511,10 +511,10 @@ export default function AdminProductsPage() {
             {products.map((product) => (
               <Card
                 key={product._id}
-                className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
+                className="rounded-[28px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25"
                 hover={false}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{product.name}</h3>
@@ -532,8 +532,8 @@ export default function AdminProductsPage() {
                   ) : null}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-lg font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
                     <Badge variant="info">{getCategoryLabel(product.category)}</Badge>
                   </div>
@@ -542,7 +542,7 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <Button size="sm" variant="secondary" onClick={() => handleEdit(product)} className="flex-1">
                     <FaEdit />
                     <span>{t(lang, 'common.edit')}</span>

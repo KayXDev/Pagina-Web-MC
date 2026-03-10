@@ -358,13 +358,13 @@ export default function AdminLogsPage() {
 
           <div>
             <div className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'es' ? 'Filtrar por accion' : 'Filter by action'}</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
               {filterOptions.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => setActionFilter(option.id)}
-                  className={`rounded-2xl border px-3 py-2 text-sm transition-colors ${
+                    className={`shrink-0 rounded-2xl border px-3 py-2 text-sm transition-colors ${
                     actionFilter === option.id
                       ? 'border-minecraft-grass/40 bg-minecraft-grass/10 text-gray-900 dark:text-white'
                       : 'border-gray-200 bg-white text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-300'

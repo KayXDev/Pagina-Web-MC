@@ -77,7 +77,7 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title="Nuestro Staff"
         description="El equipo que hace posible esta comunidad"
@@ -86,7 +86,7 @@ export default function StaffPage() {
 
       {/* Staff Grid */}
       <AnimatedSection>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div className="mb-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:mb-20 lg:gap-7">
           {staff.map((member, index) => (
             <motion.div
               key={index}
@@ -95,13 +95,13 @@ export default function StaffPage() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="text-center">
-                <div className="flex justify-center mb-4">{member.icon}</div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{member.name}</h3>
+              <Card className="h-full rounded-[30px] text-center">
+                <div className="mb-4 flex justify-center">{member.icon}</div>
+                <h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">{member.name}</h3>
                 <Badge variant="info" className="mb-3">
                   {member.role}
                 </Badge>
-                <p className="text-gray-600 dark:text-gray-400">{member.description}</p>
+                <p className="text-sm leading-6 text-gray-600 dark:text-gray-400 sm:text-base">{member.description}</p>
               </Card>
             </motion.div>
           ))}
@@ -110,10 +110,10 @@ export default function StaffPage() {
 
       {/* Responsabilidades */}
       <AnimatedSection>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
+        <h2 className="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white sm:mb-10">
           Responsabilidades del Staff
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-7">
           {Object.entries(responsabilidades).map(([role, responsibilities], index) => (
             <motion.div
               key={role}
@@ -122,8 +122,8 @@ export default function StaffPage() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.2 }}
             >
-              <Card>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+              <Card className="h-full rounded-[30px]">
+                <h3 className="mb-4 flex items-center text-xl font-bold text-gray-900 dark:text-white">
                   {role === 'Administrador' && <FaShieldAlt className="mr-2 text-minecraft-redstone" />}
                   {role === 'Moderador' && <FaUserShield className="mr-2 text-minecraft-diamond" />}
                   {role === 'Ayudante' && <FaUsers className="mr-2 text-minecraft-grass" />}
@@ -145,10 +145,10 @@ export default function StaffPage() {
 
       {/* Únete al Staff */}
       <AnimatedSection>
-        <div className="mt-20">
-          <Card className="text-center bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 border-minecraft-grass">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">¿Quieres unirte al Staff?</h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+        <div className="mt-16 sm:mt-20">
+          <Card className="rounded-[34px] border-minecraft-grass bg-gradient-to-r from-minecraft-grass/20 to-minecraft-diamond/20 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">¿Quieres unirte al Staff?</h2>
+            <p className="mx-auto mb-6 max-w-2xl text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base">
               Buscamos personas comprometidas, maduras y con ganas de ayudar a la comunidad. 
               Las aplicaciones se abren periódicamente en nuestro Discord.
             </p>

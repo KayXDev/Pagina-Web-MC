@@ -114,17 +114,17 @@ export default function SoportePage() {
   }
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'support.title')}
         description={t(lang, 'support.headerDesc')}
         icon={<FaEnvelope className="text-6xl text-minecraft-grass" />}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         {/* Create Ticket Form */}
         <div className="lg:col-span-2">
-          <Card className="mb-6">
+          <Card className="mb-6 rounded-[28px]">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t(lang, 'support.createTicket')}</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -202,7 +202,7 @@ export default function SoportePage() {
 
         {/* My Tickets */}
         <div>
-          <Card>
+          <Card className="rounded-[28px]">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
               <FaTicketAlt className="mr-2" />
               {t(lang, 'support.myTickets')}
@@ -219,9 +219,9 @@ export default function SoportePage() {
                     href={`/soporte/${ticket._id}`}
                     className="block"
                   >
-                    <div className="bg-gray-50 border border-gray-200 hover:border-minecraft-grass dark:bg-gray-900/50 dark:border-gray-700 rounded-md p-4 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-gray-900 dark:text-white font-medium">{ticket.subject}</h3>
+                    <div className="cursor-pointer rounded-xl border border-gray-200 bg-gray-50 p-4 transition-colors hover:border-minecraft-grass dark:border-gray-700 dark:bg-gray-900/50">
+                    <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <h3 className="break-words font-medium text-gray-900 dark:text-white">{ticket.subject}</h3>
                       {getStatusBadge(ticket.status)}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -235,7 +235,7 @@ export default function SoportePage() {
           </Card>
 
           {/* Info */}
-          <Card className="mt-6 bg-minecraft-diamond/10 border-minecraft-diamond">
+          <Card className="mt-6 rounded-[28px] border-minecraft-diamond bg-minecraft-diamond/10">
             <h3 className="text-gray-900 dark:text-white font-semibold mb-2">{t(lang, 'support.infoTitle')}</h3>
             <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
               <li>• {t(lang, 'support.info1')}</li>

@@ -67,7 +67,7 @@ export default function VotePage() {
   }, []);
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'vote.title')}
         description={t(lang, 'vote.headerDesc')}
@@ -75,9 +75,9 @@ export default function VotePage() {
       />
 
       <AnimatedSection>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:gap-8">
           <Card
-            className="lg:col-span-2 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 border-minecraft-grass/30"
+            className="rounded-[30px] border-minecraft-grass/30 bg-gradient-to-br from-minecraft-grass/10 to-minecraft-diamond/10 lg:col-span-2"
             hover={false}
           >
             <div className="flex items-start justify-between gap-3 mb-5">
@@ -124,7 +124,7 @@ export default function VotePage() {
           </Card>
 
           <div className="lg:col-span-3 space-y-8">
-            <Card hover={false} className="border-gray-200 dark:border-white/10">
+            <Card hover={false} className="rounded-[30px] border-gray-200 dark:border-white/10">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between mb-6">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t(lang, 'vote.linksTitle')}</h2>
@@ -176,7 +176,7 @@ export default function VotePage() {
               )}
             </Card>
 
-            <Card hover={false} className="border-gray-200 dark:border-white/10">
+            <Card hover={false} className="rounded-[30px] border-gray-200 dark:border-white/10">
               <div className="flex items-start justify-between gap-3 mb-5">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t(lang, 'vote.topTitle')}</h2>

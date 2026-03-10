@@ -188,8 +188,8 @@ function InnerShell({ children }: { children: React.ReactNode }) {
         : t(lang, 'profile.presence.offline');
 
   return (
-    <div className="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-      <div className="rounded-xl border border-white/10 bg-gray-950/40 overflow-hidden">
+    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-10 pt-20 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-gray-950/40">
         <div className="relative h-28 sm:h-36">
           {bannerUrl ? (
             <Image
@@ -226,21 +226,21 @@ function InnerShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="pt-4 flex items-start justify-end gap-2">
-            <Button variant="secondary" className="gap-2" onClick={() => router.push('/foro')}
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:items-start sm:justify-end">
+            <Button variant="secondary" className="w-full gap-2 sm:w-auto" onClick={() => router.push('/foro')}
             >
               <FaArrowLeft />
               <span>Foro</span>
             </Button>
             {profile.isSelf ? (
               <Link href="/perfil">
-                <Button className="gap-2">
+                <Button className="w-full gap-2 sm:w-auto">
                   <FaUser />
                   <span>Mi perfil</span>
                 </Button>
               </Link>
             ) : (
-              <Button onClick={toggleFollow} disabled={followLoading}>
+              <Button onClick={toggleFollow} disabled={followLoading} className="w-full sm:w-auto">
                 {profile.isFollowing ? 'Dejar de seguir' : 'Seguir'}
               </Button>
             )}
@@ -284,7 +284,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:items-center">
                 <div className="rounded-lg border border-gray-800 bg-gray-900/30 px-4 py-2">
                   <div className="text-xs text-gray-400">{t(lang, 'profile.followers')}</div>
                   <div className="text-white font-bold text-lg">
@@ -302,7 +302,7 @@ function InnerShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="mt-6 border-t border-white/10 pt-3">
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-2">
               {tabs.map((tab) => {
                 const active = pathname === tab.href;
                 return (

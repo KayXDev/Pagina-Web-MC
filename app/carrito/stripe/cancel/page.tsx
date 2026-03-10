@@ -29,18 +29,18 @@ export default function StripeCancelPage() {
   }, [orderId]);
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader title="Pago cancelado" description="No se realizó ningún cobro." icon={<FaBan className="text-6xl text-red-400" />} />
 
-      <div className="max-w-3xl mx-auto">
-        <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-6 rounded-2xl">
+      <div className="mx-auto max-w-3xl">
+        <Card hover={false} className="rounded-[30px] border-white/10 bg-gray-950/25 p-5 sm:p-6">
           <div className="text-gray-300">{done ? 'Puedes intentarlo de nuevo cuando quieras.' : 'Actualizando pedido…'}</div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/carrito">
-              <Button>Volver al carrito</Button>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Link href="/carrito" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">Volver al carrito</Button>
             </Link>
-            <Link href="/tienda">
-              <Button variant="secondary">Volver a la tienda</Button>
+            <Link href="/tienda" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto">Volver a la tienda</Button>
             </Link>
           </div>
         </Card>

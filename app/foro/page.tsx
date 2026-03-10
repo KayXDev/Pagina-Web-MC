@@ -239,7 +239,7 @@ export default function ForoPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <AnimatedSection>
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -254,7 +254,7 @@ export default function ForoPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              <div className="flex items-center gap-2">
+              <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
                 <button
                   type="button"
                   onClick={() => setFeed('recent')}
@@ -301,6 +301,7 @@ export default function ForoPage() {
                 variant="secondary"
                 onClick={() => setCreateOpen((v) => !v)}
                 disabled={!session}
+                className="w-full sm:w-auto"
               >
                 <FaPlus />
                 <span>{createOpen ? t(lang, 'common.close') : t(lang, 'forum.createTitle')}</span>
@@ -331,7 +332,7 @@ export default function ForoPage() {
           </div>
 
           {createOpen && (
-            <Card hover={false} className="p-4">
+            <Card hover={false} className="rounded-[28px] p-4 sm:p-5">
               {!session ? (
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{t(lang, 'forum.loginToPost')}</p>
               ) : (
@@ -380,8 +381,8 @@ export default function ForoPage() {
                       rows={5}
                       maxLength={280}
                     />
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
+                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-wrap items-center gap-2">
                         <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                           <input
                             type="file"
@@ -448,7 +449,7 @@ export default function ForoPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           <aside className="hidden md:block md:col-span-4">
             <Card hover={false} className="p-4 md:sticky md:top-24">
               <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Categorías</div>
@@ -511,7 +512,7 @@ export default function ForoPage() {
                     <Card
                       key={post._id}
                       hover={false}
-                      className="rounded-2xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20"
+                      className="rounded-[28px] border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20"
                     >
                       <div className="flex items-start gap-3">
                         <button

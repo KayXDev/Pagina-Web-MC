@@ -63,7 +63,7 @@ export default function PayPalReturnPage() {
   }, [canCapture, orderId, token]);
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title="PayPal"
         description={status === 'success' ? 'Pago completado' : status === 'error' ? 'Hubo un problema' : 'Confirmando pago…'}
@@ -78,24 +78,24 @@ export default function PayPalReturnPage() {
         }
       />
 
-      <div className="max-w-3xl mx-auto">
-        <Card hover={false} className="border-white/10 bg-gray-950/25 rounded-2xl p-0 overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/10 bg-gray-950/30 flex items-center justify-between gap-3">
+      <div className="mx-auto max-w-3xl">
+        <Card hover={false} className="overflow-hidden rounded-[30px] border-white/10 bg-gray-950/25 p-0">
+          <div className="flex flex-col gap-3 border-b border-white/10 bg-gray-950/30 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="text-white font-semibold">Resultado</div>
             <Badge variant={status === 'success' ? 'success' : status === 'error' ? 'danger' : 'info'}>
               {status}
             </Badge>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 p-5 sm:p-6">
             <div className="text-gray-300">{message || 'Procesando…'}</div>
 
-            <div className="flex flex-wrap gap-2">
-              <Link href="/tienda">
-                <Button>Volver a la tienda</Button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Link href="/tienda" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">Volver a la tienda</Button>
               </Link>
-              <Link href="/carrito">
-                <Button variant="secondary">Volver al carrito</Button>
+              <Link href="/carrito" className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto">Volver al carrito</Button>
               </Link>
             </div>
 

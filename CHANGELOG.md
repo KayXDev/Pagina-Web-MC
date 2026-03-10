@@ -8,6 +8,11 @@
   - Rebuilt the shared admin shell with a calmer glass layout, cleaner spacing, softer contrasts, and a more modern navigation hierarchy.
   - Refreshed the shared admin section banner and dashboard cards so the panel feels more fluid and less saturated across desktop and mobile.
   - Simplified the admin topbar and restored the missing admin CSS hooks after a globals stylesheet regression, including a new blue-cyan scrollbar and a more visible sticky header surface.
+  - Extended the mobile pass across dense admin screens like products, logs, applications, tickets, and users so modals, filters, cards, and action groups stack properly on phone.
+
+- 📱 **Responsive pass expanded across the whole site**:
+  - Refined mobile layouts for cart, forum, forum thread view, support, ticket chat, profile shells, vote, staff, and checkout result pages.
+  - Reduced rigid desktop spacing, improved wrapping for controls and badges, and made critical actions full-width where needed on small screens.
 
 - 💎 **Navbar pill movement now follows the real selected category**:
   - Kept the existing desktop liquid-glass pill style.

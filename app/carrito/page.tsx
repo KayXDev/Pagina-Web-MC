@@ -514,7 +514,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="relative min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+    <div className="relative mx-auto min-h-screen max-w-7xl overflow-hidden px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.18),transparent_42%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.16),transparent_36%)]" />
 
       <PageHeader
@@ -548,7 +548,7 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-0 lg:max-w-[420px]">
             <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
               <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Artículos' : 'Items'}</div>
               <div className="mt-1 text-2xl font-black text-white">{totalQty}</div>
@@ -618,7 +618,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 xl:min-w-[360px]">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-0 xl:max-w-[360px]">
                       <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
                         <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Líneas' : 'Lines'}</div>
                         <div className="mt-1 text-white text-xl font-black">{cartItems.length}</div>
@@ -662,7 +662,7 @@ export default function CartPage() {
                         <Card key={it.productId} hover={false} className="rounded-[24px] border-white/10 bg-white/[0.04] p-0 overflow-hidden">
                           <div className="p-4 sm:p-5">
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                              <div className="flex items-center gap-4 min-w-0 flex-1">
+                              <div className="flex min-w-0 flex-1 items-start gap-4">
                                 <div className="w-14 h-14 rounded-[18px] border border-white/10 bg-black/25 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
                                   {p?.image ? (
                                     <div className="relative w-full h-full">
@@ -692,7 +692,7 @@ export default function CartPage() {
                                 </div>
                               </div>
 
-                              <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
                                 <div className="flex items-center gap-2 rounded-[18px] border border-white/10 bg-black/20 p-2 self-start sm:self-center">
                                   <Button
                                     variant="secondary"
@@ -878,7 +878,7 @@ export default function CartPage() {
             <div className="lg:col-span-4 lg:sticky lg:top-24 self-start space-y-4">
               <Card hover={false} className="rounded-[32px] border-white/10 bg-gray-950/25 overflow-hidden">
                 <div className="border-b border-white/10 bg-gradient-to-r from-minecraft-diamond/15 to-transparent p-6">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="text-xs uppercase tracking-[0.24em] text-minecraft-diamond/80">{lang === 'es' ? 'Finalizar compra' : 'Finish checkout'}</div>
                       <div className="mt-2 text-white font-black text-2xl">{lang === 'es' ? 'Resumen' : 'Summary'}</div>
@@ -889,7 +889,7 @@ export default function CartPage() {
                     <Badge variant={totalQty ? 'info' : 'default'}>{totalQty}</Badge>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
                       <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Estado' : 'Status'}</div>
                       <div className="mt-1 text-white font-bold">{checkoutStatusLabel}</div>
@@ -903,7 +903,7 @@ export default function CartPage() {
 
                 <div className="p-6 space-y-4">
                   <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="text-xs uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Compra regalo' : 'Gift purchase'}</div>
                         <div className="mt-2 text-sm text-gray-300">
@@ -1078,11 +1078,11 @@ export default function CartPage() {
                       <span>{lang === 'es' ? 'Checklist antes de pagar' : 'Before you pay'}</span>
                     </div>
                     <div className="mt-3 space-y-2 text-sm">
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="text-gray-400">{lang === 'es' ? 'Carrito listo' : 'Cart ready'}</span>
                         <Badge variant={cartItems.length ? 'success' : 'warning'}>{cartItems.length ? 'OK' : 'WAIT'}</Badge>
                       </div>
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="text-gray-400">{giftEnabled ? (lang === 'es' ? 'Destino regalo' : 'Gift target') : minecraftLabel}</span>
                         <Badge variant={giftEnabled ? (giftRecipientUsername.trim() ? 'success' : 'warning') : minecraftUuid ? 'success' : 'warning'}>
                           {giftEnabled
@@ -1094,7 +1094,7 @@ export default function CartPage() {
                               : 'WAIT'}
                         </Badge>
                       </div>
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="text-gray-400">{lang === 'es' ? 'Proceso' : 'Process'}</span>
                         <Badge variant={isCheckoutBusy ? 'warning' : 'info'}>{isCheckoutBusy ? (lang === 'es' ? 'OCUPADO' : 'BUSY') : (lang === 'es' ? 'LISTO' : 'READY')}</Badge>
                       </div>

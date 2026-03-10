@@ -275,10 +275,10 @@ export default function TicketChatView({
   }
 
   return (
-    <div className={embedded ? 'space-y-6' : 'min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto'}>
+    <div className={embedded ? 'space-y-6' : 'mx-auto min-h-screen max-w-5xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20'}>
       {embedded ? (
         <Card
-          className="border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl"
+          className="rounded-[28px] border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25"
           hover={false}
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -296,7 +296,7 @@ export default function TicketChatView({
 
             <Link
               href={backHref}
-              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md border border-gray-200 bg-white text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:text-white dark:hover:bg-white/10"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white sm:w-auto"
             >
               <FaArrowLeft />
               <span>{t(lang, 'common.back')}</span>
@@ -328,7 +328,7 @@ export default function TicketChatView({
         className={
           embedded
             ? 'border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25 rounded-2xl'
-            : 'border border-gray-200 dark:border-gray-800'
+            : 'rounded-[28px] border border-gray-200 dark:border-gray-800'
         }
       >
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
@@ -361,7 +361,7 @@ export default function TicketChatView({
               <div className="text-gray-400">{t(lang, 'support.cannotLoadTicket')}</div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-black/20">
                     <div className="text-xs text-gray-500">{lang === 'es' ? 'Asignado a' : 'Assigned to'}</div>
                     <div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
@@ -388,7 +388,7 @@ export default function TicketChatView({
 
                 <div className="space-y-3 max-h-[520px] overflow-y-auto">
                   <div className="flex justify-end">
-                    <div className="max-w-[85%] bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border border-minecraft-grass/30 rounded-md p-3">
+                    <div className="w-full max-w-full rounded-md border border-minecraft-grass/30 bg-minecraft-grass/10 p-3 dark:bg-minecraft-grass/20 sm:max-w-[85%]">
                       <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                         {t(lang, 'support.you')} • {new Date(ticketDetails.ticket.createdAt).toLocaleString(getDateLocale(lang))}
                       </div>
@@ -399,7 +399,7 @@ export default function TicketChatView({
                   {ticketDetails.replies.map((r) => (
                     <div key={r._id} className={`flex ${r.isStaff ? 'justify-start' : 'justify-end'}`}>
                       <div
-                        className={`max-w-[85%] rounded-md p-3 border ${
+                        className={`w-full max-w-full rounded-md border p-3 sm:max-w-[85%] ${
                           r.isStaff
                             ? 'bg-gray-100 border-gray-200 dark:bg-gray-900/60 dark:border-gray-700'
                             : 'bg-minecraft-grass/10 dark:bg-minecraft-grass/20 border-minecraft-grass/30'

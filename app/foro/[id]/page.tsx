@@ -385,10 +385,10 @@ export default function ForoPostPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div className="flex flex-col gap-3 mb-6">
         <div>
-          <Button variant="secondary" onClick={() => router.push('/foro')}>
+          <Button variant="secondary" onClick={() => router.push('/foro')} className="w-full sm:w-auto">
             <FaArrowLeft />
             <span>{t(lang, 'common.back')}</span>
           </Button>
@@ -409,9 +409,9 @@ export default function ForoPostPage() {
             {t(lang, 'forum.notFound')}
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="lg:col-span-9">
-              <div className="rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20">
+              <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20">
                 <div className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-white/10 shrink-0 flex items-center justify-center text-gray-900 dark:text-white font-semibold overflow-hidden relative">
@@ -451,7 +451,7 @@ export default function ForoPostPage() {
                             minute: '2-digit',
                           }).format(new Date(post.createdAt))}
                         </span>
-                        <span className="ml-auto" />
+                        <span className="hidden flex-1 sm:block" />
                         <Badge variant="info">{categoryLabel}</Badge>
                       </div>
 
@@ -492,7 +492,7 @@ export default function ForoPostPage() {
                         </div>
                       )}
 
-                      <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-400">
                         <div className="inline-flex items-center gap-2">
                           <FaRegComment className="opacity-80" />
                           <span>{replies.length}</span>
@@ -524,8 +524,8 @@ export default function ForoPostPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-xl border border-gray-200 bg-white/70 dark:border-white/10 dark:bg-black/20 p-4">
-                <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="mt-6 rounded-[28px] border border-gray-200 bg-white/70 p-4 dark:border-white/10 dark:bg-black/20 sm:p-5">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                     {t(lang, 'forum.repliesTitle')} ({replies.length})
                   </h3>
@@ -550,7 +550,7 @@ export default function ForoPostPage() {
                       return (
                         <div>
                           <div
-                            className={`rounded-lg border border-gray-200 bg-white dark:border-white/10 dark:bg-black/20 p-3 hover:bg-gray-50 dark:hover:bg-black/30 transition-colors ${
+                            className={`rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-black/20 dark:hover:bg-black/30 ${
                               indent > 0 ? 'ml-4 sm:ml-6 border-l-2 border-l-white/10' : ''
                             }`}
                           >
@@ -570,7 +570,7 @@ export default function ForoPostPage() {
                               </div>
 
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-3">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                   <div className="text-sm text-gray-400">
                                     <Link
                                       href={`/perfil/${encodeURIComponent(r.username)}`}
@@ -599,7 +599,7 @@ export default function ForoPostPage() {
                                     )}
                                   </div>
 
-                                  <div className="flex items-center gap-3">
+                                  <div className="flex flex-wrap items-center gap-3 sm:justify-end">
                                     {!r.isLegacy && (
                                       <button
                                         type="button"

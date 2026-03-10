@@ -181,9 +181,9 @@ export default function AdminPostulacionesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 max-w-3xl w-full my-8 dark:bg-gray-950/95 dark:border-white/10"
+            className="my-8 w-full max-w-3xl rounded-[30px] border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-gray-950/95 sm:p-6 md:p-8"
           >
-            <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selected.username}</h2>
@@ -193,7 +193,7 @@ export default function AdminPostulacionesPage() {
                   <span className="text-gray-700 dark:text-gray-300">{t(lang, 'admin.applications.sentAt')}:</span> {formatDateTime(selected.createdAt)}
                 </div>
               </div>
-              <Button variant="secondary" size="sm" onClick={() => setSelected(null)}>
+              <Button variant="secondary" size="sm" onClick={() => setSelected(null)} className="w-full sm:w-auto">
                 <FaTimes />
                 <span>{t(lang, 'common.close')}</span>
               </Button>
@@ -319,8 +319,8 @@ export default function AdminPostulacionesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(idx * 0.03, 0.25) }}
               >
-                <Card hover={false} className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
-                  <div className="flex items-start justify-between gap-4">
+                <Card hover={false} className="rounded-[28px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="h-11 w-11 rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center text-gray-900 font-semibold shrink-0 dark:bg-white/5 dark:border-white/10 dark:text-white">
                         {getInitial(a.username)}
@@ -344,7 +344,7 @@ export default function AdminPostulacionesPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-col gap-2 sm:w-full sm:flex-row xl:w-auto xl:flex-col shrink-0">
                       <Button
                         variant="success"
                         size="sm"
