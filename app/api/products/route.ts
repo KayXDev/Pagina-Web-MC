@@ -10,7 +10,11 @@ export async function GET() {
       .sort({ order: 1, createdAt: -1 })
       .lean();
 
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      },
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
@@ -20,4 +24,4 @@ export async function GET() {
   }
 }
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic';

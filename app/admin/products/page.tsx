@@ -30,6 +30,26 @@ interface Product {
   stock?: number;
 }
 
+function toDatetimeLocalValue(value?: string) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
+
+function toIsoFromDatetimeLocal(value: string) {
+  const raw = String(value || '').trim();
+  if (!raw) return undefined;
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString();
+}
+
 export default function AdminProductsPage() {
   const lang = useClientLang();
   const [products, setProducts] = useState<Product[]>([]);
@@ -99,6 +119,8 @@ export default function AdminProductsPage() {
         price: priceValue,
         salePrice: String((formData as any).salePrice || '').trim() ? Number(String((formData as any).salePrice).replace(',', '.')) : undefined,
         compareAtPrice: String((formData as any).compareAtPrice || '').trim() ? Number(String((formData as any).compareAtPrice).replace(',', '.')) : undefined,
+        saleStartsAt: toIsoFromDatetimeLocal(String((formData as any).saleStartsAt || '')),
+        saleEndsAt: toIsoFromDatetimeLocal(String((formData as any).saleEndsAt || '')),
         bonusBalanceAmount: String((formData as any).bonusBalanceAmount || '').trim() ? Number(String((formData as any).bonusBalanceAmount).replace(',', '.')) : 0,
         deliveryCommands,
       };
@@ -137,8 +159,8 @@ export default function AdminProductsPage() {
       price: String(product.price ?? ''),
       salePrice: typeof product.salePrice === 'number' ? String(product.salePrice) : '',
       compareAtPrice: typeof product.compareAtPrice === 'number' ? String(product.compareAtPrice) : '',
-      saleStartsAt: product.saleStartsAt ? String(product.saleStartsAt).slice(0, 16) : '',
-      saleEndsAt: product.saleEndsAt ? String(product.saleEndsAt).slice(0, 16) : '',
+      saleStartsAt: toDatetimeLocalValue(product.saleStartsAt),
+      saleEndsAt: toDatetimeLocalValue(product.saleEndsAt),
       offerLabel: String(product.offerLabel || ''),
       bonusBalanceAmount: typeof product.bonusBalanceAmount === 'number' && product.bonusBalanceAmount > 0 ? String(product.bonusBalanceAmount) : '',
       category: product.category,
