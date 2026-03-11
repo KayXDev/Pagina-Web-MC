@@ -72,6 +72,10 @@ export interface IShopOrder {
   loyaltyPointsUsed?: number;
   loyaltyDiscountAmount?: number;
   loyaltyRedeemedAt?: Date;
+  balanceUsedAmount?: number;
+  balanceAppliedAt?: Date;
+  bonusBalanceAwarded?: number;
+  bonusBalanceAppliedAt?: Date;
 
   subtotalPrice?: number;
   ip?: string;
@@ -145,6 +149,10 @@ const ShopOrderSchema = new Schema<IShopOrder>(
     loyaltyPointsUsed: { type: Number, default: 0 },
     loyaltyDiscountAmount: { type: Number, default: 0 },
     loyaltyRedeemedAt: { type: Date },
+    balanceUsedAmount: { type: Number, default: 0 },
+    balanceAppliedAt: { type: Date },
+    bonusBalanceAwarded: { type: Number, default: 0 },
+    bonusBalanceAppliedAt: { type: Date },
 
     ip: { type: String, default: '' },
     userAgent: { type: String, default: '' },
@@ -159,6 +167,7 @@ ShopOrderSchema.index({ userId: 1, createdAt: -1 });
 ShopOrderSchema.index({ paypalOrderId: 1, createdAt: -1 });
 ShopOrderSchema.index({ stripeCheckoutSessionId: 1, createdAt: -1 });
 ShopOrderSchema.index({ stripePaymentIntentId: 1, createdAt: -1 });
+ShopOrderSchema.index({ userId: 1, balanceAppliedAt: 1, createdAt: -1 });
 
 const ShopOrder = models.ShopOrder || mongoose.model<IShopOrder>('ShopOrder', ShopOrderSchema);
 

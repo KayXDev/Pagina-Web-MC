@@ -25,6 +25,15 @@ import { toast } from 'react-toastify';
 
 type ForumCategory = 'GENERAL' | 'HELP' | 'REPORTS' | 'TRADES';
 
+type ForumReputation = {
+  score: number;
+  tier: 'NEW' | 'REGULAR' | 'TRUSTED' | 'ELITE';
+  rootPosts: number;
+  replies: number;
+  likesReceived: number;
+  views: number;
+};
+
 interface ForumPost {
   _id: string;
   title: string;
@@ -40,6 +49,7 @@ interface ForumPost {
   views?: number;
   likesCount?: number;
   createdAt: string;
+  authorReputation?: ForumReputation;
 }
 
 interface ForumReply {
@@ -57,6 +67,7 @@ interface ForumReply {
   views?: number;
   media?: string[];
   isLegacy?: boolean;
+  userReputation?: ForumReputation;
 }
 
 export default function ForoPostPage() {
@@ -101,6 +112,26 @@ export default function ForoPostPage() {
         return t(lang, 'forum.categories.trades');
     }
   }, [lang, post?.category]);
+
+  const reputationLabel = (tier?: ForumReputation['tier']) => {
+    if (lang === 'en') {
+      if (tier === 'ELITE') return 'Elite';
+      if (tier === 'TRUSTED') return 'Trusted';
+      if (tier === 'REGULAR') return 'Regular';
+      return 'New';
+    }
+    if (tier === 'ELITE') return 'Elite';
+    if (tier === 'TRUSTED') return 'Confiable';
+    if (tier === 'REGULAR') return 'Activo';
+    return 'Nuevo';
+  };
+
+  const reputationTone = (tier?: ForumReputation['tier']) => {
+    if (tier === 'ELITE') return 'bg-amber-500/15 text-amber-900 dark:text-amber-100';
+    if (tier === 'TRUSTED') return 'bg-sky-500/15 text-sky-900 dark:text-sky-100';
+    if (tier === 'REGULAR') return 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-100';
+    return 'bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-300';
+  };
 
   const load = async (postId: string) => {
     setLoading(true);
@@ -441,6 +472,11 @@ export default function ForoPostPage() {
                             ) : null}
                           </span>
                         </Link>
+                        {post.authorReputation ? (
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${reputationTone(post.authorReputation.tier)}`}>
+                            {reputationLabel(post.authorReputation.tier)} · {post.authorReputation.score}
+                          </span>
+                        ) : null}
                         <span className="text-gray-500">•</span>
                         <span className="text-gray-600 dark:text-gray-400">
                           {new Intl.DateTimeFormat(getDateLocale(lang), {
@@ -586,6 +622,11 @@ export default function ForoPostPage() {
                                         ) : null}
                                       </span>
                                     </Link>{' '}
+                                    {r.userReputation ? (
+                                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${reputationTone(r.userReputation.tier)}`}>
+                                        {reputationLabel(r.userReputation.tier)} · {r.userReputation.score}
+                                      </span>
+                                    ) : null}{' '}
                                     <span>•</span>{' '}
                                     {new Intl.DateTimeFormat(getDateLocale(lang), {
                                       year: 'numeric',
@@ -800,6 +841,43 @@ export default function ForoPostPage() {
                     </div>
                   </div>
                 </Card>
+
+                {post?.authorReputation ? (
+                  <Card hover={false} className="p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {lang === 'en' ? 'Author reputation' : 'Reputacion del autor'}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          {lang === 'en' ? 'Derived from real forum activity.' : 'Calculada con actividad real del foro.'}
+                        </div>
+                      </div>
+                      <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${reputationTone(post.authorReputation.tier)}`}>
+                        {reputationLabel(post.authorReputation.tier)}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div className="rounded-2xl border border-gray-200 p-3 dark:border-white/10">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Score</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{post.authorReputation.score}</div>
+                      </div>
+                      <div className="rounded-2xl border border-gray-200 p-3 dark:border-white/10">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Posts</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{post.authorReputation.rootPosts}</div>
+                      </div>
+                      <div className="rounded-2xl border border-gray-200 p-3 dark:border-white/10">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Likes</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{post.authorReputation.likesReceived}</div>
+                      </div>
+                      <div className="rounded-2xl border border-gray-200 p-3 dark:border-white/10">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Respuestas</div>
+                        <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{post.authorReputation.replies}</div>
+                      </div>
+                    </div>
+                  </Card>
+                ) : null}
               </div>
             </aside>
           </div>

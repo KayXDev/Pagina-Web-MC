@@ -1,10 +1,18 @@
 import dbConnect from '@/lib/mongodb';
 import LoyaltyEvent from '@/models/LoyaltyEvent';
 import ShopOrder from '@/models/ShopOrder';
+import Settings from '@/models/Settings';
 import User from '@/models/User';
 
 const DEFAULT_EARNING_POINTS_PER_EURO = 10;
-const DEFAULT_REDEMPTION_POINTS_PER_EURO = 200;
+const DEFAULT_REDEMPTION_POINTS_PER_EURO = 100;
+const DEFAULT_BALANCE_POINTS_PER_EURO = 100;
+
+export type LoyaltyConfig = {
+  earningPointsPerEuro: number;
+  redemptionPointsPerEuro: number;
+  balancePointsPerEuro: number;
+};
 
 function readEarningPointsPerEuro() {
   const raw = Number(process.env.LOYALTY_EARNING_POINTS_PER_EURO || process.env.LOYALTY_POINTS_PER_EURO || DEFAULT_EARNING_POINTS_PER_EURO);
@@ -16,33 +24,77 @@ function readRedemptionPointsPerEuro() {
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_REDEMPTION_POINTS_PER_EURO;
 }
 
-export function getLoyaltyRedemptionRate() {
-  return readRedemptionPointsPerEuro();
+function readBalancePointsPerEuro() {
+  const raw = Number(process.env.LOYALTY_BALANCE_POINTS_PER_EURO || process.env.LOYALTY_REDEMPTION_POINTS_PER_EURO || DEFAULT_BALANCE_POINTS_PER_EURO);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_BALANCE_POINTS_PER_EURO;
 }
 
-export function getLoyaltyEarningRate() {
-  return readEarningPointsPerEuro();
+function sanitizePositiveNumber(value: unknown, fallback: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-export function calculateLoyaltyPoints(totalPrice: number) {
-  const normalizedTotal = Number(totalPrice || 0);
-  if (!Number.isFinite(normalizedTotal) || normalizedTotal <= 0) return 0;
-  return Math.max(0, Math.floor(normalizedTotal * readEarningPointsPerEuro()));
-}
+export async function getLoyaltyConfig(): Promise<LoyaltyConfig> {
+  await dbConnect();
 
-export function getLoyaltyEarningPreview(totalPrice: number) {
-  const basedOnTotal = Math.max(0, Math.round((Number(totalPrice || 0) + Number.EPSILON) * 100) / 100);
+  const settings = await Settings.find({
+    key: {
+      $in: [
+        'loyalty_earning_points_per_euro',
+        'loyalty_redemption_points_per_euro',
+        'loyalty_balance_points_per_euro',
+      ],
+    },
+  })
+    .lean()
+    .catch(() => []);
+
+  const map = new Map((Array.isArray(settings) ? settings : []).map((setting: any) => [String(setting.key), String(setting.value)]));
+
   return {
-    points: calculateLoyaltyPoints(basedOnTotal),
-    basedOnTotal,
-    pointsPerCurrencyUnit: readEarningPointsPerEuro(),
+    earningPointsPerEuro: sanitizePositiveNumber(map.get('loyalty_earning_points_per_euro'), readEarningPointsPerEuro()),
+    redemptionPointsPerEuro: sanitizePositiveNumber(map.get('loyalty_redemption_points_per_euro'), readRedemptionPointsPerEuro()),
+    balancePointsPerEuro: sanitizePositiveNumber(map.get('loyalty_balance_points_per_euro'), readBalancePointsPerEuro()),
   };
 }
 
-export function calculateLoyaltyDiscount(pointsToRedeem: number) {
+export function getLoyaltyRedemptionRate(config?: Partial<LoyaltyConfig>) {
+  return sanitizePositiveNumber(config?.redemptionPointsPerEuro, readRedemptionPointsPerEuro());
+}
+
+export function getLoyaltyEarningRate(config?: Partial<LoyaltyConfig>) {
+  return sanitizePositiveNumber(config?.earningPointsPerEuro, readEarningPointsPerEuro());
+}
+
+export function getLoyaltyBalanceRate(config?: Partial<LoyaltyConfig>) {
+  return sanitizePositiveNumber(config?.balancePointsPerEuro, readBalancePointsPerEuro());
+}
+
+export function calculateLoyaltyPoints(totalPrice: number, config?: Partial<LoyaltyConfig>) {
+  const normalizedTotal = Number(totalPrice || 0);
+  if (!Number.isFinite(normalizedTotal) || normalizedTotal <= 0) return 0;
+  return Math.max(0, Math.floor(normalizedTotal * getLoyaltyEarningRate(config)));
+}
+
+export function getLoyaltyEarningPreview(totalPrice: number, config?: Partial<LoyaltyConfig>) {
+  const basedOnTotal = Math.max(0, Math.round((Number(totalPrice || 0) + Number.EPSILON) * 100) / 100);
+  return {
+    points: calculateLoyaltyPoints(basedOnTotal, config),
+    basedOnTotal,
+    pointsPerCurrencyUnit: getLoyaltyEarningRate(config),
+  };
+}
+
+export function calculateLoyaltyDiscount(pointsToRedeem: number, config?: Partial<LoyaltyConfig>) {
   const safePoints = Math.max(0, Math.floor(Number(pointsToRedeem || 0)));
   if (!safePoints) return 0;
-  return Math.round(((safePoints / getLoyaltyRedemptionRate()) + Number.EPSILON) * 100) / 100;
+  return Math.round(((safePoints / getLoyaltyRedemptionRate(config)) + Number.EPSILON) * 100) / 100;
+}
+
+export function calculateBalanceFromLoyaltyPoints(pointsToConvert: number, config?: Partial<LoyaltyConfig>) {
+  const safePoints = Math.max(0, Math.floor(Number(pointsToConvert || 0)));
+  if (!safePoints) return 0;
+  return Math.round(((safePoints / getLoyaltyBalanceRate(config)) + Number.EPSILON) * 100) / 100;
 }
 
 export function getLoyaltyTier(points: number) {
@@ -55,6 +107,7 @@ export function getLoyaltyTier(points: number) {
 
 export async function applyOrderLoyalty(orderId: string) {
   await dbConnect();
+  const loyaltyConfig = await getLoyaltyConfig();
 
   const order = await ShopOrder.findById(orderId);
   if (!order) return { ok: false, reason: 'ORDER_NOT_FOUND' as const };
@@ -63,7 +116,7 @@ export async function applyOrderLoyalty(orderId: string) {
   const userId = String((order as any).userId || '').trim();
   if (!userId) return { ok: true, skipped: 'NO_USER' as const, points: 0 };
 
-  const points = calculateLoyaltyPoints(Number((order as any).totalPrice || 0));
+  const points = calculateLoyaltyPoints(Number((order as any).totalPrice || 0), loyaltyConfig);
   const appliedAt = new Date();
 
   const lock = await ShopOrder.updateOne(

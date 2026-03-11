@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { isLicenseBypassPath, validateLicense } from '@/lib/license';
 
 let maintenanceCache:
   | {
@@ -21,36 +20,6 @@ export async function middleware(request: NextRequest) {
 
   if (!isApiRoute && /\.[a-zA-Z0-9]+$/.test(pathname)) {
     return NextResponse.next();
-  }
-
-  if (!isLicenseBypassPath(pathname)) {
-    const license = await validateLicense({
-      origin: request.nextUrl.origin,
-      host: request.nextUrl.host,
-      pathname,
-      userAgent: request.headers.get('user-agent') || '',
-    });
-
-    if (!license.ok) {
-      if (isApiRoute) {
-        return NextResponse.json(
-          {
-            error: 'LICENSE_INVALID',
-            status: license.status,
-            reason: license.reason,
-            message: license.message,
-          },
-          {
-            status: 403,
-            headers: {
-              'cache-control': 'no-store, max-age=0',
-            },
-          }
-        );
-      }
-
-      return NextResponse.redirect(new URL('/licencia', request.url));
-    }
   }
 
   if (isApiRoute) {

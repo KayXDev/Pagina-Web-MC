@@ -16,6 +16,10 @@ function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function round2(value: number) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+}
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -263,7 +267,7 @@ export async function PATCH(request: Request) {
         if (n === undefined || n === null || !Number.isFinite(n) || n < 0 || n > 1_000_000_000) {
           return NextResponse.json({ error: 'Saldo inválido' }, { status: 400 });
         }
-        sanitizedUpdates.balance = Math.floor(n);
+        sanitizedUpdates.balance = round2(n);
       }
 
       if (typeof sanitizedUpdates.followersCountOverride !== 'undefined') {

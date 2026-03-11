@@ -75,9 +75,9 @@ export default function LanguageSwitcher({ className = '' }: { className?: strin
         aria-label={t(lang, 'lang.label')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-[color,background-color,border-color,transform] duration-200 hover:scale-[1.08] hover:-translate-y-0.5"
+        className="group relative h-10 w-10 inline-flex items-center justify-center leading-none rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-[color,background-color,border-color,transform] duration-200 hover:scale-[1.08] hover:-translate-y-0.5"
       >
-        <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+        <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
         <FaGlobe aria-hidden="true" size={18} className="relative transition-transform duration-200 group-hover:rotate-12" />
       </button>
 

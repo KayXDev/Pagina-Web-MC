@@ -15,6 +15,7 @@ const schema = z.object({
   productId: z.string().min(1).optional(),
   couponCode: z.string().max(40).optional(),
   loyaltyPointsToRedeem: z.number().int().min(0).optional(),
+  useBalance: z.boolean().optional(),
   gift: z
     .object({
       recipientUsername: z.string().max(40).optional(),
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
         couponCode: parsed.data.couponCode,
         buyerUserId: user?.id || '',
         loyaltyPointsToRedeem: parsed.data.loyaltyPointsToRedeem || 0,
+        useBalance: parsed.data.useBalance ?? false,
       });
     } catch (err: any) {
       const msg = String(err?.message || 'Error');
@@ -129,6 +131,7 @@ export async function POST(request: Request) {
         referralRewardAmount: pricing.referral?.rewardAmount || 0,
         loyaltyPointsUsed: pricing.loyalty?.pointsUsed || 0,
         loyaltyDiscountAmount: pricing.loyalty?.discountAmount || 0,
+        balanceUsedAmount: pricing.storeBalance?.appliedBalance || 0,
         currency: String(process.env.SHOP_CURRENCY || 'EUR').toUpperCase(),
         status: 'PAID',
         provider: 'MANUAL',
@@ -188,6 +191,7 @@ export async function POST(request: Request) {
       referralRewardAmount: pricing.referral?.rewardAmount || 0,
       loyaltyPointsUsed: pricing.loyalty?.pointsUsed || 0,
       loyaltyDiscountAmount: pricing.loyalty?.discountAmount || 0,
+      balanceUsedAmount: pricing.storeBalance?.appliedBalance || 0,
       currency: String(process.env.SHOP_CURRENCY || 'EUR').toUpperCase(),
       status: 'PENDING',
       provider: 'STRIPE',
@@ -212,18 +216,43 @@ export async function POST(request: Request) {
       }
     }
 
+    const hasAdjustedTotal = Math.abs(Math.round(Number(pricing.subtotal || 0) * 100) - Math.round(Number(pricing.totalPrice || 0) * 100)) > 0;
+    const summaryLabel = orderItems
+      .slice(0, 3)
+      .map((item) => {
+        const qty = Math.max(1, Number(item.quantity || 1));
+        return qty > 1 ? `${item.productName} x${qty}` : item.productName;
+      })
+      .join(', ');
+
+    const lineItems = hasAdjustedTotal
+      ? [
+          {
+            quantity: 1,
+            price_data: {
+              currency,
+              unit_amount: toStripeAmount(totalPrice),
+              product_data: {
+                name: String(process.env.SITE_NAME || 'Shop') + ' - Order total',
+                description: summaryLabel || 'Order total after discounts and balance',
+              },
+            },
+          },
+        ]
+      : orderItems.map((it) => ({
+          quantity: it.quantity,
+          price_data: {
+            currency,
+            unit_amount: toStripeAmount(it.unitPrice),
+            product_data: {
+              name: it.productName || 'Producto',
+            },
+          },
+        }));
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: orderItems.map((it) => ({
-        quantity: it.quantity,
-        price_data: {
-          currency,
-          unit_amount: toStripeAmount(it.unitPrice),
-          product_data: {
-            name: it.productName || 'Producto',
-          },
-        },
-      })),
+      line_items: lineItems,
       client_reference_id: String(order._id),
       metadata: {
         orderId: String(order._id),

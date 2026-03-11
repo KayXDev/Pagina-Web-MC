@@ -35,6 +35,12 @@ export const productSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   description: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
   price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
+  salePrice: z.number().min(0, 'El precio de oferta debe ser mayor o igual a 0').optional(),
+  compareAtPrice: z.number().min(0, 'El precio de referencia debe ser mayor o igual a 0').optional(),
+  saleStartsAt: z.string().optional().or(z.literal('')),
+  saleEndsAt: z.string().optional().or(z.literal('')),
+  offerLabel: z.string().max(60, 'La etiqueta de oferta es demasiado larga').optional().or(z.literal('')),
+  bonusBalanceAmount: z.number().min(0, 'El bonus debe ser mayor o igual a 0').optional(),
   category: z.enum(['RANK', 'BUNDLES', 'CURRENCY', 'KEYS', 'SPECIAL']),
   features: z.array(z.string()),
   image: z.string().optional(),
@@ -42,6 +48,14 @@ export const productSchema = z.object({
   stock: z.number().optional(),
   isUnlimited: z.boolean(),
   isActive: z.boolean(),
+}).refine((data) => {
+  if (typeof data.salePrice === 'number' && data.salePrice > 0) {
+    return data.salePrice < data.price;
+  }
+  return true;
+}, {
+  message: 'El precio de oferta debe ser menor que el precio base',
+  path: ['salePrice'],
 });
 
 export const blogPostSchema = z.object({

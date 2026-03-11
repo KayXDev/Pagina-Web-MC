@@ -14,7 +14,6 @@ import {
   FaCog,
   FaSyncAlt,
   FaExclamationTriangle,
-  FaKey,
 } from 'react-icons/fa';
 import { Card, Badge, Button } from '@/components/ui';
 import { toast } from 'react-toastify';
@@ -339,31 +338,10 @@ export default function AdminDashboard() {
               <FaHistory />
               <span>{t(lang, 'admin.dashboard.goLogs')}</span>
             </Button>
-            <Button variant="secondary" onClick={() => router.push('/admin/licencia')} className="justify-start sm:col-span-2">
-              <FaKey />
-              <span>{lang === 'es' ? 'Abrir panel de licencia del proyecto' : 'Open project license panel'}</span>
-            </Button>
           </div>
 
           <div className="mt-6">
             <div className="h-px bg-gray-200 dark:bg-white/10 mb-4" />
-
-            <div className="mb-4 rounded-xl border border-gray-200 bg-gradient-to-r from-minecraft-diamond/10 to-transparent p-4 dark:border-white/10 dark:bg-gradient-to-r dark:from-white/10 dark:to-transparent">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <FaKey className="text-minecraft-diamond" />
-                    <span>{lang === 'es' ? 'Panel de licencia del proyecto' : 'Project license panel'}</span>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    {lang === 'es'
-                      ? 'Ahora esta vista vive solo en admin y sirve para controlar la validez y el tiempo restante de la licencia que protege el proyecto.'
-                      : 'This view now lives only in admin and is used to monitor validity and remaining time for the project license.'}
-                  </p>
-                </div>
-                <Badge variant="info">/admin/licencia</Badge>
-              </div>
-            </div>
 
             <div className="mb-4">
               <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{t(lang, 'admin.menu.tickets')}</div>

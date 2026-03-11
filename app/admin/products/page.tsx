@@ -15,6 +15,12 @@ interface Product {
   name: string;
   description: string;
   price: number;
+  salePrice?: number;
+  compareAtPrice?: number;
+  saleStartsAt?: string;
+  saleEndsAt?: string;
+  offerLabel?: string;
+  bonusBalanceAmount?: number;
   category: string;
   features: string[];
   image?: string;
@@ -36,6 +42,12 @@ export default function AdminProductsPage() {
     name: '',
     description: '',
     price: '',
+    salePrice: '',
+    compareAtPrice: '',
+    saleStartsAt: '',
+    saleEndsAt: '',
+    offerLabel: '',
+    bonusBalanceAmount: '',
     category: 'RANK',
     features: [''],
     image: '',
@@ -85,6 +97,9 @@ export default function AdminProductsPage() {
       const payload = {
         ...formData,
         price: priceValue,
+        salePrice: String((formData as any).salePrice || '').trim() ? Number(String((formData as any).salePrice).replace(',', '.')) : undefined,
+        compareAtPrice: String((formData as any).compareAtPrice || '').trim() ? Number(String((formData as any).compareAtPrice).replace(',', '.')) : undefined,
+        bonusBalanceAmount: String((formData as any).bonusBalanceAmount || '').trim() ? Number(String((formData as any).bonusBalanceAmount).replace(',', '.')) : 0,
         deliveryCommands,
       };
 
@@ -120,6 +135,12 @@ export default function AdminProductsPage() {
       name: product.name,
       description: product.description,
       price: String(product.price ?? ''),
+      salePrice: typeof product.salePrice === 'number' ? String(product.salePrice) : '',
+      compareAtPrice: typeof product.compareAtPrice === 'number' ? String(product.compareAtPrice) : '',
+      saleStartsAt: product.saleStartsAt ? String(product.saleStartsAt).slice(0, 16) : '',
+      saleEndsAt: product.saleEndsAt ? String(product.saleEndsAt).slice(0, 16) : '',
+      offerLabel: String(product.offerLabel || ''),
+      bonusBalanceAmount: typeof product.bonusBalanceAmount === 'number' && product.bonusBalanceAmount > 0 ? String(product.bonusBalanceAmount) : '',
       category: product.category,
       features: product.features.length > 0 ? product.features : [''],
       image: String(product.image || ''),
@@ -153,6 +174,12 @@ export default function AdminProductsPage() {
       name: '',
       description: '',
       price: '',
+      salePrice: '',
+      compareAtPrice: '',
+      saleStartsAt: '',
+      saleEndsAt: '',
+      offerLabel: '',
+      bonusBalanceAmount: '',
       category: 'RANK',
       features: [''],
       image: '',
@@ -223,6 +250,17 @@ export default function AdminProductsPage() {
     }
   };
 
+  const isOfferActive = (product: Product) => {
+    const salePrice = Number(product.salePrice || 0);
+    if (!(salePrice > 0 && salePrice < Number(product.price || 0))) return false;
+    const now = Date.now();
+    const startsAt = product.saleStartsAt ? new Date(product.saleStartsAt).getTime() : 0;
+    const endsAt = product.saleEndsAt ? new Date(product.saleEndsAt).getTime() : 0;
+    if (startsAt && startsAt > now) return false;
+    if (endsAt && endsAt <= now) return false;
+    return true;
+  };
+
   return (
     <div className="space-y-6">
       <Card className="rounded-2xl dark:border-white/10 dark:bg-gray-950/25" hover={false}>
@@ -287,6 +325,105 @@ export default function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     required
                   />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Oferta limitada' : 'Limited offer'}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {lang === 'es' ? 'Configura precio rebajado, contador y etiqueta promocional.' : 'Set a discounted price, countdown, and promo label.'}
+                    </div>
+                  </div>
+                  <Badge variant="warning">{lang === 'es' ? 'Flash sale' : 'Flash sale'}</Badge>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Precio de oferta' : 'Sale price'}
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={(formData as any).salePrice}
+                      onChange={(e) => setFormData({ ...(formData as any), salePrice: e.target.value })}
+                      placeholder="4.99"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Precio de referencia' : 'Reference price'}
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={(formData as any).compareAtPrice}
+                      onChange={(e) => setFormData({ ...(formData as any), compareAtPrice: e.target.value })}
+                      placeholder="7.99"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Inicio de oferta' : 'Sale starts'}
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={(formData as any).saleStartsAt}
+                      onChange={(e) => setFormData({ ...(formData as any), saleStartsAt: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Fin de oferta' : 'Sale ends'}
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={(formData as any).saleEndsAt}
+                      onChange={(e) => setFormData({ ...(formData as any), saleEndsAt: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Etiqueta promocional' : 'Promo label'}
+                    </label>
+                    <Input
+                      value={(formData as any).offerLabel}
+                      onChange={(e) => setFormData({ ...(formData as any), offerLabel: e.target.value })}
+                      placeholder={lang === 'es' ? 'Ej: Oferta de fin de semana' : 'e.g. Weekend drop'}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/5">
+                <div className="mb-4">
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Bonus por recarga' : 'Top-up bonus'}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    {lang === 'es' ? 'Añade saldo extra al usuario cuando este producto se pague.' : 'Grant extra store balance when this product is paid.'}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'es' ? 'Saldo extra (€)' : 'Extra balance (€)'}
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={(formData as any).bonusBalanceAmount}
+                      onChange={(e) => setFormData({ ...(formData as any), bonusBalanceAmount: e.target.value })}
+                      placeholder="2.00"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -521,6 +658,7 @@ export default function AdminProductsPage() {
                       <Badge variant={product.isActive ? 'success' : 'default'}>
                         {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
                       </Badge>
+                      {isOfferActive(product) ? <Badge variant="warning">{product.offerLabel || (lang === 'es' ? 'Oferta activa' : 'Live offer')}</Badge> : null}
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">{product.description}</p>
                   </div>
@@ -535,7 +673,11 @@ export default function AdminProductsPage() {
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-lg font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
+                    {isOfferActive(product) && typeof product.salePrice === 'number' ? (
+                      <span className="text-sm font-semibold text-red-500">{formatPrice(product.salePrice)}</span>
+                    ) : null}
                     <Badge variant="info">{getCategoryLabel(product.category)}</Badge>
+                    {Number(product.bonusBalanceAmount || 0) > 0 ? <Badge variant="success">+{formatPrice(Number(product.bonusBalanceAmount || 0))}</Badge> : null}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
                     {product.isUnlimited ? t(lang, 'admin.products.unlimitedStock') : `${t(lang, 'admin.products.form.stock')}: ${product.stock ?? 0}`}
@@ -597,7 +739,7 @@ export default function AdminProductsPage() {
 
                           <div className="min-w-0">
                             <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[420px]">{product.name}</div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[520px]">{product.description}</div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[520px]">{product.description}</div>
                           </div>
                         </div>
                       </td>
@@ -607,7 +749,12 @@ export default function AdminProductsPage() {
                       </td>
 
                       <td className="px-4 py-3">
-                        <span className="font-semibold text-minecraft-gold">{formatPrice(product.price)}</span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-minecraft-gold">{formatPrice(product.price)}</span>
+                          {isOfferActive(product) && typeof product.salePrice === 'number' ? (
+                            <span className="text-xs font-semibold text-red-500">{formatPrice(product.salePrice)}</span>
+                          ) : null}
+                        </div>
                       </td>
 
                       <td className="px-4 py-3">
@@ -617,9 +764,13 @@ export default function AdminProductsPage() {
                       </td>
 
                       <td className="px-4 py-3">
-                        <Badge variant={product.isActive ? 'success' : 'default'}>
-                          {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={product.isActive ? 'success' : 'default'}>
+                            {product.isActive ? t(lang, 'admin.products.active') : t(lang, 'admin.products.inactive')}
+                          </Badge>
+                          {isOfferActive(product) ? <Badge variant="warning">{lang === 'es' ? 'Oferta' : 'Offer'}</Badge> : null}
+                          {Number(product.bonusBalanceAmount || 0) > 0 ? <Badge variant="success">+{formatPrice(Number(product.bonusBalanceAmount || 0))}</Badge> : null}
+                        </div>
                       </td>
 
                       <td className="px-4 py-3">

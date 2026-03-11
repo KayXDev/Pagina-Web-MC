@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import dbConnect from '@/lib/mongodb';
 import PartnerAd from '@/models/PartnerAd';
+import { getDefaultPartnerPublicMetrics, getPartnerPublicMetricsMap } from '@/lib/partnerPublicMetrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,8 @@ export async function GET(request: Request) {
       .select('serverName ownerUsername address version description website discord banner createdAt')
       .lean();
 
+    const metricsMap = await getPartnerPublicMetricsMap((rows as any[]).map((row: any) => String(row?._id || '')));
+
     const items = (rows as any[]).map((a) => ({
       _id: String(a._id),
       serverName: String(a.serverName || ''),
@@ -77,6 +80,7 @@ export async function GET(request: Request) {
       discord: String(a.discord || ''),
       banner: String(a.banner || ''),
       createdAt: a.createdAt,
+      publicMetrics: metricsMap.get(String(a._id)) || getDefaultPartnerPublicMetrics(),
     }));
 
     const nextCursor = items.length ? makeCursor((rows as any[])[items.length - 1].createdAt, (rows as any[])[items.length - 1]._id) : '';

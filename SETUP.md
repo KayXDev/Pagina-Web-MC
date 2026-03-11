@@ -6,13 +6,11 @@
 
 <p align="center">
 	Complete setup guide for local development, production deployment, environment variables,
-	uploads, email, payments, cron jobs and the required KayX license flow.
+	uploads, email, payments, cron jobs and deployment basics.
 </p>
 
 <p align="center">
 	<a href="README.md"><strong>README</strong></a>
-	·
-	<a href="docs/license-system.md"><strong>License Docs</strong></a>
 	·
 	<a href="TROUBLESHOOTING.md"><strong>Troubleshooting</strong></a>
 	·
@@ -22,7 +20,6 @@
 <p align="center">
 	<img alt="Local setup" src="https://img.shields.io/badge/Setup-Local%20%2B%20Production-2563eb" />
 	<img alt="MongoDB" src="https://img.shields.io/badge/Database-MongoDB-16a34a" />
-	<img alt="License" src="https://img.shields.io/badge/License-KayX%20Required-dc2626" />
 	<img alt="Deploy" src="https://img.shields.io/badge/Deploy-Vercel-black" />
 </p>
 
@@ -52,7 +49,6 @@ Make sure you already have:
 - Node.js **18.17+** (Node 20+ recommended)
 - npm
 - MongoDB Atlas or another reachable MongoDB instance
-- A valid **KayX License** configuration
 
 Recommended production services:
 
@@ -90,8 +86,6 @@ At minimum, configure:
 MONGODB_URI=
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=
-KAYX_LICENSE_KEY=
-KAYX_PRODUCT_ID=minecraft-server-web
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change-me
 ```
@@ -112,12 +106,6 @@ npm run dev
 
 Open: `http://localhost:3000`
 
-> [!IMPORTANT]
-> The app validates the license before development startup finishes.
-> If the license is invalid or incomplete, the site will not boot.
-
----
-
 ## 🔧 Core environment variables
 
 The full reference lives in `.env.example`. These are the ones you will use first.
@@ -129,13 +117,8 @@ The full reference lives in `.env.example`. These are the ones you will use firs
 | `NEXTAUTH_SECRET` | ✅ | Secret for NextAuth sessions/JWT |
 | `ADMIN_EMAIL` | ✅ | Initial seeded admin email |
 | `ADMIN_PASSWORD` | ✅ | Initial seeded admin password |
-| `KAYX_LICENSE_KEY` | ✅ | Buyer license key |
-| `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID from the license panel |
 | `SITE_NAME` | Recommended | Brand name across SEO and emails |
 | `SITE_URL` | Recommended | Final site URL for SEO, links and emails |
-
-Internal fixed license settings live in [lib/license-defaults.mjs](lib/license-defaults.mjs).
-The operational license monitor is available at `/admin/licencia` for admins.
 
 ---
 
@@ -212,21 +195,18 @@ Recommended target: **Vercel**
 2. Set `NEXTAUTH_URL` and `SITE_URL` to the real domain.
 3. Ensure MongoDB Atlas allows the deployment environment.
 4. Configure a persistent upload provider.
-5. Make sure the KayX license API is reachable from production.
-6. Redeploy after any environment-variable change.
+5. Redeploy after any environment-variable change.
 
 ### Vercel notes
 
 - `npm run build` is used for the build.
-- `npm start` runs through `scripts/start.mjs`, so the production server validates the license before booting.
 - Local filesystem uploads are not safe on Vercel because the filesystem is ephemeral.
 - Preview and Production environments may have different env values, so verify both when debugging.
 
 ### Self-hosted notes
 
 - Local filesystem uploads can work if storage is persistent.
-- If the website and the license API are on different machines, do **not** use `localhost` for the license endpoint.
-- Check firewall, reverse proxy, port exposure, and TLS if production cannot reach the license service.
+- Check firewall, reverse proxy, port exposure, and TLS if production cannot reach external services.
 
 ---
 
@@ -350,11 +330,10 @@ Before considering setup complete, verify:
 1. The app starts with `npm run dev`
 2. Login works
 3. Admin access works
-4. License validation works
-5. Uploads work with the configured provider
-6. Password reset emails send correctly
-7. Payments use the correct environment
-8. `sitemap.xml` and `robots.txt` respond correctly
+4. Uploads work with the configured provider
+5. Password reset emails send correctly
+6. Payments use the correct environment
+7. `sitemap.xml` and `robots.txt` respond correctly
 
 Recommended commands:
 

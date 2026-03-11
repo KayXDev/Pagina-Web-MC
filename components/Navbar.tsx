@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -13,9 +12,10 @@ import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { formatPrice } from '@/lib/utils';
 import { 
-  FaHome, 
+  FaHome,
   FaAward,
   FaArrowRight,
+  FaCoins,
   FaShoppingCart, 
   FaBook, 
   FaNewspaper, 
@@ -28,6 +28,8 @@ import {
   FaSignOutAlt, 
   FaSignInAlt, 
   FaBars, 
+  FaChevronLeft,
+  FaChevronRight,
   FaTimes,
   FaCog,
   FaTrash,
@@ -47,6 +49,8 @@ const Navbar = () => {
     loyaltyPoints: number;
     loyaltyLifetimePoints: number;
     loyaltyTier: string;
+    balance: number;
+    balancePointsPerEuro: number;
     loyaltyLastEarnedAt?: string | null;
     recentLoyaltyEvents: LoyaltyPreviewEvent[];
   };
@@ -65,6 +69,10 @@ const Navbar = () => {
   const [loyaltySummary, setLoyaltySummary] = useState<LoyaltyPreview | null>(null);
   const [loyaltyOpenDesktop, setLoyaltyOpenDesktop] = useState(false);
   const [loyaltyOpenMobile, setLoyaltyOpenMobile] = useState(false);
+  const [loyaltyPointsToConvert, setLoyaltyPointsToConvert] = useState(0);
+  const [convertingLoyalty, setConvertingLoyalty] = useState(false);
+  const [useStoreBalance, setUseStoreBalance] = useState(false);
+  const [desktopUserTrayOpen, setDesktopUserTrayOpen] = useState(false);
   const [desktopNavIndicatorVisible, setDesktopNavIndicatorVisible] = useState(false);
   const [desktopNavMorph, setDesktopNavMorph] = useState({
     scaleX: 1,
@@ -81,6 +89,7 @@ const Navbar = () => {
   const desktopNavLastRectRef = useRef<{ x: number; width: number } | null>(null);
   const notifOpenDesktopRef = useRef(false);
   const notifOpenMobileRef = useRef(false);
+  const desktopUserTrayRef = useRef<HTMLDivElement | null>(null);
   const notifStreamRef = useRef<EventSource | null>(null);
   const desktopNavIndicatorX = useMotionValue(0);
   const desktopNavIndicatorWidth = useMotionValue(0);
@@ -106,6 +115,21 @@ const Navbar = () => {
   const cartRef = useRef<HTMLDivElement | null>(null);
   const cartMobileRef = useRef<HTMLDivElement | null>(null);
   const mobileDrawerPanelRef = useRef<HTMLDivElement | null>(null);
+  const storeBalancePreferenceKey = 'shop.useStoreBalance';
+  const sessionAvatar = String((session?.user as any)?.avatar || '').trim();
+  const isHomePage = pathname === '/';
+
+  const syncStoreBalancePreference = useCallback((next: boolean) => {
+    setUseStoreBalance(next);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(storeBalancePreferenceKey, next ? 'true' : 'false');
+      } catch {
+        // ignore
+      }
+      window.dispatchEvent(new CustomEvent('shop-balance-preference-updated', { detail: { useStoreBalance: next } }));
+    }
+  }, []);
 
   const resetDesktopNavMorph = useCallback(() => {
     if (desktopNavMorphTimeoutRef.current) {
@@ -174,6 +198,13 @@ const Navbar = () => {
 
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== 'undefined') {
+      try {
+        setUseStoreBalance(window.localStorage.getItem(storeBalancePreferenceKey) === 'true');
+      } catch {
+        setUseStoreBalance(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -195,6 +226,12 @@ const Navbar = () => {
   }, [notifOpenMobile]);
 
   useEffect(() => {
+    if (!session) {
+      setDesktopUserTrayOpen(false);
+    }
+  }, [session]);
+
+  useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
       if (notifOpenDesktop) {
         const el = notifRef.current;
@@ -203,6 +240,12 @@ const Navbar = () => {
       if (loyaltyOpenDesktop) {
         const el = loyaltyRef.current;
         if (el && e.target instanceof Node && !el.contains(e.target)) setLoyaltyOpenDesktop(false);
+      }
+      if (desktopUserTrayOpen) {
+        const el = desktopUserTrayRef.current;
+        if (el && e.target instanceof Node && !el.contains(e.target)) {
+          setDesktopUserTrayOpen(false);
+        }
       }
       if (cartOpenDesktop) {
         const el = cartRef.current;
@@ -230,6 +273,7 @@ const Navbar = () => {
       setNotifOpenMobile(false);
       setLoyaltyOpenDesktop(false);
       setLoyaltyOpenMobile(false);
+      setDesktopUserTrayOpen(false);
       setIsOpen(false);
     };
 
@@ -239,7 +283,7 @@ const Navbar = () => {
       document.removeEventListener('mousedown', onDocMouseDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [notifOpenDesktop, loyaltyOpenDesktop, cartOpenDesktop, cartOpenMobile, isOpen]);
+  }, [notifOpenDesktop, loyaltyOpenDesktop, cartOpenDesktop, cartOpenMobile, desktopUserTrayOpen, isOpen]);
 
   const localCartKey = 'shop.cart.items';
 
@@ -380,6 +424,8 @@ const Navbar = () => {
           loyaltyPoints: Math.max(0, Math.floor(Number((data as any).loyaltyPoints || 0))),
           loyaltyLifetimePoints: Math.max(0, Math.floor(Number((data as any).loyaltyLifetimePoints || 0))),
           loyaltyTier: String((data as any).loyaltyTier || 'Bronze'),
+          balance: Math.max(0, Number((data as any).balance || 0)),
+          balancePointsPerEuro: Math.max(1, Math.floor(Number((data as any).loyaltyConfig?.balancePointsPerEuro || 100))),
           loyaltyLastEarnedAt: ((data as any).loyaltyLastEarnedAt as string | null) || null,
           recentLoyaltyEvents: Array.isArray((data as any).recentLoyaltyEvents)
             ? ((data as any).recentLoyaltyEvents as LoyaltyPreviewEvent[])
@@ -396,6 +442,42 @@ const Navbar = () => {
   const loyaltyPointsLabel = loyaltySummary === null
     ? null
     : `${new Intl.NumberFormat(lang === 'es' ? 'es-ES' : 'en-US').format(loyaltySummary.loyaltyPoints)} pts`;
+
+  const convertLoyaltyToBalance = async () => {
+    if (!session?.user || !loyaltySummary) return;
+
+    const points = Math.max(1, Math.min(loyaltySummary.loyaltyPoints, Math.floor(Number(loyaltyPointsToConvert || 0))));
+    if (!Number.isFinite(points) || points <= 0) return;
+
+    setConvertingLoyalty(true);
+    try {
+      const res = await fetch('/api/shop/loyalty/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+
+      setLoyaltySummary((prev) =>
+        prev
+          ? {
+              ...prev,
+              loyaltyPoints: Math.max(0, Math.floor(Number((data as any).loyaltyPoints || 0))),
+              balance: Math.max(0, Number((data as any).balance || 0)),
+            }
+          : prev
+      );
+      setLoyaltyPointsToConvert(0);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shop-balance-updated', { detail: data }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setConvertingLoyalty(false);
+    }
+  };
 
   const loyaltyTierProgress = useMemo(() => {
     const lifetimePoints = Math.max(0, Math.floor(Number(loyaltySummary?.loyaltyLifetimePoints || 0)));
@@ -446,8 +528,8 @@ const Navbar = () => {
     : [];
 
   const loyaltyPanel = (
-    <div className="rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md shadow-2xl overflow-hidden">
-      <div className="border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-minecraft-gold/15 to-transparent px-4 py-4">
+    <div className="max-h-[78vh] overflow-y-auto rounded-2xl border border-gray-200/80 dark:border-white/10 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md shadow-2xl">
+      <div className="border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-minecraft-gold/15 to-transparent px-4 py-3.5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-[0.22em] text-minecraft-gold/80">{lang === 'es' ? 'Loyalty' : 'Loyalty'}</div>
@@ -458,22 +540,32 @@ const Navbar = () => {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-3">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-2.5">
             <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{lang === 'es' ? 'Actuales' : 'Current'}</div>
             <div className="mt-1 text-xl font-black text-gray-900 dark:text-white">{loyaltySummary?.loyaltyPoints ?? 0}</div>
           </div>
-          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-3">
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-2.5">
             <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{lang === 'es' ? 'Histórico' : 'Lifetime'}</div>
             <div className="mt-1 text-xl font-black text-gray-900 dark:text-white">{loyaltySummary?.loyaltyLifetimePoints ?? 0}</div>
           </div>
         </div>
 
-        <div className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+        <div className="mt-2.5 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-2.5">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{lang === 'es' ? 'Saldo tienda' : 'Store balance'}</div>
+          <div className="mt-1 text-xl font-black text-gray-900 dark:text-white">{formatPrice(loyaltySummary?.balance || 0, lang === 'es' ? 'es-ES' : 'en-US')}</div>
+          <div className="mt-1.5 text-xs text-minecraft-gold/90">
+            {lang === 'es'
+              ? `${loyaltySummary?.balancePointsPerEuro || 100} puntos = 1€ de saldo`
+              : `${loyaltySummary?.balancePointsPerEuro || 100} points = €1 of balance`}
+          </div>
+        </div>
+
+        <div className="mt-2.5 text-xs text-gray-600 dark:text-gray-400">
           {lang === 'es' ? 'Último abono' : 'Last reward'}: <span className="font-medium text-gray-800 dark:text-gray-200">{formatDateTime(loyaltySummary?.loyaltyLastEarnedAt)}</span>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-3">
+        <div className="mt-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-2.5">
           <div className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-gray-500">
             <span>{lang === 'es' ? 'Progreso de nivel' : 'Tier progress'}</span>
             <span>{loyaltyTierProgress.currentTier}</span>
@@ -498,7 +590,44 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="px-4 py-4">
+      <div className="px-4 py-3.5">
+        <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/80 dark:bg-white/[0.04] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Convertir puntos en saldo' : 'Convert points into balance'}</div>
+            <FaCoins className="text-minecraft-gold" />
+          </div>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="number"
+              min={0}
+              max={loyaltySummary?.loyaltyPoints || 0}
+              step={1}
+              value={loyaltyPointsToConvert}
+              onChange={(e) => setLoyaltyPointsToConvert(Math.max(0, Math.min(Math.floor(Number(e.target.value || 0)), loyaltySummary?.loyaltyPoints || 0)))}
+              className="ui-input w-full px-4 py-2.5 bg-white/90 border border-gray-300/80 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-minecraft-diamond/60 focus:border-transparent transition-all duration-200 dark:bg-gray-950/30 dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-400"
+              placeholder={lang === 'es' ? 'Puntos a convertir' : 'Points to convert'}
+            />
+            <button
+              type="button"
+              onClick={convertLoyaltyToBalance}
+              disabled={convertingLoyalty || !loyaltyPointsToConvert}
+              className="ui-button ui-button--secondary inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200/80 bg-white/80 px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
+            >
+              {convertingLoyalty ? (lang === 'es' ? 'Convirtiendo...' : 'Converting...') : lang === 'es' ? 'Convertir' : 'Convert'}
+            </button>
+          </div>
+          <label className="mt-2.5 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-black/20 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200">
+            <span>{lang === 'es' ? 'Usar saldo automáticamente en la tienda' : 'Use balance automatically in shop checkout'}</span>
+            <input
+              type="checkbox"
+              checked={useStoreBalance}
+              onChange={(e) => syncStoreBalancePreference(e.target.checked)}
+              disabled={(loyaltySummary?.balance || 0) <= 0}
+              className="h-4 w-4 rounded border-white/20 bg-black/30"
+            />
+          </label>
+        </div>
+
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Últimas ganancias' : 'Latest activity'}</div>
           <Link
@@ -515,7 +644,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <div className="mt-3 space-y-2">
+        <div className="mt-2.5 space-y-2">
           {loyaltyEventsPreview.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 dark:border-white/10 px-3 py-4 text-sm text-gray-600 dark:text-gray-400">
               {lang === 'es' ? 'Todavía no hay movimientos recientes de loyalty.' : 'There is no recent loyalty activity yet.'}
@@ -726,7 +855,7 @@ const Navbar = () => {
                     setNotifOpenMobile(false);
                     setLoyaltyOpenMobile(false);
                   }}
-                  className="flex items-center gap-3 min-w-0"
+                  className="flex items-center gap-2 min-w-0"
                 >
                   <div
                     className={`relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-white/10 ${
@@ -813,9 +942,16 @@ const Navbar = () => {
                           setNotifOpenMobile(false);
                           setLoyaltyOpenMobile(false);
                         }}
-                        className="block rounded-[20px] px-4 py-3 text-base font-medium text-gray-300 border border-white/10 bg-white/[0.03] hover:bg-white/10 flex items-center space-x-3"
+                        className="block rounded-[20px] px-4 py-3 text-base font-medium text-gray-300 border border-white/10 bg-white/[0.03] hover:bg-white/10 flex items-center gap-2"
                       >
-                        <FaUser />
+                        <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full text-gray-200">
+                          {sessionAvatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={sessionAvatar} alt="Avatar" className="h-full w-full object-cover" />
+                          ) : (
+                            <FaUser />
+                          )}
+                        </div>
                         <div className="min-w-0">
                           <div className="truncate text-white">
                             {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
@@ -988,12 +1124,15 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-minecraft-diamond/10 bg-gray-950/78 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.28)]">
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-minecraft-diamond/35 to-transparent" />
+      <nav className={`fixed top-0 left-0 right-0 z-50 overflow-visible ${
+        isHomePage
+          ? 'bg-[linear-gradient(180deg,rgba(64,38,60,0.16),rgba(255,233,244,0.05))] backdrop-blur-md shadow-[0_8px_24px_rgba(20,8,16,0.08)]'
+          : 'bg-gray-950/78 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.28)]'
+      }`}>
         <div className="w-full px-3 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-2 sm:gap-4 lg:gap-6">
           {/* Logo */}
-          <Link href="/" className="flex min-w-0 shrink-0 items-center space-x-2 sm:space-x-3">
+          <Link href="/" className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
             <div
               className={`relative flex h-10 w-10 items-center justify-center overflow-hidden ${
                 brandIconStatus === 'ok' ? 'bg-transparent' : 'bg-minecraft-grass'
@@ -1082,68 +1221,147 @@ const Navbar = () => {
 
           {/* Right Controls (desktop) */}
           <div className="hidden md:flex items-center ml-auto gap-3 shrink-0">
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="flex items-center" ref={desktopUserTrayRef}>
               {session ? (
                 <>
-                  {(session.user.role === 'ADMIN' || session.user.role === 'STAFF' || session.user.role === 'OWNER') && (
-                    <Link
-                      href="/admin"
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-minecraft-diamond/25 bg-minecraft-diamond/10 px-4 text-sm font-semibold text-minecraft-diamond hover:bg-minecraft-diamond/15 transition-colors"
-                    >
-                      <FaCog />
-                      <span>{t(lang, 'user.admin')}</span>
-                    </Link>
-                  )}
-                  <div className="relative" ref={loyaltyRef}>
-                    <div className="flex items-center gap-2 rounded-full px-2 py-1.5 text-gray-200">
-                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-gray-200">
-                        <FaUser className="text-[12px]" />
-                      </div>
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Link href="/perfil" className="truncate text-[13px] font-semibold text-white hover:text-minecraft-diamond transition-colors">
-                          {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
+                  <motion.div
+                    layout
+                    transition={{
+                      layout: { type: 'spring', stiffness: 280, damping: 26, mass: 0.9 },
+                    }}
+                    className="flex flex-row-reverse items-center gap-2 overflow-visible rounded-full border border-white/10 bg-white/[0.035] px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  >
+                    <div className="flex items-center gap-1">
+                      {desktopUserTrayOpen ? (
+                        <Link
+                          href="/perfil"
+                          onClick={() => {
+                            setDesktopUserTrayOpen(false);
+                            setLoyaltyOpenDesktop(false);
+                            setCartOpenDesktop(false);
+                            setNotifOpenDesktop(false);
+                            setNotifOpenMobile(false);
+                          }}
+                          className="inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-white"
+                        >
+                          <span className="text-[13px] font-semibold text-white">
+                            {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
+                          </span>
                         </Link>
+                      ) : (
+                        <span className="px-1 text-[13px] font-semibold text-white">
+                          {String((session.user as any).displayName || '').trim() || String((session.user as any).username || session.user.name || '').trim()}
+                        </span>
+                      )}
 
-                        {loyaltyPointsLabel ? (
-                          <button
-                            onClick={() => {
-                              const next = !loyaltyOpenDesktop;
-                              setLoyaltyOpenDesktop(next);
-                              setCartOpenDesktop(false);
-                              setNotifOpenDesktop(false);
-                              setNotifOpenMobile(false);
-                            }}
-                            className="inline-flex items-center gap-1 rounded-full border border-minecraft-gold/20 bg-minecraft-gold/10 px-2.5 py-[4px] text-[10px] font-semibold text-minecraft-gold hover:border-minecraft-gold/35 hover:bg-minecraft-gold/15 transition-colors"
-                            aria-label={lang === 'es' ? 'Abrir resumen de loyalty' : 'Open loyalty summary'}
-                          >
-                            <FaAward className="text-[9px]" />
-                            <span>{loyaltyPointsLabel}</span>
-                          </button>
-                        ) : null}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !desktopUserTrayOpen;
+                          setDesktopUserTrayOpen(next);
+                          setLoyaltyOpenDesktop(false);
+                          setCartOpenDesktop(false);
+                          setNotifOpenDesktop(false);
+                          setNotifOpenMobile(false);
+                        }}
+                        className="inline-flex h-10 items-center gap-2 rounded-full px-2 text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-white"
+                        aria-label={desktopUserTrayOpen ? 'Collapse user tray' : 'Expand user tray'}
+                        title={desktopUserTrayOpen ? 'Collapse user tray' : 'Expand user tray'}
+                      >
+                        <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full text-gray-200">
+                          {sessionAvatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={sessionAvatar} alt="Avatar" className="h-full w-full object-cover" />
+                          ) : (
+                            <FaUser className="text-[12px]" />
+                          )}
+                        </div>
+                        {desktopUserTrayOpen ? <FaChevronRight className="text-[11px]" /> : <FaChevronLeft className="text-[11px]" />}
+                      </button>
                     </div>
 
-                    <AnimatePresence>
-                      {loyaltyOpenDesktop && (
+                    <AnimatePresence initial={false}>
+                      {desktopUserTrayOpen && (
                         <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 8 }}
-                          className="absolute right-0 mt-2 w-[360px] max-w-[92vw]"
+                          key="desktop-user-tray"
+                          layout
+                          initial={{ width: 0, opacity: 0, x: 12, scale: 0.985 }}
+                          animate={{ width: 'auto', opacity: 1, x: 0, scale: 1 }}
+                          exit={{ width: 0, opacity: 0, x: 12, scale: 0.985 }}
+                          transition={{
+                            layout: { type: 'spring', stiffness: 260, damping: 24, mass: 0.92 },
+                            width: { type: 'spring', stiffness: 240, damping: 24, mass: 0.95 },
+                            x: { type: 'spring', stiffness: 260, damping: 24, mass: 0.9 },
+                            scale: { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
+                            opacity: { duration: 0.18, ease: 'easeOut' },
+                          }}
+                          className="overflow-visible"
                         >
-                          {loyaltyPanel}
+                          <div className="flex items-center gap-1.5 pr-1">
+                            <div className="relative" ref={loyaltyRef}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = !loyaltyOpenDesktop;
+                                  setLoyaltyOpenDesktop(next);
+                                  setCartOpenDesktop(false);
+                                  setNotifOpenDesktop(false);
+                                  setNotifOpenMobile(false);
+                                  if (next) setLoyaltyOpenMobile(false);
+                                }}
+                                className="inline-flex h-10 items-center rounded-full px-2 text-gray-200 transition-colors hover:bg-white/[0.05]"
+                              >
+                                {loyaltyPointsLabel ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-minecraft-gold/20 bg-minecraft-gold/10 px-3 py-[7px] text-[11px] font-semibold text-minecraft-gold">
+                                    <FaAward className="text-[10px]" />
+                                    <span>{loyaltyPointsLabel}</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-[13px] font-semibold text-white">Cuenta</span>
+                                )}
+                              </button>
+
+                              <AnimatePresence>
+                                {loyaltyOpenDesktop && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.985 }}
+                                    transition={{
+                                      y: { type: 'spring', stiffness: 280, damping: 24, mass: 0.85 },
+                                      scale: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+                                      opacity: { duration: 0.18, ease: 'easeOut' },
+                                    }}
+                                    className="absolute right-0 z-[80] mt-2 w-[340px] max-w-[92vw]"
+                                  >
+                                    {loyaltyPanel}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                            {(session.user.role === 'ADMIN' || session.user.role === 'STAFF' || session.user.role === 'OWNER') && (
+                              <Link
+                                href="/admin"
+                                className="inline-flex h-10 items-center gap-2 rounded-full border border-minecraft-diamond/25 bg-minecraft-diamond/10 px-4 text-sm font-semibold text-minecraft-diamond hover:bg-minecraft-diamond/15 transition-colors"
+                              >
+                                <FaCog />
+                                <span>{t(lang, 'user.admin')}</span>
+                              </Link>
+                            )}
+                            <span aria-hidden="true" className="h-6 w-px bg-white/10" />
+                            <button
+                              onClick={() => signOut()}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-red-400 hover:bg-red-500/15 transition-colors"
+                              aria-label={t(lang, 'user.logout')}
+                              title={t(lang, 'user.logout')}
+                            >
+                              <FaSignOutAlt />
+                            </button>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
-                  <button
-                    onClick={() => signOut()}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full text-red-400 hover:bg-red-500/15 transition-colors"
-                    aria-label={t(lang, 'user.logout')}
-                    title={t(lang, 'user.logout')}
-                  >
-                    <FaSignOutAlt />
-                  </button>
+                  </motion.div>
                 </>
               ) : (
                 <Link
@@ -1155,7 +1373,6 @@ const Navbar = () => {
                 </Link>
               )}
             </div>
-
             <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.035] px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
               <div className="relative" ref={cartRef}>
                 <motion.button
@@ -1177,7 +1394,7 @@ const Navbar = () => {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 520, damping: 28, rotate: { duration: 0.45, ease: 'easeInOut' } }}
                 >
-                  <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+                  <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
                   <span className="relative">
                     <FaShoppingCart />
                   </span>
@@ -1284,7 +1501,7 @@ const Navbar = () => {
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 520, damping: 28, x: { duration: 0.35, ease: 'easeInOut' } }}
                   >
-                    <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
+                    <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
                     <span className="relative">
                       <FaBell />
                     </span>
@@ -1370,7 +1587,7 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
               )}
-              <div className="rounded-full hover:bg-white/[0.08] transition-colors">
+              <div className="rounded-full transition-colors">
                 <LanguageSwitcher />
               </div>
             </div>
@@ -1397,7 +1614,7 @@ const Navbar = () => {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 520, damping: 28, rotate: { duration: 0.45, ease: 'easeInOut' } }}
               >
-                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
+                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-grass/10 to-minecraft-diamond/10" />
                 <span className="relative">
                   <FaShoppingCart size={20} />
                 </span>
@@ -1494,7 +1711,7 @@ const Navbar = () => {
                 aria-label={t(lang, 'nav.notifications')}
                 title={t(lang, 'nav.notifications')}
               >
-                <span className="pointer-events-none absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
+                    <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-minecraft-diamond/10 to-minecraft-grass/10" />
                 <span className="relative">
                   <FaBell size={20} />
                 </span>

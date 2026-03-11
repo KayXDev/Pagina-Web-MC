@@ -5,6 +5,12 @@ export interface IProduct {
   name: string;
   description: string;
   price: number;
+  salePrice?: number;
+  compareAtPrice?: number;
+  saleStartsAt?: Date;
+  saleEndsAt?: Date;
+  offerLabel?: string;
+  bonusBalanceAmount?: number;
   category: 'RANK' | 'BUNDLES' | 'CURRENCY' | 'KEYS' | 'SPECIAL';
   image?: string;
   features: string[];
@@ -31,6 +37,32 @@ const ProductSchema = new Schema<IProduct>(
     price: {
       type: Number,
       required: [true, 'Price is required'],
+      min: 0,
+    },
+    salePrice: {
+      type: Number,
+      min: 0,
+    },
+    compareAtPrice: {
+      type: Number,
+      min: 0,
+    },
+    saleStartsAt: {
+      type: Date,
+    },
+    saleEndsAt: {
+      type: Date,
+      index: true,
+    },
+    offerLabel: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 60,
+    },
+    bonusBalanceAmount: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     category: {

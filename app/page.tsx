@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ export default function HomePage() {
   const lang = useClientLang();
   const [staffForm, setStaffForm] = useState({ username: '', discord: '', about: '' });
   const [sendingStaff, setSendingStaff] = useState(false);
+  const [heroScrollOffset, setHeroScrollOffset] = useState(0);
 
   const serverHost = process.env.NEXT_PUBLIC_MINECRAFT_SERVER_IP || 'play.999wrldnetwork.es';
   const serverPort = Number(process.env.NEXT_PUBLIC_MINECRAFT_SERVER_PORT || 25565);
@@ -72,6 +74,16 @@ export default function HomePage() {
     };
 
     loadStaffOpen();
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setHeroScrollOffset(Math.min(window.scrollY * 0.18, 90));
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const submitStaffApplication = async () => {
@@ -157,20 +169,38 @@ export default function HomePage() {
   return (
     <div className="min-h-screen overflow-x-clip">
       {/* Hero Section */}
-      <section className="relative flex min-h-[72vh] items-center justify-center overflow-hidden sm:min-h-[76vh]">
-        <div aria-hidden className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black"></div>
-          <div className="absolute -top-40 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-minecraft-diamond/18 blur-3xl"></div>
-          <div className="absolute -bottom-48 left-1/3 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-minecraft-grass/14 blur-3xl"></div>
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden">
+        <div aria-hidden className="absolute inset-0 z-0 overflow-hidden">
+          <motion.div
+            style={{ y: heroScrollOffset }}
+            className="absolute inset-x-[-4%] -top-32 bottom-[-4%]"
+          >
+            <Image
+              src="/fondo.png"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-top opacity-[0.48] scale-[1.08] saturate-[1.04] brightness-[0.84]"
+            />
+          </motion.div>
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,240,246,0.06),rgba(120,72,116,0.08)_18%,rgba(38,22,38,0.18)_48%,rgba(18,10,18,0.3)_76%,rgba(10,6,12,0.5)_100%)] dark:bg-[linear-gradient(180deg,rgba(255,240,246,0.08),rgba(120,72,116,0.12)_18%,rgba(38,22,38,0.22)_48%,rgba(18,10,18,0.36)_76%,rgba(10,6,12,0.56)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-[#020814] dark:to-[#02050f]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-14 pt-24 text-center sm:px-6 sm:pb-16 lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl items-center px-4 pb-14 pt-24 text-center sm:px-6 sm:pb-16 lg:px-8">
+          <div className="w-full">
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="mb-5 bg-gradient-to-r from-minecraft-grass via-minecraft-diamond to-minecraft-diamond bg-[length:200%_200%] bg-[position:0%_50%] bg-clip-text text-4xl font-bold text-transparent transition-[background-position] duration-700 hover:bg-[position:100%_50%] sm:text-5xl md:text-7xl">
+            <h1
+              className="mb-5 bg-[linear-gradient(90deg,#fde7ee_0%,#f2b9cf_34%,#d58eaf_66%,#fff2f6_100%)] bg-[length:200%_200%] bg-clip-text text-4xl font-bold text-transparent [text-shadow:0_0_24px_rgba(242,185,207,0.18)] sm:text-5xl md:text-7xl"
+              style={{
+                animation: 'home-title-gradient 8s ease-in-out infinite',
+              }}
+            >
               999Wrld Network
             </h1>
             <p className="mx-auto mb-8 max-w-3xl text-base leading-7 text-gray-700 dark:text-gray-300 sm:text-xl md:text-2xl">
@@ -214,6 +244,7 @@ export default function HomePage() {
               </div>
             </div>
           </motion.div>
+          </div>
         </div>
       </section>
 

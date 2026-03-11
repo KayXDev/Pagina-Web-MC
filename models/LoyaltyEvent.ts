@@ -4,7 +4,7 @@ export interface ILoyaltyEvent {
   _id: string;
   userId: string;
   orderId?: string;
-  type: 'ORDER_EARNED' | 'ORDER_REDEEMED' | 'ADMIN_ADJUSTED' | 'ADMIN_SENT';
+  type: 'ORDER_EARNED' | 'ORDER_REDEEMED' | 'ADMIN_ADJUSTED' | 'ADMIN_SENT' | 'POINTS_CONVERTED_TO_BALANCE';
   points: number;
   amountSpent: number;
   currency: string;
@@ -28,7 +28,7 @@ const LoyaltyEventSchema = new Schema<ILoyaltyEvent>(
     },
     type: {
       type: String,
-      enum: ['ORDER_EARNED', 'ORDER_REDEEMED', 'ADMIN_ADJUSTED', 'ADMIN_SENT'],
+      enum: ['ORDER_EARNED', 'ORDER_REDEEMED', 'ADMIN_ADJUSTED', 'ADMIN_SENT', 'POINTS_CONVERTED_TO_BALANCE'],
       default: 'ORDER_EARNED',
     },
     points: {

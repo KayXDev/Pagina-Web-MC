@@ -17,6 +17,14 @@ type ServerStatus = {
   };
 };
 
+type PartnerPublicMetrics = {
+  totalCampaigns: number;
+  totalBookedDays: number;
+  vipCampaigns: number;
+  firstPromotedAt: string | null;
+  lastBookedAt: string | null;
+};
+
 function parseHostPort(address: string): { host: string; port?: number } {
   const trimmed = String(address || '').trim();
 
@@ -45,6 +53,7 @@ type ActiveItem = {
     banner?: string;
     website?: string;
     discord?: string;
+    publicMetrics?: PartnerPublicMetrics;
   };
 };
 
@@ -59,6 +68,7 @@ type BrowseItem = {
   website?: string;
   discord?: string;
   createdAt: string;
+  publicMetrics?: PartnerPublicMetrics;
 };
 
 function getPodiumStyles(slot: number) {
@@ -292,6 +302,26 @@ export default function PartnerPublicPage() {
 
   const dateLocale = getDateLocale(lang);
 
+  const formatMetricsDate = (value?: string | null) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (!Number.isFinite(parsed.getTime())) return null;
+    return new Intl.DateTimeFormat(dateLocale, { month: 'short', year: 'numeric' }).format(parsed);
+  };
+
+  const metricsCopy = (metrics?: PartnerPublicMetrics) => {
+    const totalCampaigns = Number(metrics?.totalCampaigns || 0);
+    const totalBookedDays = Number(metrics?.totalBookedDays || 0);
+    const vipCampaigns = Number(metrics?.vipCampaigns || 0);
+    const since = formatMetricsDate(metrics?.firstPromotedAt);
+    return [
+      lang === 'en' ? `${totalCampaigns} campaigns` : `${totalCampaigns} campañas`,
+      lang === 'en' ? `${totalBookedDays} featured days` : `${totalBookedDays} dias destacados`,
+      vipCampaigns > 0 ? (lang === 'en' ? `VIP x${vipCampaigns}` : `VIP x${vipCampaigns}`) : null,
+      since ? (lang === 'en' ? `Since ${since}` : `Desde ${since}`) : null,
+    ].filter(Boolean) as string[];
+  };
+
   const showRanking = !error && !loading && items.length > 0;
 
   return (
@@ -482,6 +512,19 @@ export default function PartnerPublicPage() {
                             </span>
                           ) : null}
                         </div>
+
+                        {metricsCopy(it.ad.publicMetrics).length ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {metricsCopy(it.ad.publicMetrics).map((label) => (
+                              <span
+                                key={`${it.ad.id}-${label}`}
+                                className="inline-flex rounded-full border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-white/10 dark:text-gray-300"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </Card>
@@ -552,6 +595,19 @@ export default function PartnerPublicPage() {
                             <a href={discord} target="_blank" rel="noreferrer" className="text-sm text-minecraft-grass hover:underline">{t(lang, 'partnerPublic.fields.discord')}</a>
                           ) : null}
                         </div>
+
+                        {metricsCopy(a.publicMetrics).length ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {metricsCopy(a.publicMetrics).map((label) => (
+                              <span
+                                key={`${a._id}-${label}`}
+                                className="inline-flex rounded-full border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-white/10 dark:text-gray-300"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </Card>

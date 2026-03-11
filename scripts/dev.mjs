@@ -2,18 +2,8 @@ import { spawn } from 'child_process';
 import os from 'os';
 import process from 'process';
 import { createRequire } from 'module';
-import { runLicenseStartupCheck } from './license-check.mjs';
 
 const require = createRequire(import.meta.url);
-let licenseCheck = {
-  ok: true,
-  state: 'checking',
-  title: 'Checking license',
-  message: 'License check running in background.',
-  product: process.env.KAYX_PRODUCT_ID || process.env.DRAKO_PRODUCT_ID || 'minecraft-server-web',
-  hwid: process.env.KAYX_HWID || process.env.DRAKO_HWID || os.hostname() || 'unknown-host',
-  url: process.env.KAYX_LICENSE_URL || process.env.DRAKO_LICENSE_URL || '',
-};
 
 const host = process.env.NEXT_DEV_HOST || '127.0.0.1';
 const port = Number.parseInt(process.env.NEXT_DEV_PORT || '3000', 10);
@@ -77,7 +67,7 @@ function prettyUrl(url) {
   return color(url, ansi.green);
 }
 
-function banner({ readyLabel, license } = {}) {
+function banner({ readyLabel } = {}) {
   const title = `${color('999WRLD Network', ansi.bold)} ${color('— Dev Server', ansi.gray)}`;
   const localUrl = `http://${host}:${port}`;
   const netIp = getNetworkIPv4();
@@ -90,20 +80,6 @@ function banner({ readyLabel, license } = {}) {
     `${color('Network: ', ansi.gray)} ${networkUrl ? prettyUrl(networkUrl) : color('N/A', ansi.dim)}`,
     `${color('Env:     ', ansi.gray)} ${color('.env', ansi.yellow)}`,
   ];
-
-  if (license) {
-    lines.push(color('────────────────────────────────', ansi.gray));
-    if (license.state === 'checking') {
-      lines.push(`${color('License: ', ansi.gray)} ${color('CHECKING', ansi.yellow)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
-    } else if (license.ok) {
-      lines.push(`${color('License: ', ansi.gray)} ${color('VALID', ansi.green)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
-      lines.push(`${color('Discord: ', ansi.gray)} ${color(String(license.discordId || 'unknown'), ansi.cyan)}`);
-      lines.push(`${color('HWID:    ', ansi.gray)} ${color(String(license.hwid || 'unknown'), ansi.dim)}`);
-    } else {
-      lines.push(`${color('License: ', ansi.gray)} ${color('INVALID', ansi.red)} ${color(`(${license.product || 'unknown'})`, ansi.dim)}`);
-      lines.push(`${color('Reason:  ', ansi.gray)} ${color(String(license.detail || license.message || 'Validation failed'), ansi.yellow)}`);
-    }
-  }
 
   if (readyLabel) {
     lines.push(color('────────────────────────────────', ansi.gray));
@@ -167,9 +143,9 @@ function drawBoxInPlace(box) {
 // In non-TTY (logs/CI): avoid duplicate blocks; print only the final Ready banner.
 if (isTTY) {
   clearScreen();
-  drawBoxInPlace(banner({ license: licenseCheck }));
+  drawBoxInPlace(banner());
 } else {
-  process.stdout.write(banner({ license: licenseCheck }).text);
+  process.stdout.write(banner().text);
 }
 
 const nextBin = require.resolve('next/dist/bin/next');
@@ -179,37 +155,6 @@ const child = spawn(process.execPath, [nextBin, 'dev', '-H', host, '-p', String(
 });
 
 let seenReady = false;
-
-void runLicenseStartupCheck().then((result) => {
-  licenseCheck = result;
-
-  if (!seenReady) {
-    if (isTTY) {
-      drawBoxInPlace(banner({ license: licenseCheck }));
-    } else {
-      process.stdout.write(banner({ license: licenseCheck }).text);
-    }
-  }
-
-  if (!result.ok) {
-    process.stderr.write(`\n${color(result.title || 'License Authentication failed', ansi.red)}\n`);
-    process.stderr.write(`${color(result.detail || result.message || 'License validation failed', ansi.yellow)}\n`);
-    try {
-      child.kill('SIGTERM');
-    } catch {
-      // ignore
-    }
-    setTimeout(() => process.exit(1), 50);
-  }
-}).catch((error) => {
-  process.stderr.write(`${color(error instanceof Error ? error.message : 'License check failed', ansi.red)}\n`);
-  try {
-    child.kill('SIGTERM');
-  } catch {
-    // ignore
-  }
-  setTimeout(() => process.exit(1), 50);
-});
 
 function pipeStream(stream, write) {
   let buffer = '';
@@ -225,7 +170,7 @@ function pipeStream(stream, write) {
         const readyLabel = parseReadyLabel(line);
         if (readyLabel !== null) {
           seenReady = true;
-          const box = banner({ readyLabel, license: licenseCheck });
+          const box = banner({ readyLabel });
           if (isTTY) {
             drawBoxInPlace(box);
           } else {

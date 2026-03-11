@@ -4,6 +4,7 @@ import ForumPost from '@/models/ForumPost';
 import ForumReply from '@/models/ForumReply';
 import { requireAdmin } from '@/lib/session';
 import User from '@/models/User';
+import { buildForumReputation, getForumReputationMap } from '@/lib/forumReputation';
 
 function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -25,10 +26,21 @@ export async function GET(_request: Request, { params }: { params: { id: string 
           .lean()
       : null;
 
+    const reputationMap = await getForumReputationMap([
+      {
+        id: String((post as any)?.authorId || ''),
+        username: authorUsername,
+      },
+    ]);
+
     return NextResponse.json({
       ...(post as any),
       authorAvatar: typeof (author as any)?.avatar === 'string' ? (author as any).avatar : null,
       authorVerified: Boolean((author as any)?.verified),
+      authorReputation:
+        reputationMap.get(String((post as any)?.authorId || '')) ||
+        reputationMap.get(`u:${authorUsername.toLowerCase()}`) ||
+        buildForumReputation(),
     });
   } catch (error) {
     console.error('Error fetching forum post:', error);

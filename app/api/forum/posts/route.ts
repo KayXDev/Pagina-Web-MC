@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/session';
 import Follow from '@/models/Follow';
 import Notification from '@/models/Notification';
 import User from '@/models/User';
+import { buildForumReputation, getForumReputationMap } from '@/lib/forumReputation';
 
 const ALLOWED_CATEGORIES = new Set(['GENERAL', 'HELP', 'REPORTS', 'TRADES']);
 
@@ -95,6 +96,13 @@ export async function GET(request: Request) {
       });
     }
 
+    const reputationMap = await getForumReputationMap(
+      posts.map((p: any) => ({
+        id: String(p?.authorId || ''),
+        username: String(p?.authorUsername || ''),
+      }))
+    );
+
     const enriched = posts.map((p: any) => {
       const uname = typeof p?.authorUsername === 'string' ? p.authorUsername : '';
       const meta = uname ? authorByUsernameLower.get(uname.toLowerCase()) : undefined;
@@ -103,6 +111,10 @@ export async function GET(request: Request) {
         authorAvatar: meta?.avatar || null,
         authorVerified: Boolean(meta?.verified),
         authorDisplayName: String(meta?.displayName || ''),
+        authorReputation:
+          reputationMap.get(String(p?.authorId || '')) ||
+          reputationMap.get(`u:${String(p?.authorUsername || '').trim().toLowerCase()}`) ||
+          buildForumReputation(),
       };
     });
 

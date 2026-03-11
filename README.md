@@ -14,8 +14,6 @@
 	·
 	<a href="SETUP.md"><strong>Setup</strong></a>
 	·
-	<a href="docs/license-system.md"><strong>License Docs</strong></a>
-	·
 	<a href="TROUBLESHOOTING.md"><strong>Troubleshooting</strong></a>
 	·
 	<a href="CHANGELOG.md"><strong>Changelog</strong></a>
@@ -26,15 +24,12 @@
 	<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue" />
 	<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Mongoose-brightgreen" />
 	<img alt="Auth" src="https://img.shields.io/badge/Auth-NextAuth-orange" />
-	<img alt="License" src="https://img.shields.io/badge/License-Proprietary-informational" />
-	<img alt="Activation" src="https://img.shields.io/badge/Activation-KayX%20License-red" />
 </p>
 
 ---
 
 ## 🧭 Table of Contents
 
-- [🚨 License required to run](#-license-required-to-run)
 - [✨ Highlights](#-highlights)
 - [✨ Features](#-features)
 - [🧱 Stack](#-stack)
@@ -51,40 +46,6 @@
 - [🧯 Troubleshooting](#-troubleshooting)
 - [🔒 Security](#-security)
 - [📝 Changelog](CHANGELOG.md)
-
----
-
-## 🚨 License required to run
-
-<p align="center">
-	<img alt="License required" src="https://img.shields.io/badge/License-Required-red?style=for-the-badge" />
-	<img alt="KayX activation" src="https://img.shields.io/badge/KayX-Activation-blueviolet?style=for-the-badge" />
-	<img alt="Discord support" src="https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
-</p>
-
-> [!IMPORTANT]
-> This project will **not start** without a valid **KayX License**.
-> A license is required in both **development** and **production**, and activation/support is handled through the official **[Discord server](https://discord.gg/wrld999)**.
-
-Required variables:
-
-```env
-KAYX_LICENSE_KEY=YOUR_LICENSE_KEY
-KAYX_PRODUCT_ID=YOUR_PRODUCT_NAME
-```
-
-Internal fixed license settings live in [lib/license-defaults.mjs](lib/license-defaults.mjs).
-
-Full guide:
-
-- [Check **DOCS** right here](docs/license-system.md)
-
-### 🛡️ If the license is missing or invalid
-
-- App startup is blocked
-- The website redirects to the license screen
-- Protected API routes return `403`
-- Users are told to open a Discord ticket [here](https://discord.gg/wrld999)
 
 ---
 
@@ -167,7 +128,7 @@ cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-4) Fill the required `.env` values, including the KayX license settings.
+4) Fill the required `.env` values.
 
 5) Initialize the database (seed + initial admin):
 
@@ -332,13 +293,9 @@ Full reference available in `.env.example`.
 
 | Variable | Required | Purpose |
 |-----------|:--------:|----------|
-| `KAYX_LICENSE_KEY` | ✅ | Buyer license key generated in KayX / Drako |
-| `KAYX_PRODUCT_ID` | ✅ | Exact product name/ID configured in the license panel |
 | `MONGODB_URI` | ✅ | MongoDB connection |
 | `NEXTAUTH_URL` | ✅ | Base URL (local: `http://localhost:3000`) |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth secret |
-
-Runtime license monitoring is available to admins at `/admin/licencia`.
 
 ### Optional
 
@@ -480,12 +437,6 @@ Top file types (by non-empty lines):
 | .example | 1 | 126 | 104 |
 | .env | 1 | 115 | 94 |
 | .json | 4 | 96 | 92 |
-
----
-
-## 📄 License
-
-This project is licensed under a **Proprietary / All Rights Reserved** license. See [LICENSE](LICENSE).
 
 ---
 

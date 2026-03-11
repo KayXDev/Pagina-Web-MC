@@ -30,6 +30,11 @@ type LoyaltyEvent = {
 };
 
 type LoyaltyPayload = {
+  config: {
+    earningPointsPerEuro: number;
+    redemptionPointsPerEuro: number;
+    balancePointsPerEuro: number;
+  };
   summary: {
     totalPoints: number;
     totalLifetimePoints: number;
@@ -50,6 +55,9 @@ export default function AdminLoyaltyPage() {
   const [editPoints, setEditPoints] = useState('0');
   const [editLifetimePoints, setEditLifetimePoints] = useState('0');
   const [sendPoints, setSendPoints] = useState('100');
+  const [earningPointsPerEuro, setEarningPointsPerEuro] = useState('10');
+  const [redemptionPointsPerEuro, setRedemptionPointsPerEuro] = useState('100');
+  const [balancePointsPerEuro, setBalancePointsPerEuro] = useState('100');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -61,6 +69,9 @@ export default function AdminLoyaltyPage() {
       if (!response.ok) throw new Error((data as any).error || 'Error');
       const nextPayload = data as LoyaltyPayload;
       setPayload(nextPayload);
+      setEarningPointsPerEuro(String(nextPayload.config?.earningPointsPerEuro ?? 10));
+      setRedemptionPointsPerEuro(String(nextPayload.config?.redemptionPointsPerEuro ?? 100));
+      setBalancePointsPerEuro(String(nextPayload.config?.balancePointsPerEuro ?? 100));
 
       if (!selectedUserId && Array.isArray(nextPayload.users) && nextPayload.users.length > 0) {
         const first = nextPayload.users[0];
@@ -171,6 +182,30 @@ export default function AdminLoyaltyPage() {
     }
   };
 
+  const saveConfig = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/admin/loyalty', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_config',
+          earningPointsPerEuro: Math.max(1, Math.floor(Number(earningPointsPerEuro || 0))),
+          redemptionPointsPerEuro: Math.max(1, Math.floor(Number(redemptionPointsPerEuro || 0))),
+          balancePointsPerEuro: Math.max(1, Math.floor(Number(balancePointsPerEuro || 0))),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((data as any).error || 'Error');
+      toast.success(lang === 'es' ? 'Configuración loyalty guardada' : 'Loyalty configuration saved');
+      await fetchData();
+    } catch (error: any) {
+      toast.error(error?.message || (lang === 'es' ? 'No se pudo guardar la configuración' : 'Could not save configuration'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="rounded-[32px] border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
@@ -272,6 +307,54 @@ export default function AdminLoyaltyPage() {
         </Card>
 
         <div className="space-y-6">
+          <Card hover={false} className="rounded-[28px] dark:border-white/10 dark:bg-gray-950/25">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-bold text-gray-900 dark:text-white">{lang === 'es' ? 'Configuración de loyalty' : 'Loyalty configuration'}</div>
+                <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  {lang === 'es'
+                    ? 'Ajusta cuánto se gana, cuánto cuesta canjear y cuánto cuesta convertir puntos a saldo de tienda.'
+                    : 'Adjust earning, redemption, and points-to-store-balance conversion from one place.'}
+                </div>
+              </div>
+              <Badge variant="warning">{lang === 'es' ? 'Global' : 'Global'}</Badge>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">{lang === 'es' ? 'Puntos ganados por 1€' : 'Points earned per €1'}</label>
+                <Input type="number" min={1} step={1} value={earningPointsPerEuro} onChange={(e) => setEarningPointsPerEuro(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">{lang === 'es' ? 'Puntos para canjear 1€' : 'Points to redeem €1'}</label>
+                <Input type="number" min={1} step={1} value={redemptionPointsPerEuro} onChange={(e) => setRedemptionPointsPerEuro(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500">{lang === 'es' ? 'Puntos para convertir 1€ a saldo' : 'Points to convert €1 to balance'}</label>
+                <Input type="number" min={1} step={1} value={balancePointsPerEuro} onChange={(e) => setBalancePointsPerEuro(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+                {lang === 'es' ? `Compra de 10€ = ${Math.max(1, Math.floor(Number(earningPointsPerEuro || 0) || 0)) * 10} puntos` : `€10 order = ${Math.max(1, Math.floor(Number(earningPointsPerEuro || 0) || 0)) * 10} points`}
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+                {lang === 'es' ? `${Math.max(1, Math.floor(Number(redemptionPointsPerEuro || 0) || 0))} puntos = 1€ de descuento` : `${Math.max(1, Math.floor(Number(redemptionPointsPerEuro || 0) || 0))} points = €1 discount`}
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
+                {lang === 'es' ? `${Math.max(1, Math.floor(Number(balancePointsPerEuro || 0) || 0))} puntos = 1€ de saldo` : `${Math.max(1, Math.floor(Number(balancePointsPerEuro || 0) || 0))} points = €1 balance`}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button type="button" onClick={saveConfig} disabled={saving} className="rounded-2xl">
+                <FaCoins />
+                <span>{saving ? (lang === 'es' ? 'Guardando...' : 'Saving...') : (lang === 'es' ? 'Guardar configuración' : 'Save configuration')}</span>
+              </Button>
+            </div>
+          </Card>
+
           <Card hover={false} className="rounded-[28px] dark:border-white/10 dark:bg-gray-950/25">
             {!selectedUser ? (
               <div className="text-sm text-gray-500">{lang === 'es' ? 'Selecciona un usuario para editar loyalty.' : 'Select a user to edit loyalty.'}</div>

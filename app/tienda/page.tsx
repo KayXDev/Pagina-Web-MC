@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaCheck, FaTags, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaShoppingCart, FaCheck, FaTags, FaHeart, FaRegHeart, FaBell, FaBolt, FaBalanceScale, FaClock } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Card, Button, Badge, Input } from '@/components/ui';
 import { formatPrice } from '@/lib/utils';
+import { getProductEffectivePrice, getProductOfferCountdown, getProductReferencePrice, isProductOfferActive } from '@/lib/productOffers';
 import { toast } from 'react-toastify';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
@@ -24,6 +25,12 @@ interface Product {
   name: string;
   description: string;
   price: number;
+  salePrice?: number;
+  compareAtPrice?: number;
+  saleStartsAt?: string;
+  saleEndsAt?: string;
+  offerLabel?: string;
+  bonusBalanceAmount?: number;
   category: string;
   features: string[];
   image?: string;
@@ -42,6 +49,9 @@ export default function TiendaPage() {
   const [priceSort, setPriceSort] = useState<'DEFAULT' | 'LOW_TO_HIGH' | 'HIGH_TO_LOW'>('DEFAULT');
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [wishlistOnly, setWishlistOnly] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<string[]>([]);
+  const [offerNow, setOfferNow] = useState(() => Date.now());
 
   const addToCartLabel = lang === 'es' ? 'Añadir' : 'Add';
   const cartErrorLabel = lang === 'es' ? 'Error al guardar el carrito' : 'Failed to save cart';
@@ -74,6 +84,11 @@ export default function TiendaPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(false);
   const [savingCart, setSavingCart] = useState(false);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setOfferNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -280,13 +295,59 @@ export default function TiendaPage() {
   }, [status]);
 
   useEffect(() => {
-    setWishlist(readLocalWishlist());
+    let active = true;
 
-    const onWishlistUpdated = () => setWishlist(readLocalWishlist());
-    window.addEventListener('shop-wishlist-updated', onWishlistUpdated);
-    return () => window.removeEventListener('shop-wishlist-updated', onWishlistUpdated);
+    const loadWishlist = async () => {
+      if (status !== 'authenticated') {
+        if (!active) return;
+        setWishlist(readLocalWishlist());
+        return;
+      }
+
+      setWishlistLoading(true);
+      try {
+        const localIds = readLocalWishlist();
+        const res = await fetch('/api/shop/wishlist', { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        const serverItems = res.ok && Array.isArray((data as any).items) ? ((data as any).items as Array<{ productId: string }>) : [];
+        const serverIds = serverItems.map((item) => String(item.productId || '').trim()).filter(Boolean);
+        const merged = Array.from(new Set([...serverIds, ...localIds]));
+
+        if (!active) return;
+        setWishlist(merged);
+
+        if (localIds.length > 0) {
+          await fetch('/api/shop/wishlist', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'sync',
+              items: merged.map((productId) => ({ productId, alertOnRestock: true, alertOnPriceDrop: true })),
+            }),
+          }).catch(() => null);
+          writeLocalWishlist([]);
+        }
+      } finally {
+        if (active) setWishlistLoading(false);
+      }
+    };
+
+    void loadWishlist();
+
+    if (status !== 'authenticated') {
+      const onWishlistUpdated = () => setWishlist(readLocalWishlist());
+      window.addEventListener('shop-wishlist-updated', onWishlistUpdated);
+      return () => {
+        active = false;
+        window.removeEventListener('shop-wishlist-updated', onWishlistUpdated);
+      };
+    }
+
+    return () => {
+      active = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [status]);
 
   useEffect(() => {
     // If logged in, prefer the account-linked MC user
@@ -343,19 +404,69 @@ export default function TiendaPage() {
     .filter((p) => {
       const min = Number(priceMin);
       const max = Number(priceMax);
-      const byMin = Number.isFinite(min) && priceMin.trim() !== '' ? Number(p.price) >= min : true;
-      const byMax = Number.isFinite(max) && priceMax.trim() !== '' ? Number(p.price) <= max : true;
+      const currentPrice = getProductEffectivePrice(p, offerNow);
+      const byMin = Number.isFinite(min) && priceMin.trim() !== '' ? Number(currentPrice) >= min : true;
+      const byMax = Number.isFinite(max) && priceMax.trim() !== '' ? Number(currentPrice) <= max : true;
       return byMin && byMax;
     })
     .sort((a, b) => {
-      if (priceSort === 'LOW_TO_HIGH') return Number(a.price) - Number(b.price);
-      if (priceSort === 'HIGH_TO_LOW') return Number(b.price) - Number(a.price);
+      const priceA = getProductEffectivePrice(a, offerNow);
+      const priceB = getProductEffectivePrice(b, offerNow);
+      if (priceSort === 'LOW_TO_HIGH') return Number(priceA) - Number(priceB);
+      if (priceSort === 'HIGH_TO_LOW') return Number(priceB) - Number(priceA);
       return 0;
     });
 
-  const toggleWishlist = (productId: string) => {
+  const liveOfferProducts = filteredProducts.filter((product) => isProductOfferActive(product, offerNow));
+  const compareProducts = products.filter(
+    (product) => compareSelection.includes(String(product._id)) && ['RANK', 'BUNDLES'].includes(String(product.category || '').toUpperCase())
+  );
+
+  const toggleCompare = (productId: string) => {
     const id = String(productId || '').trim();
     if (!id) return;
+    setCompareSelection((prev) => {
+      if (prev.includes(id)) return prev.filter((value) => value !== id);
+      if (prev.length >= 3) return [...prev.slice(1), id];
+      return [...prev, id];
+    });
+  };
+
+  const formatCountdown = (ms: number | null) => {
+    if (ms === null) return '';
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
+  };
+
+  const toggleWishlist = async (productId: string) => {
+    const id = String(productId || '').trim();
+    if (!id) return;
+
+    if (status === 'authenticated') {
+      const previous = wishlist;
+      const has = previous.includes(id);
+      const next = has ? previous.filter((x) => x !== id) : [...previous, id];
+      setWishlist(next);
+      try {
+        const res = await fetch('/api/shop/wishlist', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', productId: id }),
+        });
+        if (!res.ok) {
+          setWishlist(previous);
+        }
+      } catch {
+        setWishlist(previous);
+      }
+      return;
+    }
 
     setWishlist((prev) => {
       const has = prev.includes(id);
@@ -429,7 +540,7 @@ export default function TiendaPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'shop.title')}
         description={t(lang, 'shop.headerDesc')}
@@ -532,71 +643,71 @@ export default function TiendaPage() {
         </div>
       ) : (
         <>
-          {/* Minecraft Account (summary) */}
-          <div className="mx-auto mb-8 flex max-w-5xl justify-center">
-            <Card
-              hover={false}
-              className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white/80 p-4 dark:border-white/10 dark:bg-gray-950/25"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 sm:h-16 sm:w-16">
-                  {minecraftResolved?.uuid ? (
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={minecraftAvatarSrc || minecraftAvatarPrimary}
-                        alt={minecraftResolved.username}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                        onError={() => {
-                          if (!minecraftAvatarFallback) return;
-                          setMinecraftAvatarSrc((cur) => (cur === minecraftAvatarFallback ? cur : minecraftAvatarFallback));
-                        }}
-                      />
+          <div className="mx-auto mb-10 flex max-w-5xl flex-col items-center gap-4 sm:mb-12">
+            {/* Minecraft Account (summary) */}
+            <div className="flex justify-center">
+              <Card
+                hover={false}
+                className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white/80 p-4 dark:border-white/10 dark:bg-gray-950/25"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[20px] border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/20 sm:h-16 sm:w-16">
+                    {minecraftResolved?.uuid ? (
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={minecraftAvatarSrc || minecraftAvatarPrimary}
+                          alt={minecraftResolved.username}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                          onError={() => {
+                            if (!minecraftAvatarFallback) return;
+                            setMinecraftAvatarSrc((cur) => (cur === minecraftAvatarFallback ? cur : minecraftAvatarFallback));
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <FaTags className="text-2xl text-gray-500" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
+                    <div className="text-gray-900 dark:text-white text-lg font-semibold truncate mt-0.5">
+                      {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
                     </div>
-                  ) : (
-                    <FaTags className="text-2xl text-gray-500" />
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t(lang, 'shop.minecraftTitle')}</div>
-                  <div className="text-gray-900 dark:text-white text-lg font-semibold truncate mt-0.5">
-                    {minecraftResolved?.username || minecraftUsernameInput.trim() || '—'}
+                    <div className="mt-2">
+                      <Badge variant={minecraftResolved?.uuid ? 'success' : 'warning'}>
+                        {minecraftResolved?.uuid ? t(lang, 'shop.minecraftVerified') : t(lang, 'shop.minecraftNeedUsername')}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="mt-2">
-                    <Badge variant={minecraftResolved?.uuid ? 'success' : 'warning'}>
-                      {minecraftResolved?.uuid ? t(lang, 'shop.minecraftVerified') : t(lang, 'shop.minecraftNeedUsername')}
-                    </Badge>
-                  </div>
+
+                  {minecraftResolved || minecraftUsernameInput.trim() ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setMinecraftResolved(null);
+                        setMinecraftUsernameInput('');
+                        setShopUnlocked(false);
+                        try {
+                          localStorage.removeItem('shop.minecraft.username');
+                          localStorage.removeItem('shop.minecraft.uuid');
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                      className="w-full whitespace-nowrap sm:w-auto"
+                    >
+                      <span>{signOutLabel}</span>
+                    </Button>
+                  ) : null}
                 </div>
+              </Card>
+            </div>
 
-                {minecraftResolved || minecraftUsernameInput.trim() ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setMinecraftResolved(null);
-                      setMinecraftUsernameInput('');
-                      setShopUnlocked(false);
-                      try {
-                        localStorage.removeItem('shop.minecraft.username');
-                        localStorage.removeItem('shop.minecraft.uuid');
-                      } catch {
-                        // ignore
-                      }
-                    }}
-                    className="w-full whitespace-nowrap sm:w-auto"
-                  >
-                    <span>{signOutLabel}</span>
-                  </Button>
-                ) : null}
-              </div>
-            </Card>
-          </div>
-
-          {/* Category Filter */}
-          <div className="mb-10 flex flex-col gap-4 sm:mb-12">
-            <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-start sm:overflow-visible sm:px-0">
+            {/* Category Filter */}
+            <div className="-mx-1 flex w-full max-w-4xl gap-3 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
               {categories.map((category) => (
                 <button
                   key={category.value}
@@ -614,7 +725,7 @@ export default function TiendaPage() {
 
             <Card
               hover={false}
-              className="rounded-[28px] border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25"
+              className="w-full max-w-4xl rounded-[28px] border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Input
@@ -670,8 +781,129 @@ export default function TiendaPage() {
                 <div className="text-xs text-gray-600 dark:text-gray-400">
                   {lang === 'es' ? 'Favoritos guardados' : 'Saved wishlist'}: {wishlist.length}
                 </div>
+                {status === 'authenticated' ? (
+                  <Link href="/perfil/recompensas" className="text-xs font-semibold text-minecraft-diamond hover:text-minecraft-diamond/80">
+                    {wishlistLoading
+                      ? lang === 'es' ? 'Sincronizando wishlist...' : 'Syncing wishlist...'
+                      : lang === 'es' ? 'Gestionar alertas en recompensas' : 'Manage alerts in rewards'}
+                  </Link>
+                ) : null}
               </div>
             </Card>
+
+            {liveOfferProducts.length > 0 ? (
+              <Card hover={false} className="w-full max-w-4xl rounded-[28px] border border-minecraft-gold/20 bg-gradient-to-br from-minecraft-gold/10 via-white/70 to-minecraft-diamond/10 dark:border-minecraft-gold/20 dark:bg-gray-950/30">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-minecraft-gold/20 bg-minecraft-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-minecraft-gold">
+                      <FaBolt />
+                      <span>{lang === 'es' ? 'Ofertas en vivo' : 'Live offers'}</span>
+                    </div>
+                    <div className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+                      {lang === 'es' ? 'Flash sales activas ahora mismo' : 'Flash sales running right now'}
+                    </div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {lang === 'es'
+                        ? 'Aprovecha las rebajas temporales antes de que termine el contador.'
+                        : 'Take advantage of temporary price drops before the timer ends.'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[24rem]">
+                    {liveOfferProducts.slice(0, 2).map((product) => {
+                      const effectivePrice = getProductEffectivePrice(product, offerNow);
+                      const referencePrice = getProductReferencePrice(product, offerNow);
+                      const countdown = getProductOfferCountdown(product, offerNow);
+                      return (
+                        <div key={product._id} className="rounded-2xl border border-white/50 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-black/20">
+                          <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
+                          <div className="mt-2 flex items-center gap-2">
+                            {referencePrice > effectivePrice ? (
+                              <span className="text-sm text-gray-500 line-through dark:text-gray-400">{formatPrice(referencePrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                            ) : null}
+                            <span className="text-lg font-bold text-minecraft-gold">{formatPrice(effectivePrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                          </div>
+                          {countdown !== null ? (
+                            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-500">
+                              <FaClock />
+                              <span>{formatCountdown(countdown)}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Card>
+            ) : null}
+
+            {compareProducts.length > 0 ? (
+              <Card hover={false} className="w-full max-w-4xl rounded-[28px] border border-gray-200 bg-white/80 dark:border-white/10 dark:bg-gray-950/25">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-minecraft-diamond/20 bg-minecraft-diamond/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-minecraft-diamond">
+                        <FaBalanceScale />
+                        <span>{lang === 'es' ? 'Comparador rápido' : 'Quick compare'}</span>
+                      </div>
+                      <div className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
+                        {lang === 'es' ? 'Comparando ranks y bundles' : 'Comparing ranks and bundles'}
+                      </div>
+                    </div>
+                    <Button type="button" variant="secondary" onClick={() => setCompareSelection([])}>
+                      <span>{lang === 'es' ? 'Limpiar comparador' : 'Clear compare'}</span>
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    {compareProducts.map((product) => {
+                      const effectivePrice = getProductEffectivePrice(product, offerNow);
+                      const referencePrice = getProductReferencePrice(product, offerNow);
+                      return (
+                        <div key={product._id} className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 dark:border-white/10 dark:bg-white/5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-bold text-gray-900 dark:text-white">{product.name}</div>
+                              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{product.category}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => toggleCompare(product._id)}
+                              className="rounded-full border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-white dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
+                            >
+                              {lang === 'es' ? 'Quitar' : 'Remove'}
+                            </button>
+                          </div>
+
+                          <div className="mt-3 flex items-center gap-2">
+                            {referencePrice > effectivePrice ? (
+                              <span className="text-sm text-gray-500 line-through dark:text-gray-400">{formatPrice(referencePrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                            ) : null}
+                            <span className="text-2xl font-bold text-minecraft-gold">{formatPrice(effectivePrice, lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                          </div>
+
+                          {Number(product.bonusBalanceAmount || 0) > 0 ? (
+                            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-600 dark:text-green-400">
+                              <FaBolt />
+                              <span>{lang === 'es' ? `Bonus ${formatPrice(Number(product.bonusBalanceAmount || 0), 'es-ES')}` : `Bonus ${formatPrice(Number(product.bonusBalanceAmount || 0), 'en-US')}`}</span>
+                            </div>
+                          ) : null}
+
+                          <ul className="mt-4 space-y-2">
+                            {(product.features || []).slice(0, 6).map((feature, index) => (
+                              <li key={`${product._id}-feature-${index}`} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                <FaCheck className="mt-1 shrink-0 text-minecraft-grass" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Card>
+            ) : null}
           </div>
 
           {/* Products Grid */}
@@ -696,9 +928,25 @@ export default function TiendaPage() {
                     <Card className="h-full rounded-[30px] flex flex-col overflow-hidden">
                       {/* Product Image */}
                       <div className="relative mb-4 h-48 w-full overflow-hidden rounded-[22px] bg-gradient-to-br from-minecraft-grass/20 to-minecraft-diamond/20 sm:h-52">
+                        {isProductOfferActive(product, offerNow) ? (
+                          <div className="absolute left-3 top-3 z-10 flex flex-col gap-2">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/85 px-3 py-1 text-[11px] font-semibold text-white shadow-lg shadow-red-500/20">
+                              <FaBolt />
+                              <span>{product.offerLabel || (lang === 'es' ? 'Oferta limitada' : 'Limited offer')}</span>
+                            </div>
+                            {getProductOfferCountdown(product, offerNow) !== null ? (
+                              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                                <FaClock />
+                                <span>{formatCountdown(getProductOfferCountdown(product, offerNow))}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
                         <button
                           type="button"
-                          onClick={() => toggleWishlist(product._id)}
+                          onClick={() => {
+                            void toggleWishlist(product._id);
+                          }}
                           className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full grid place-items-center bg-white/90 text-gray-700 hover:bg-white border border-gray-200 dark:bg-black/60 dark:text-gray-200 dark:border-white/10 dark:hover:bg-black/80"
                           aria-label={lang === 'es' ? 'Añadir a favoritos' : 'Add to wishlist'}
                         >
@@ -708,6 +956,22 @@ export default function TiendaPage() {
                             <FaRegHeart />
                           )}
                         </button>
+                        {status === 'authenticated' && wishlist.includes(String(product._id)) ? (
+                          <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-minecraft-diamond/20 bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm dark:bg-black/55">
+                            <FaBell className="text-minecraft-diamond" />
+                            <span>{lang === 'es' ? 'Alertas on' : 'Alerts on'}</span>
+                          </div>
+                        ) : null}
+                        {['RANK', 'BUNDLES'].includes(String(product.category || '').toUpperCase()) ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleCompare(product._id)}
+                            className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm hover:bg-black/60"
+                          >
+                            <FaBalanceScale />
+                            <span>{compareSelection.includes(String(product._id)) ? (lang === 'es' ? 'En comparador' : 'In compare') : (lang === 'es' ? 'Comparar' : 'Compare')}</span>
+                          </button>
+                        ) : null}
                         {product.image ? (
                           <Image
                             src={product.image}
@@ -744,6 +1008,17 @@ export default function TiendaPage() {
                           </div>
                         )}
 
+                        {Number(product.bonusBalanceAmount || 0) > 0 ? (
+                          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
+                            <FaBolt />
+                            <span>
+                              {lang === 'es'
+                                ? `Bonus de saldo ${formatPrice(Number(product.bonusBalanceAmount || 0), 'es-ES')}`
+                                : `Balance bonus ${formatPrice(Number(product.bonusBalanceAmount || 0), 'en-US')}`}
+                            </span>
+                          </div>
+                        ) : null}
+
                         <p className="mb-4 text-sm leading-6 text-gray-600 dark:text-gray-400 sm:text-base">{product.description}</p>
 
                         {/* Features */}
@@ -762,7 +1037,14 @@ export default function TiendaPage() {
                       {/* Price and Buy Button */}
                       <div className="mt-auto border-t border-gray-200 pt-4 dark:border-gray-800">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(product.price)}</span>
+                          <div className="flex flex-col">
+                            {getProductReferencePrice(product, offerNow) > getProductEffectivePrice(product, offerNow) ? (
+                              <span className="text-sm text-gray-500 line-through dark:text-gray-400">
+                                {formatPrice(getProductReferencePrice(product, offerNow), lang === 'es' ? 'es-ES' : 'en-US')}
+                              </span>
+                            ) : null}
+                            <span className="text-3xl font-bold text-minecraft-gold">{formatPrice(getProductEffectivePrice(product, offerNow), lang === 'es' ? 'es-ES' : 'en-US')}</span>
+                          </div>
                           <Button
                             onClick={() => addToCart(product._id)}
                             disabled={

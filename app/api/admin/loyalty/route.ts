@@ -3,7 +3,9 @@ import { requireAdmin } from '@/lib/session';
 import dbConnect from '@/lib/mongodb';
 import AdminLog from '@/models/AdminLog';
 import LoyaltyEvent from '@/models/LoyaltyEvent';
+import Settings from '@/models/Settings';
 import User from '@/models/User';
+import { getLoyaltyConfig } from '@/lib/loyalty';
 
 type LeanUser = {
   _id: string;
@@ -26,7 +28,7 @@ export async function GET() {
     await requireAdmin();
     await dbConnect();
 
-    const [users, events, totals] = await Promise.all([
+    const [users, events, totals, loyaltyConfig] = await Promise.all([
       User.find({}, 'username email role loyaltyPoints loyaltyLifetimePoints loyaltyLastEarnedAt createdAt')
         .sort({ loyaltyPoints: -1, loyaltyLifetimePoints: -1, createdAt: -1 })
         .limit(250)
@@ -49,6 +51,7 @@ export async function GET() {
           },
         },
       ]),
+      getLoyaltyConfig(),
     ]);
 
     const userList = Array.isArray(users) ? (users as unknown as LeanUser[]) : [];
@@ -74,8 +77,12 @@ export async function GET() {
     const summary = Array.isArray(totals) && totals[0]
       ? totals[0]
       : { totalPoints: 0, totalLifetimePoints: 0, usersWithPoints: 0 };
-
     return NextResponse.json({
+      config: {
+        earningPointsPerEuro: Number(loyaltyConfig?.earningPointsPerEuro || 10),
+        redemptionPointsPerEuro: Number(loyaltyConfig?.redemptionPointsPerEuro || 100),
+        balancePointsPerEuro: Number(loyaltyConfig?.balancePointsPerEuro || 100),
+      },
       summary: {
         totalPoints: Number(summary.totalPoints || 0),
         totalLifetimePoints: Number(summary.totalLifetimePoints || 0),
@@ -121,6 +128,43 @@ export async function PATCH(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const action = String(body?.action || 'adjust').trim().toLowerCase();
+    if (action === 'update_config') {
+      const nextConfig = {
+        loyalty_earning_points_per_euro: Math.max(1, Math.floor(Number(body?.earningPointsPerEuro || 0))),
+        loyalty_redemption_points_per_euro: Math.max(1, Math.floor(Number(body?.redemptionPointsPerEuro || 0))),
+        loyalty_balance_points_per_euro: Math.max(1, Math.floor(Number(body?.balancePointsPerEuro || 0))),
+      };
+
+      await Promise.all(
+        Object.entries(nextConfig).map(([key, value]) =>
+          Settings.findOneAndUpdate(
+            { key },
+            { key, value: String(value), updatedAt: new Date() },
+            { upsert: true, returnDocument: 'after' }
+          )
+        )
+      );
+
+      await AdminLog.create({
+        adminId: admin.id,
+        adminUsername: admin.name,
+        action: 'UPDATE_LOYALTY_CONFIG',
+        targetType: 'SETTINGS',
+        targetId: 'loyalty',
+        details: JSON.stringify(nextConfig),
+        meta: {
+          path: '/api/admin/loyalty',
+          method: 'PATCH',
+          action,
+          ...nextConfig,
+          userAgent: request.headers.get('user-agent') || undefined,
+        },
+        ipAddress: getRequestIp(request) || undefined,
+      }).catch(() => null);
+
+      return NextResponse.json({ ok: true, config: nextConfig });
+    }
+
     const userId = String(body?.userId || '').trim();
     const note = String(body?.note || '').trim().slice(0, 240);
 

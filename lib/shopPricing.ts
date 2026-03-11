@@ -4,7 +4,8 @@ import ReferralProfile from '@/models/ReferralProfile';
 import Settings from '@/models/Settings';
 import ShopOrder from '@/models/ShopOrder';
 import User from '@/models/User';
-import { calculateLoyaltyDiscount, getLoyaltyEarningPreview, getLoyaltyEarningRate, getLoyaltyRedemptionRate } from '@/lib/loyalty';
+import { calculateLoyaltyDiscount, getLoyaltyBalanceRate, getLoyaltyConfig, getLoyaltyEarningPreview, getLoyaltyEarningRate, getLoyaltyRedemptionRate } from '@/lib/loyalty';
+import { getProductEffectivePrice } from '@/lib/productOffers';
 
 type CartInputItem = { productId: string; quantity: number };
 
@@ -38,11 +39,21 @@ export type PricingBreakdown = {
     discountAmount: number;
     availablePoints: number;
     pointsPerCurrencyUnit: number;
+    maxUsablePoints: number;
+  };
+  storeBalance: null | {
+    availableBalance: number;
+    appliedBalance: number;
   };
   loyaltyEarned: {
     points: number;
     basedOnTotal: number;
     pointsPerCurrencyUnit: number;
+  };
+  loyaltyConfig: {
+    earningPointsPerCurrencyUnit: number;
+    redemptionPointsPerCurrencyUnit: number;
+    balancePointsPerCurrencyUnit: number;
   };
 };
 
@@ -73,6 +84,7 @@ export async function buildPricingFromItems(params: {
   couponCode?: string;
   buyerUserId?: string;
   loyaltyPointsToRedeem?: number;
+  useBalance?: boolean;
 }) : Promise<PricingBreakdown> {
   const normalizedItems = normalizeCartItems(params.rawItems || []);
   if (!normalizedItems.length) {
@@ -110,7 +122,7 @@ export async function buildPricingFromItems(params: {
   }
 
   const orderItems = lineItems.map(({ it, p }) => {
-    const unitPrice = Number(p.price || 0);
+    const unitPrice = getProductEffectivePrice(p);
     const quantity = Number(it.quantity || 1);
     const lineTotal = round2(unitPrice * quantity);
     return {
@@ -129,6 +141,8 @@ export async function buildPricingFromItems(params: {
   let coupon: PricingBreakdown['coupon'] = null;
   let referral: PricingBreakdown['referral'] = null;
   let loyalty: PricingBreakdown['loyalty'] = null;
+  let storeBalance: PricingBreakdown['storeBalance'] = null;
+  const loyaltyConfig = await getLoyaltyConfig();
 
   let runningTotal = subtotal;
 
@@ -161,7 +175,7 @@ export async function buildPricingFromItems(params: {
           const byProduct = productIds.length ? productIds.includes(String((p as any)._id || '')) : true;
           return byCategory && byProduct;
         })
-        .reduce((sum, { it, p }) => sum + Number((p as any).price || 0) * Number(it.quantity || 0), 0)
+        .reduce((sum, { it, p }) => sum + getProductEffectivePrice(p as any) * Number(it.quantity || 0), 0)
     );
 
     if (eligibleSubtotal <= 0) throw new Error('Cupón no aplicable a los productos seleccionados');
@@ -235,13 +249,15 @@ export async function buildPricingFromItems(params: {
   }
 
   if (buyerUserId) {
+    const buyer = await User.findById(buyerUserId, { _id: 1, loyaltyPoints: 1, balance: 1 }).lean();
+    const availablePoints = Math.max(0, Math.floor(Number((buyer as any)?.loyaltyPoints || 0)));
+    const availableBalance = round2(Math.max(0, Number((buyer as any)?.balance || 0)));
+    const pointsPerCurrencyUnit = getLoyaltyRedemptionRate(loyaltyConfig);
+    const maxUsablePoints = Math.max(0, Math.floor(runningTotal * pointsPerCurrencyUnit));
     const requestedPoints = Math.max(0, Math.floor(Number(params.loyaltyPointsToRedeem || 0)));
     if (requestedPoints > 0) {
-      const buyer = await User.findById(buyerUserId, { _id: 1, loyaltyPoints: 1 }).lean();
-      const availablePoints = Math.max(0, Math.floor(Number((buyer as any)?.loyaltyPoints || 0)));
-      const cappedByTotal = Math.floor(runningTotal * getLoyaltyRedemptionRate());
-      const pointsUsed = Math.max(0, Math.min(requestedPoints, availablePoints, cappedByTotal));
-      const discountAmount = Math.min(round2(runningTotal), calculateLoyaltyDiscount(pointsUsed));
+      const pointsUsed = Math.max(0, Math.min(requestedPoints, availablePoints, maxUsablePoints));
+      const discountAmount = Math.min(round2(runningTotal), calculateLoyaltyDiscount(pointsUsed, loyaltyConfig));
 
       if (pointsUsed > 0 && discountAmount > 0) {
         runningTotal = round2(runningTotal - discountAmount);
@@ -249,17 +265,38 @@ export async function buildPricingFromItems(params: {
           pointsUsed,
           discountAmount,
           availablePoints,
-          pointsPerCurrencyUnit: getLoyaltyRedemptionRate(),
+          pointsPerCurrencyUnit,
+          maxUsablePoints,
         };
       } else {
         loyalty = {
           pointsUsed: 0,
           discountAmount: 0,
           availablePoints,
-          pointsPerCurrencyUnit: getLoyaltyRedemptionRate(),
+          pointsPerCurrencyUnit,
+          maxUsablePoints,
         };
       }
+    } else {
+      loyalty = {
+        pointsUsed: 0,
+        discountAmount: 0,
+        availablePoints,
+        pointsPerCurrencyUnit,
+        maxUsablePoints,
+      };
     }
+
+    const useBalance = Boolean(params.useBalance);
+    const appliedBalance = useBalance ? Math.min(round2(runningTotal), availableBalance) : 0;
+    if (appliedBalance > 0) {
+      runningTotal = round2(runningTotal - appliedBalance);
+    }
+
+    storeBalance = {
+      availableBalance,
+      appliedBalance,
+    };
   }
 
   return {
@@ -269,10 +306,16 @@ export async function buildPricingFromItems(params: {
     coupon,
     referral,
     loyalty,
-    loyaltyEarned: buyerUserId ? getLoyaltyEarningPreview(round2(Math.max(0, runningTotal))) : {
+    storeBalance,
+    loyaltyEarned: buyerUserId ? getLoyaltyEarningPreview(round2(Math.max(0, runningTotal)), loyaltyConfig) : {
       points: 0,
       basedOnTotal: round2(Math.max(0, runningTotal)),
-      pointsPerCurrencyUnit: getLoyaltyEarningRate(),
+      pointsPerCurrencyUnit: getLoyaltyEarningRate(loyaltyConfig),
+    },
+    loyaltyConfig: {
+      earningPointsPerCurrencyUnit: getLoyaltyEarningRate(loyaltyConfig),
+      redemptionPointsPerCurrencyUnit: getLoyaltyRedemptionRate(loyaltyConfig),
+      balancePointsPerCurrencyUnit: getLoyaltyBalanceRate(loyaltyConfig),
     },
   };
 }

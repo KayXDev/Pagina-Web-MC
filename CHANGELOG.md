@@ -1,122 +1,29 @@
 # 📝 Changelog
 
-### 2026-03-10 ✅ 🆕 Latest
-
-### 🐛 Fixed
-
-- 🛒 **Mobile cart dropdown clipping fixed**:
-  - Reworked the mobile navbar cart panel so it respects the real viewport height, keeps safe horizontal insets on phones, and scrolls internally instead of getting cut off.
-
-### 🐛 Fixed
-
-- 🧾 **Noisy startup errors**:
-  - Removed large Axios stack dumps for common invalid-license cases.
-  - Replaced raw status codes like `INVALID_LICENSEKEY` with readable messages such as “Invalid license key”.
-
-### 2026-03-06 ✅ 🆕 Latest
+### 2026-03-11 ✅ 🆕 Latest
 
 ### ✨ Added
 
-- 📘 **Detailed Quick Find guide in README**:
-  - Expanded “Quick Find (Where to Change Things)” section with a full route/file map.
-  - Added public pages map, admin pages map, and i18n key-prefix map.
-  - Added recommended translation workflow and audit command examples.
+- 💎 **Admin-configurable loyalty economy**:
+  - Added global admin controls for points earned per euro, points redeemed per euro, and points converted to store balance per euro.
+- 💰 **Loyalty-to-balance conversion**:
+  - Users can now convert loyalty points into internal store balance for use in the shop.
+- 🛍️ **Store balance support in checkout pricing**:
+  - PayPal, Stripe, previews, and post-payment handling now support applying internal balance correctly.
 
 ### 🔧 Changed
 
-- 🌐 **README translation consistency**:
-  - Updated the new Quick Find guide to English to match the rest of the README.
-- 🧩 **Admin i18n coverage improved**:
-  - `app/admin/coupons/page.tsx` now uses language-aware labels and toasts via `useClientLang()`.
-  - `app/admin/referrals/page.tsx` now uses language-aware labels and toasts via `useClientLang()`.
+- 👤 **Navbar user dropdown upgraded**:
+  - Clicking the username/user control now opens a dropdown with loyalty info, current store balance, and point conversion tools.
+- 🛒 **Balance usage moved out of checkout UI**:
+  - Removed the balance conversion and toggle block from the cart page and made the preference come from the navbar user dropdown.
+- 🧾 **Profile/admin loyalty payloads expanded**:
+  - Profile and admin APIs now expose the loyalty configuration needed by the new UI.
 
 ### 🐛 Fixed
 
-- 🗣️ **Language switch mismatch in admin sections**:
-  - Resolved hardcoded text in Coupons and Referrals pages that did not follow the selected site language.
-
-### 2026-03-05 ✅ 🆕 Latest 🚧
-
-### ✨ Added
-
-- 🎫 **Discord webhook for new support tickets**:
-  - Configurable from admin tickets page.
-  - Dedicated test-send button with selectable priority.
-  - Rich English embed formatting with markdown-style structure.
-- 🧪 **Admin test endpoint** for tickets webhook:
-  - `POST /api/admin/tickets/webhook-test`
-  - Writes an admin log entry after successful test send.
-- 🔔 **Real-time notification stream (SSE)**:
-  - New endpoint `GET /api/notifications/stream`.
-  - Live unread counter updates without manual refresh.
-- 🛒 **Shop UX additions**:
-  - Price min/max filters.
-  - Price sorting (default, low→high, high→low).
-  - Wishlist (heart toggle) persisted locally.
-  - “Wishlist only” filter.
-- 🎟️ **Coupons system**:
-  - New coupon model and admin CRUD management page/API.
-  - Discount preview endpoint for cart (`/api/shop/discounts/preview`).
-  - Coupon application integrated into checkout pricing.
-  - Optional product-specific scope at creation time (or general scope for all products).
-- 👥 **Referral system**:
-  - Referral profiles/events models and admin management page/API.
-  - Referral code field in user registration flow.
-  - Referred-by metadata persisted from pending registration to final user account.
-  - Reward/discount processing hook after paid orders.
-
-### 🔧 Changed
-
-- 🧾 **Shop pricing flow refactor**:
-  - Shared pricing engine `lib/shopPricing.ts` now used by manual checkout, Stripe create, and PayPal create routes.
-  - Orders persist subtotal, coupon metadata, and referral metadata in `ShopOrder`.
-  - Referral discount is now applied automatically from account referral metadata (no manual checkout referral input).
-- 👥 **Referral controls updated**:
-  - Referral discount percentage can now be configured from the admin referrals panel.
-  - Referral discount usage is limited to one use per referred user.
-- 🎟️ **Coupon scope rules updated**:
-  - Coupons can be created as general (all products) or tied to a single specific product.
-  - Product-scoped coupons only apply when that product is present in cart.
-- 💳 **Payment success handling**:
-  - Incentive application (`applyOrderIncentives`) now runs in Stripe confirm/webhook and PayPal capture flows.
-- 🧭 **Admin navigation**:
-  - Added direct links for Coupons and Referrals.
-- 🖼️ **UI polish updates**:
-  - Removed icon boxed frame style from shared `PageHeader`.
-  - Redesigned navbar cart dropdown/panel visuals for desktop and mobile.
-  - Compact Minecraft account summary card in shop.
-
-### 🐛 Fixed
-
-- 📡 **Notification freshness gap**:
-  - Replaced refresh-dependent behavior with live stream updates to reduce stale unread counts.
-- 🧮 **Checkout pricing drift risk**:
-  - Consolidated duplicated provider-specific price logic into one shared calculator to avoid inconsistent totals across payment providers.
-
----
-
-## 2026-02-27 ✅
-
-> *Day summary: social identity (`@username` + display name), code-based email verification (OTP), presence statuses, admin-managed badges, plus several newsletter/legal/SEO improvements.*
-
-### ✨ Added
-
-- 🏷️ **User `displayName` field** (editable in Profile Settings).
-- 🧭 **Navbar + profile headers** show `@username` and the display name.
-- 🏷️ **Dynamic badges system** (no hardcoding) with:
-
-  - Admin CRUD.
-  - Public API for listing/rendering.
-  - Icon upload.
-
-- 🟢🟠⚫ **Presence/status system**:
-  - Statuses: `ONLINE` / `BUSY` / `INVISIBLE`.
-  - Periodic ping + `lastSeenAt`.
-  - Discord-style dot indicator on the avatar (private + public profile).
-
-- ✉️✅ **Email verification via OTP** with “don’t create the account until verified” flow:
-  - Registration creates a temporary `PendingUser` (TTL) and sends a code.
-  - OTP verification creates the final `User`.
+- 🧩 **Navbar loyalty dropdown integration**:
+  - Repaired the navbar/mobile user controls so the relocated loyalty and balance panel renders correctly and passes production build validation.
 
 - 🧾 **Improved newsletter**:
   - Localized popup (language) + better copy.

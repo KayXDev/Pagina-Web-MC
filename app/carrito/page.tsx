@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import {
   FaArrowRight,
   FaCheckCircle,
+  FaCoins,
   FaCreditCard,
   FaGift,
   FaLock,
@@ -35,6 +36,7 @@ type Product = {
 
 type ProfileLoyalty = {
   loyaltyPoints?: number;
+  balance?: number;
 };
 
 export default function CartPage() {
@@ -49,18 +51,27 @@ export default function CartPage() {
   const [savingCart, setSavingCart] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkingOutStripe, setCheckingOutStripe] = useState(false);
+  const [checkingOutBalance, setCheckingOutBalance] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [discountPreview, setDiscountPreview] = useState<null | {
     subtotal: number;
     totalPrice: number;
     coupon?: { code: string; discountAmount: number } | null;
     referral?: { code: string; discountAmount: number } | null;
-    loyalty?: { pointsUsed: number; discountAmount: number; availablePoints?: number; pointsPerCurrencyUnit?: number } | null;
+    loyalty?: { pointsUsed: number; discountAmount: number; availablePoints?: number; pointsPerCurrencyUnit?: number; maxUsablePoints?: number } | null;
+    storeBalance?: { availableBalance: number; appliedBalance: number } | null;
     loyaltyEarned?: { points: number; basedOnTotal: number; pointsPerCurrencyUnit?: number } | null;
+    loyaltyConfig?: {
+      earningPointsPerCurrencyUnit?: number;
+      redemptionPointsPerCurrencyUnit?: number;
+      balancePointsPerCurrencyUnit?: number;
+    } | null;
   }>(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [availableLoyaltyPoints, setAvailableLoyaltyPoints] = useState(0);
   const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0);
+  const [availableStoreBalance, setAvailableStoreBalance] = useState(0);
+  const [useStoreBalance, setUseStoreBalance] = useState(false);
 
   const [minecraftUsername, setMinecraftUsername] = useState('');
   const [minecraftUuid, setMinecraftUuid] = useState('');
@@ -88,6 +99,7 @@ export default function CartPage() {
   const giftMessageLabel = lang === 'es' ? 'Mensaje opcional' : 'Optional message';
 
   const localCartKey = 'shop.cart.items';
+  const storeBalancePreferenceKey = 'shop.useStoreBalance';
   const readLocalCart = (): CartItem[] => {
     try {
       const raw = localStorage.getItem(localCartKey);
@@ -154,28 +166,59 @@ export default function CartPage() {
     loadLinked();
   }, [status]);
 
-  useEffect(() => {
-    const loadProfileLoyalty = async () => {
-      if (status !== 'authenticated') {
-        setAvailableLoyaltyPoints(0);
-        setLoyaltyPointsToRedeem(0);
-        return;
-      }
+  const loadProfileLoyalty = useCallback(async () => {
+    if (status !== 'authenticated') {
+      setAvailableLoyaltyPoints(0);
+      setAvailableStoreBalance(0);
+      setLoyaltyPointsToRedeem(0);
+      setUseStoreBalance(false);
+      return;
+    }
 
+    try {
+      const res = await fetch('/api/profile', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const points = Math.max(0, Math.floor(Number((data as ProfileLoyalty)?.loyaltyPoints || 0)));
+      const balance = Math.max(0, Number((data as ProfileLoyalty)?.balance || 0));
+      setAvailableLoyaltyPoints(points);
+      setAvailableStoreBalance(balance);
+      setLoyaltyPointsToRedeem((current) => Math.min(current, points));
+    } catch {
+      // ignore
+    }
+
+    if (typeof window !== 'undefined') {
       try {
-        const res = await fetch('/api/profile', { cache: 'no-store' });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) return;
-        const points = Math.max(0, Math.floor(Number((data as ProfileLoyalty)?.loyaltyPoints || 0)));
-        setAvailableLoyaltyPoints(points);
-        setLoyaltyPointsToRedeem((current) => Math.min(current, points));
+        setUseStoreBalance(window.localStorage.getItem(storeBalancePreferenceKey) === 'true');
       } catch {
-        // ignore
+        setUseStoreBalance(false);
       }
+    }
+  }, [status]);
+
+  useEffect(() => {
+    void loadProfileLoyalty();
+  }, [loadProfileLoyalty]);
+
+  useEffect(() => {
+    const syncBalancePreference = () => {
+      if (typeof window === 'undefined') return;
+      try {
+        setUseStoreBalance(window.localStorage.getItem(storeBalancePreferenceKey) === 'true');
+      } catch {
+        setUseStoreBalance(false);
+      }
+      void loadProfileLoyalty();
     };
 
-    loadProfileLoyalty();
-  }, [status]);
+    window.addEventListener('shop-balance-preference-updated', syncBalancePreference);
+    window.addEventListener('shop-balance-updated', syncBalancePreference);
+    return () => {
+      window.removeEventListener('shop-balance-preference-updated', syncBalancePreference);
+      window.removeEventListener('shop-balance-updated', syncBalancePreference);
+    };
+  }, [loadProfileLoyalty]);
 
   const verifyMinecraft = async () => {
     const username = minecraftUsername.trim();
@@ -307,8 +350,20 @@ export default function CartPage() {
   const previewTotal = discountPreview?.totalPrice ?? totalPrice;
   const estimatedLoyaltyEarned = Math.max(0, Math.floor(Number(discountPreview?.loyaltyEarned?.points || 0)));
   const totalSavings = Math.max(0, previewSubtotal - previewTotal);
+  const loyaltyRedemptionRate = Math.max(1, Math.floor(Number(discountPreview?.loyalty?.pointsPerCurrencyUnit || 0)) || 100);
+  const maxRedeemablePoints = Math.max(
+    0,
+    Math.min(
+      availableLoyaltyPoints,
+      Math.floor(Number(discountPreview?.loyalty?.maxUsablePoints || previewTotal * loyaltyRedemptionRate))
+    )
+  );
+  const appliedStoreBalance = Math.max(0, Number(discountPreview?.storeBalance?.appliedBalance || 0));
+  const currentAvailableStoreBalance = Math.max(0, Number(discountPreview?.storeBalance?.availableBalance ?? availableStoreBalance));
+  const balanceCheckoutRequiredAmount = Math.max(0, previewTotal + appliedStoreBalance);
+  const canPayFullyWithBalance = status === 'authenticated' && balanceCheckoutRequiredAmount > 0 && currentAvailableStoreBalance >= balanceCheckoutRequiredAmount;
   const checkoutBlocked = requiresMinecraftVerification ? !minecraftUuid : !giftRecipientUsername.trim();
-  const isCheckoutBusy = checkingOut || checkingOutStripe || savingCart;
+  const isCheckoutBusy = checkingOut || checkingOutStripe || checkingOutBalance || savingCart;
   const checkoutStatusLabel = giftEnabled
     ? lang === 'es'
       ? 'Pedido regalo'
@@ -321,6 +376,72 @@ export default function CartPage() {
         ? 'Pendiente de verificar'
         : 'Verification pending';
 
+  const heroMetrics = [
+    {
+      label: lang === 'es' ? 'Artículos' : 'Items',
+      value: String(totalQty),
+      tone: 'from-minecraft-gold/16 to-transparent',
+    },
+    {
+      label: lang === 'es' ? 'Total actual' : 'Current total',
+      value: formatPrice(previewTotal),
+      tone: 'from-minecraft-diamond/16 to-transparent',
+    },
+    {
+      label: lang === 'es' ? 'Ahorro' : 'Savings',
+      value: totalSavings > 0 ? formatPrice(totalSavings) : lang === 'es' ? 'Sin ahorro' : 'No savings',
+      tone: 'from-minecraft-grass/16 to-transparent',
+    },
+    {
+      label: lang === 'es' ? 'Saldo disponible' : 'Available balance',
+      value: status === 'authenticated' ? formatPrice(currentAvailableStoreBalance) : lang === 'es' ? 'Inicia sesión' : 'Sign in',
+      tone: 'from-white/10 to-transparent',
+    },
+  ];
+
+  const cartSteps = [
+    {
+      title: lang === 'es' ? 'Revisa productos' : 'Review items',
+      text: lang === 'es' ? 'Ajusta cantidades y limpia lo que no necesites.' : 'Adjust quantities and remove what you do not need.',
+    },
+    {
+      title: lang === 'es' ? 'Activa ventajas' : 'Apply perks',
+      text: lang === 'es' ? 'Usa cupón, puntos loyalty y saldo si te compensa.' : 'Use coupons, loyalty points, and balance when it helps.',
+    },
+    {
+      title: lang === 'es' ? 'Verifica destino' : 'Verify target',
+      text: lang === 'es' ? 'Comprueba la cuenta Minecraft o el destinatario del regalo.' : 'Confirm the Minecraft account or gift recipient.',
+    },
+    {
+      title: lang === 'es' ? 'Elige pago' : 'Choose payment',
+      text: lang === 'es' ? 'Saldo, tarjeta o PayPal desde un solo panel final.' : 'Balance, card, or PayPal from one final panel.',
+    },
+  ];
+
+  const paymentOptions = [
+    {
+      title: lang === 'es' ? 'Saldo del usuario' : 'User balance',
+      text: canPayFullyWithBalance
+        ? lang === 'es'
+          ? 'Disponible para cubrir el pedido completo ahora mismo.'
+          : 'Available to cover the full order right now.'
+        : lang === 'es'
+          ? 'Úsalo como pago total si cubre todo el pedido.'
+          : 'Use it as full payment when it covers the whole order.',
+      active: currentAvailableStoreBalance > 0,
+    },
+    {
+      title: lang === 'es' ? 'Tarjeta / Apple Pay' : 'Card / Apple Pay',
+      text: lang === 'es' ? 'Checkout rápido para cerrar la compra al instante.' : 'Fast checkout to close the purchase right away.',
+      active: true,
+    },
+    {
+      title: 'PayPal',
+      text: lang === 'es' ? 'Método clásico si prefieres aprobar el pago fuera.' : 'Classic option if you prefer approving payment off-site.',
+      active: true,
+    },
+  ];
+
   useEffect(() => {
     const run = async () => {
       if (!cartItems.length) {
@@ -329,7 +450,7 @@ export default function CartPage() {
       }
 
       if (!couponCode.trim()) {
-        if (!loyaltyPointsToRedeem && status !== 'authenticated') {
+        if (!loyaltyPointsToRedeem && !useStoreBalance && status !== 'authenticated') {
           setDiscountPreview({ subtotal: totalPrice, totalPrice });
           return;
         }
@@ -344,6 +465,7 @@ export default function CartPage() {
             items: cartItems,
             couponCode: couponCode.trim(),
             loyaltyPointsToRedeem,
+            useBalance: useStoreBalance,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -355,7 +477,9 @@ export default function CartPage() {
           coupon: (data as any).coupon || null,
           referral: (data as any).referral || null,
           loyalty: (data as any).loyalty || null,
+          storeBalance: (data as any).storeBalance || null,
           loyaltyEarned: (data as any).loyaltyEarned || null,
+          loyaltyConfig: (data as any).loyaltyConfig || null,
         });
       } catch {
         setDiscountPreview({ subtotal: totalPrice, totalPrice });
@@ -364,7 +488,7 @@ export default function CartPage() {
       }
     };
     run();
-  }, [cartItems, couponCode, totalPrice, loyaltyPointsToRedeem, status]);
+  }, [cartItems, couponCode, totalPrice, loyaltyPointsToRedeem, useStoreBalance, availableStoreBalance, status]);
 
   const setQty = async (productId: string, quantity: number) => {
     const q = Math.min(99, Math.max(1, Math.floor(Number(quantity || 1))));
@@ -403,6 +527,7 @@ export default function CartPage() {
           items: cartItems,
           couponCode: couponCode.trim(),
           loyaltyPointsToRedeem,
+            useBalance: useStoreBalance,
           gift: giftEnabled
             ? {
                 recipientUsername: giftRecipientUsername.trim(),
@@ -471,6 +596,7 @@ export default function CartPage() {
           items: cartItems,
           couponCode: couponCode.trim(),
           loyaltyPointsToRedeem,
+            useBalance: useStoreBalance,
           gift: giftEnabled
             ? {
                 recipientUsername: giftRecipientUsername.trim(),
@@ -513,6 +639,72 @@ export default function CartPage() {
     }
   };
 
+  const checkoutWithBalance = async () => {
+    const username = minecraftUsername.trim();
+    if (status !== 'authenticated') {
+      toast.error(lang === 'es' ? 'Debes iniciar sesión para pagar con saldo.' : 'You must be signed in to pay with balance.');
+      return;
+    }
+    if (giftEnabled && !giftRecipientUsername.trim()) {
+      toast.error(lang === 'es' ? 'Indica el usuario que recibirá el regalo.' : 'Enter the username that will receive the gift.');
+      return;
+    }
+    if (requiresMinecraftVerification && !username) {
+      toast.error(needMinecraftLabel);
+      return;
+    }
+    if (!cartItems.length) return;
+    if (!canPayFullyWithBalance) {
+      toast.error(lang === 'es' ? 'Tu saldo no cubre el pedido completo.' : 'Your balance does not cover the full order.');
+      return;
+    }
+
+    setCheckingOutBalance(true);
+    try {
+      const res = await fetch('/api/shop/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          minecraftUsername: username,
+          items: cartItems,
+          couponCode: couponCode.trim(),
+          loyaltyPointsToRedeem,
+          payWithBalance: true,
+          gift: giftEnabled
+            ? {
+                recipientUsername: giftRecipientUsername.trim(),
+                message: giftMessage.trim(),
+              }
+            : undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any).error || 'Error');
+
+      try {
+        localStorage.setItem('shop.cart.items', JSON.stringify([]));
+        window.dispatchEvent(new Event('shop-cart-updated'));
+        window.dispatchEvent(new CustomEvent('shop-balance-updated', { detail: data }));
+      } catch {
+        // ignore
+      }
+
+      await fetch('/api/shop/cart', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [] }),
+      }).catch(() => null);
+
+      setCartItems([]);
+      await loadProfileLoyalty();
+      toast.success(lang === 'es' ? 'Pedido pagado con tu saldo.' : 'Order paid with your balance.');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error');
+    } finally {
+      setCheckingOutBalance(false);
+    }
+  };
+
   return (
     <div className="relative mx-auto min-h-screen max-w-7xl overflow-hidden px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.18),transparent_42%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.16),transparent_36%)]" />
@@ -523,49 +715,99 @@ export default function CartPage() {
         icon={<FaShoppingCart className="text-6xl text-minecraft-gold" />}
       />
 
-      <div className="mt-8 rounded-[30px] border border-white/10 bg-gray-950/35 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-minecraft-gold text-xl">
-              <FaShoppingCart />
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-[0.24em] text-minecraft-gold/75">{lang === 'es' ? 'Resumen rápido' : 'Quick overview'}</div>
-              <div className="mt-2 text-2xl font-black text-white">{lang === 'es' ? 'Revisa el pedido y termina la compra' : 'Review your order and finish checkout'}</div>
-              <div className="mt-1 text-sm text-gray-300">
-                {status === 'authenticated' && estimatedLoyaltyEarned > 0
-                  ? lang === 'es'
-                    ? `Con este pedido ganarás aproximadamente ${estimatedLoyaltyEarned} puntos loyalty.`
-                    : `This order will earn you approximately ${estimatedLoyaltyEarned} loyalty points.`
-                  : totalSavings > 0
+      <div className="mt-8 grid gap-4 xl:grid-cols-[1.15fr,0.85fr]">
+        <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(234,179,8,0.14),rgba(2,6,23,0.24)_34%,rgba(6,182,212,0.1)_100%)] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.22)] sm:p-7">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_30%),linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent)]" />
+          <div className="relative">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-minecraft-gold/20 bg-minecraft-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-minecraft-gold">
+                  <FaShoppingCart />
+                  <span>{lang === 'es' ? 'Zona de checkout' : 'Checkout zone'}</span>
+                </div>
+                <div className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl">
+                  {lang === 'es' ? 'Haz que el pedido se sienta premium antes de pagar.' : 'Make the order feel premium before you pay.'}
+                </div>
+                <div className="mt-3 max-w-2xl text-sm leading-6 text-gray-200 sm:text-[15px]">
+                  {status === 'authenticated' && estimatedLoyaltyEarned > 0
                     ? lang === 'es'
-                      ? `Llevas ${formatPrice(totalSavings)} de ahorro aplicado.`
-                      : `You already have ${formatPrice(totalSavings)} in applied savings.`
-                    : lang === 'es'
-                      ? 'El cupón y los puntos quedan justo debajo de tus productos para que el flujo sea más claro.'
-                      : 'Coupon and loyalty controls now sit right under your items for a cleaner flow.'}
-              </div>
-            </div>
-          </div>
+                      ? `Con este pedido ganarás aproximadamente ${estimatedLoyaltyEarned} puntos loyalty, y además puedes combinar descuento, saldo y verificación sin salir de la misma pantalla.`
+                      : `This order will earn you approximately ${estimatedLoyaltyEarned} loyalty points, and you can combine discounts, balance, and verification without leaving the same screen.`
+                    : totalSavings > 0
+                      ? lang === 'es'
+                        ? `Ya tienes ${formatPrice(totalSavings)} de ahorro aplicado. Ahora el flujo se centra en revisar, verificar y cerrar la compra sin ruido.`
+                        : `You already have ${formatPrice(totalSavings)} in savings applied. The flow now focuses on reviewing, verifying, and finishing the purchase without noise.`
+                      : lang === 'es'
+                        ? 'El carrito ahora separa mejor productos, ventajas y pago para que la compra sea más clara, más visual y bastante más cómoda.'
+                        : 'The cart now separates items, perks, and payment more clearly so the purchase feels cleaner, more visual, and much more comfortable.'}
+                </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-0 lg:max-w-[420px]">
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Artículos' : 'Items'}</div>
-              <div className="mt-1 text-2xl font-black text-white">{totalQty}</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Total' : 'Total'}</div>
-              <div className="mt-1 text-2xl font-black text-white">{formatPrice(previewTotal)}</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-              <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Estado' : 'Status'}</div>
-              <div className="mt-1 flex items-center gap-2 text-sm font-bold text-white">
-                <FaCheckCircle className={giftEnabled || minecraftUuid ? 'text-minecraft-grass' : 'text-minecraft-gold'} />
-                <span>{checkoutStatusLabel}</span>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link href="/tienda">
+                    <Button className="rounded-2xl px-5">
+                      <span>{lang === 'es' ? 'Seguir comprando' : 'Keep shopping'}</span>
+                      <FaArrowRight />
+                    </Button>
+                  </Link>
+                  {status === 'authenticated' ? (
+                    <Link href="/perfil">
+                      <Button variant="secondary" className="rounded-2xl px-5">
+                        <span>{lang === 'es' ? 'Ir a mi perfil' : 'Go to my profile'}</span>
+                      </Button>
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="rounded-[26px] border border-white/10 bg-black/20 px-4 py-4 backdrop-blur-sm lg:max-w-[280px]">
+                <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">{lang === 'es' ? 'Estado del pedido' : 'Order state'}</div>
+                <div className="mt-3 flex items-start gap-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/5 text-minecraft-gold">
+                    <FaCheckCircle className={giftEnabled || minecraftUuid ? 'text-minecraft-grass' : 'text-minecraft-gold'} />
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-white">{checkoutStatusLabel}</div>
+                    <div className="mt-1 text-sm text-gray-300">
+                      {giftEnabled
+                        ? lang === 'es'
+                          ? 'Estás preparando un regalo, así que el destino del pedido manda.'
+                          : 'You are preparing a gift, so the order target takes priority.'
+                        : minecraftUuid
+                          ? lang === 'es'
+                            ? 'La cuenta Minecraft ya está validada para continuar.'
+                            : 'The Minecraft account is already validated to continue.'
+                          : lang === 'es'
+                            ? 'Solo te falta validar la cuenta Minecraft antes del pago.'
+                            : 'You only need to validate the Minecraft account before payment.'}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {heroMetrics.map((metric) => (
+            <div key={metric.label} className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black/25 px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <div className={`absolute inset-0 bg-gradient-to-br ${metric.tone}`} />
+              <div className="relative">
+                <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{metric.label}</div>
+                <div className="mt-3 text-2xl font-black text-white">{metric.value}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {cartSteps.map((step, index) => (
+          <div key={step.title} className="rounded-[26px] border border-white/10 bg-gray-950/30 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-minecraft-gold/80">0{index + 1}</div>
+            <div className="mt-2 text-lg font-bold text-white">{step.title}</div>
+            <div className="mt-2 text-sm leading-6 text-gray-300">{step.text}</div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-8">
@@ -835,11 +1077,11 @@ export default function CartPage() {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => setLoyaltyPointsToRedeem(availableLoyaltyPoints)}
+                        onClick={() => setLoyaltyPointsToRedeem(maxRedeemablePoints)}
                         disabled={status !== 'authenticated' || availableLoyaltyPoints <= 0}
                         className="rounded-xl"
                       >
-                        {lang === 'es' ? 'Usar máximo' : 'Use max'}
+                        {lang === 'es' ? 'Usar máximo aplicable' : 'Use max allowed'}
                       </Button>
                       <Button
                         type="button"
@@ -861,6 +1103,11 @@ export default function CartPage() {
                           ? 'Los puntos solo se descuentan si el pedido termina correctamente.'
                           : 'Points are only deducted if the order completes successfully.'}
                     </div>
+                    <div className="mt-2 text-xs text-minecraft-gold/90">
+                      {lang === 'es'
+                        ? `Ahora el canje usa ${loyaltyRedemptionRate} puntos por 1€. En este pedido puedes aprovechar hasta ${maxRedeemablePoints} puntos.`
+                        : `Redemption now uses ${loyaltyRedemptionRate} points per €1. This order can use up to ${maxRedeemablePoints} points effectively.`}
+                    </div>
                     <div className="mt-3 rounded-2xl border border-minecraft-diamond/15 bg-minecraft-diamond/10 px-4 py-3 text-sm text-gray-100">
                       {status !== 'authenticated'
                         ? lang === 'es'
@@ -871,6 +1118,7 @@ export default function CartPage() {
                           : `With the current total, you will earn approximately ${estimatedLoyaltyEarned} loyalty points.`}
                     </div>
                   </div>
+
                 </div>
               </Card>
             </div>
@@ -1021,6 +1269,13 @@ export default function CartPage() {
                       </div>
                     ) : null}
 
+                    {appliedStoreBalance > 0 ? (
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <div className="text-gray-400">{lang === 'es' ? 'Saldo tienda' : 'Store balance'}</div>
+                        <div className="text-minecraft-diamond">- {formatPrice(appliedStoreBalance)}</div>
+                      </div>
+                    ) : null}
+
                     <div className="flex items-center justify-between text-sm">
                       <div className="text-gray-400">{lang === 'es' ? 'Total' : 'Total'}</div>
                       <div className="text-white font-bold text-lg">{formatPrice(previewTotal)}</div>
@@ -1035,8 +1290,8 @@ export default function CartPage() {
                       <FaShieldAlt className="mt-0.5 text-minecraft-grass shrink-0" />
                       <span>
                         {lang === 'es'
-                          ? 'Los descuentos se previsualizan ahora, pero el canje loyalty solo se confirma cuando el pedido termina correctamente.'
-                          : 'Discounts are previewed now, but loyalty redemption is only finalized when the order completes successfully.'}
+                          ? 'Los descuentos se previsualizan ahora, y tanto el canje loyalty como el saldo tienda solo se confirman cuando el pedido termina correctamente.'
+                          : 'Discounts are previewed now, and both loyalty redemption and store balance usage are only finalized when the order completes successfully.'}
                       </span>
                     </div>
 
@@ -1045,7 +1300,51 @@ export default function CartPage() {
                     ) : null}
                   </div>
 
+                  <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
+                    <div className="text-xs uppercase tracking-[0.22em] text-gray-500">{lang === 'es' ? 'Métodos disponibles' : 'Available methods'}</div>
+                    <div className="mt-4 space-y-3">
+                      {paymentOptions.map((option) => (
+                        <div key={option.title} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="text-sm font-semibold text-white">{option.title}</div>
+                            <Badge variant={option.active ? 'success' : 'default'}>{option.active ? 'ON' : 'OFF'}</Badge>
+                          </div>
+                          <div className="mt-1 text-xs leading-5 text-gray-400">{option.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
+                    {status === 'authenticated' && currentAvailableStoreBalance > 0 ? (
+                      <>
+                        <Button
+                          onClick={checkoutWithBalance}
+                          disabled={checkingOutBalance || savingCart || checkingOut || checkingOutStripe || checkoutBlocked || !canPayFullyWithBalance}
+                          className="w-full justify-center text-center flex-wrap leading-tight rounded-2xl"
+                        >
+                          <FaCoins />
+                          <span>
+                            {checkingOutBalance
+                              ? lang === 'es'
+                                ? 'Procesando saldo...'
+                                : 'Processing balance...'
+                              : lang === 'es'
+                                ? 'Pagar con saldo'
+                                : 'Pay with balance'}
+                          </span>
+                        </Button>
+
+                        {!canPayFullyWithBalance ? (
+                          <div className="text-xs text-gray-400">
+                            {lang === 'es'
+                              ? `Tu saldo actual es ${formatPrice(currentAvailableStoreBalance)} y necesitas ${formatPrice(balanceCheckoutRequiredAmount)} para pagarlo completo.`
+                              : `Your current balance is ${formatPrice(currentAvailableStoreBalance)} and you need ${formatPrice(balanceCheckoutRequiredAmount)} to pay it in full.`}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+
                     <Button
                       onClick={checkoutStripeSession}
                       disabled={checkingOutStripe || savingCart || checkingOut || checkoutBlocked}

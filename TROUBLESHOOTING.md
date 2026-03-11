@@ -6,7 +6,7 @@
 
 <p align="center">
 	Quick diagnosis guide for the most common local and production problems:
-	startup issues, license failures, auth, MongoDB, uploads, cron, payments and SEO.
+	startup issues, auth, MongoDB, uploads, cron, payments and SEO.
 </p>
 
 <p align="center">
@@ -14,14 +14,11 @@
 	·
 	<a href="SETUP.md"><strong>Setup</strong></a>
 	·
-	<a href="docs/license-system.md"><strong>License Docs</strong></a>
-	·
 	<a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
 <p align="center">
 	<img alt="Troubleshooting" src="https://img.shields.io/badge/Guide-Debugging-f59e0b" />
-	<img alt="Startup" src="https://img.shields.io/badge/Startup-License%20Aware-dc2626" />
 	<img alt="Deploy" src="https://img.shields.io/badge/Deploy-Vercel-black" />
 </p>
 
@@ -31,7 +28,6 @@
 
 - [⚡ Quick checklist](#-quick-checklist)
 - [🚨 App does not reach Ready](#-app-does-not-reach-ready)
-- [🔐 Redirected to `/licencia`](#-redirected-to-licencia)
 - [👤 Auth / login issues](#-auth--login-issues)
 - [🗄️ MongoDB issues](#️-mongodb-issues)
 - [🌍 Production-only issues](#-production-only-issues)
@@ -59,8 +55,6 @@ Then confirm the minimum `.env` values exist:
 - `MONGODB_URI`
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
-- `KAYX_LICENSE_KEY`
-- `KAYX_PRODUCT_ID`
 
 ---
 
@@ -68,24 +62,7 @@ Then confirm the minimum `.env` values exist:
 
 Typical causes:
 
-### 1) License validation failed
-
-Symptoms:
-
-- `npm run dev` stops early
-- `npm start` stops early
-- the terminal shows a license authentication or integrity error
-
-Check:
-
-- `KAYX_LICENSE_KEY`
-- `KAYX_PRODUCT_ID`
-- whether the license API is reachable from your machine/server
-- embedded license defaults in [lib/license-defaults.mjs](lib/license-defaults.mjs)
-
-If startup fails because of licensing, read **[docs/license-system.md](docs/license-system.md)** first.
-
-### 2) Corrupted Next.js cache
+### 1) Corrupted Next.js cache
 
 Fix:
 
@@ -94,7 +71,7 @@ rm -rf .next
 npm run dev
 ```
 
-### 3) Dependencies are out of sync
+### 2) Dependencies are out of sync
 
 Fix:
 
@@ -104,31 +81,13 @@ npm install
 npm run dev
 ```
 
-### 4) The server starts but the banner looks wrong
+### 3) The server starts but the banner looks wrong
 
 The project uses a custom dev wrapper in `scripts/dev.mjs`.
 
 If the process is alive but the terminal UI looks stuck, verify whether Next is still serving requests before assuming the app is down.
 
 ---
-
-## 🔐 Redirected to `/licencia`
-
-This means runtime validation failed in middleware.
-
-Common reasons:
-
-- missing license environment variables
-- wrong product ID
-- unreachable license server
-- invalid or expired license
-
-Useful check:
-
-- if you are an admin, open `/admin/licencia`
-
-That panel helps confirm whether the problem is startup-only or runtime validation.
-
 ---
 
 ## 👤 Auth / login issues
@@ -189,7 +148,6 @@ Check:
 - Production environment variables are actually set
 - the project was redeployed after env changes
 - `SITE_URL` and `NEXTAUTH_URL` match the final domain
-- the license API is reachable from Vercel
 
 ### Environment changes do nothing
 
@@ -301,5 +259,5 @@ If you need deeper debugging, share:
 - the exact error message
 - whether the issue is local or production-only
 - your Node version from `node -v`
-- which area is failing: auth, license, uploads, email, payments, cron, or deploy
+- which area is failing: auth, uploads, email, payments, cron, or deploy
 - relevant terminal output without leaking secrets

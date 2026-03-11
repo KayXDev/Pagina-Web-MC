@@ -25,6 +25,15 @@ import { toast } from 'react-toastify';
 
 type ForumCategory = 'GENERAL' | 'HELP' | 'REPORTS' | 'TRADES';
 
+type ForumReputation = {
+  score: number;
+  tier: 'NEW' | 'REGULAR' | 'TRUSTED' | 'ELITE';
+  rootPosts: number;
+  replies: number;
+  likesReceived: number;
+  views: number;
+};
+
 interface ForumPost {
   _id: string;
   title: string;
@@ -41,6 +50,7 @@ interface ForumPost {
   views?: number;
   likesCount?: number;
   createdAt: string;
+  authorReputation?: ForumReputation;
 }
 
 const CATEGORIES: Array<{ value: '' | ForumCategory; labelKey: string }> = [
@@ -107,6 +117,23 @@ export default function ForoPage() {
     if (!q) return posts;
     return posts.filter((p) => p.title.toLowerCase().includes(q) || p.authorUsername.toLowerCase().includes(q));
   }, [posts, search]);
+
+  const featuredAuthors = useMemo(() => {
+    const seen = new Map<string, { username: string; displayName: string; reputation: ForumReputation; avatar?: string | null }>();
+    for (const post of filtered) {
+      const key = String(post.authorId || post.authorUsername || '').trim();
+      if (!key || seen.has(key) || !post.authorReputation) continue;
+      seen.set(key, {
+        username: post.authorUsername,
+        displayName: String(post.authorDisplayName || post.authorUsername || '').trim(),
+        reputation: post.authorReputation,
+        avatar: post.authorAvatar,
+      });
+    }
+    return Array.from(seen.values())
+      .sort((a, b) => b.reputation.score - a.reputation.score)
+      .slice(0, 4);
+  }, [filtered]);
 
   const categoryLabel = (c: ForumCategory) => {
     switch (c) {
@@ -238,8 +265,28 @@ export default function ForoPage() {
     return categoryLabel(value as ForumCategory);
   };
 
+  const reputationLabel = (tier?: ForumReputation['tier']) => {
+    if (lang === 'en') {
+      if (tier === 'ELITE') return 'Elite';
+      if (tier === 'TRUSTED') return 'Trusted';
+      if (tier === 'REGULAR') return 'Regular';
+      return 'New';
+    }
+    if (tier === 'ELITE') return 'Elite';
+    if (tier === 'TRUSTED') return 'Confiable';
+    if (tier === 'REGULAR') return 'Activo';
+    return 'Nuevo';
+  };
+
+  const reputationTone = (tier?: ForumReputation['tier']) => {
+    if (tier === 'ELITE') return 'bg-amber-500/15 text-amber-900 dark:text-amber-100';
+    if (tier === 'TRUSTED') return 'bg-sky-500/15 text-sky-900 dark:text-sky-100';
+    if (tier === 'REGULAR') return 'bg-emerald-500/15 text-emerald-900 dark:text-emerald-100';
+    return 'bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-300';
+  };
+
   return (
-    <div className="mx-auto min-h-screen max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <AnimatedSection>
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -451,28 +498,83 @@ export default function ForoPage() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           <aside className="hidden md:block md:col-span-4">
-            <Card hover={false} className="p-4 md:sticky md:top-24">
-              <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Categorías</div>
-              <div className="space-y-1">
-                {CATEGORIES.map((c) => {
-                  const active = category === c.value;
-                  return (
-                    <button
-                      key={c.labelKey}
-                      type="button"
-                      onClick={() => setCategory(c.value as any)}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors border ${
-                        active
-                          ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
-                          : 'bg-transparent border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
-                      }`}
-                    >
-                      {tabLabel(c.value, c.labelKey)}
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
+            <div className="space-y-4 md:sticky md:top-24">
+              <Card hover={false} className="p-4">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Categorías</div>
+                <div className="space-y-1">
+                  {CATEGORIES.map((c) => {
+                    const active = category === c.value;
+                    return (
+                      <button
+                        key={c.labelKey}
+                        type="button"
+                        onClick={() => setCategory(c.value as any)}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors border ${
+                          active
+                            ? 'bg-gray-100 border-gray-200 text-gray-900 dark:bg-white/10 dark:border-white/15 dark:text-white'
+                            : 'bg-transparent border-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
+                        }`}
+                      >
+                        {tabLabel(c.value, c.labelKey)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              <Card hover={false} className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {lang === 'en' ? 'Top contributors' : 'Contribuidores top'}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {lang === 'en' ? 'Based on posts, replies, likes and views.' : 'Basado en posts, respuestas, likes y vistas.'}
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    {filtered.length}
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {featuredAuthors.length === 0 ? (
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {lang === 'en' ? 'No contributor data yet.' : 'Todavia no hay datos de reputacion.'}
+                    </div>
+                  ) : (
+                    featuredAuthors.map((author) => (
+                      <button
+                        key={`${author.username}-${author.reputation.score}`}
+                        type="button"
+                        onClick={() => router.push(`/perfil/${encodeURIComponent(author.username)}`)}
+                        className="w-full rounded-2xl border border-gray-200 px-3 py-3 text-left transition hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:hover:border-white/15 dark:hover:bg-white/5"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 font-semibold text-gray-900 dark:bg-white/10 dark:text-white">
+                            {author.avatar ? (
+                              <Image src={author.avatar} alt="" fill sizes="40px" className="object-cover" />
+                            ) : (
+                              author.username.slice(0, 1).toUpperCase()
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">{author.displayName}</div>
+                            <div className="truncate text-xs text-gray-500 dark:text-gray-400">@{author.username}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">{author.reputation.score}</div>
+                            <div className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${reputationTone(author.reputation.tier)}`}>
+                              {reputationLabel(author.reputation.tier)}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </Card>
+            </div>
           </aside>
 
           <div className="md:col-span-8">
@@ -548,6 +650,11 @@ export default function ForoPage() {
                               </span>
                             </button>
                             <span className="text-xs text-gray-500 dark:text-gray-400 truncate">@{post.authorUsername}</span>
+                            {post.authorReputation ? (
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${reputationTone(post.authorReputation.tier)}`}>
+                                {reputationLabel(post.authorReputation.tier)} · {post.authorReputation.score}
+                              </span>
+                            ) : null}
                             <span className="text-gray-500">•</span>
                             <span className="text-gray-600 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
                             <span className="ml-auto" />

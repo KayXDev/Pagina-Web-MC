@@ -5,12 +5,15 @@ import ShopOrder from '@/models/ShopOrder';
 import { getCurrentUser } from '@/lib/session';
 import { buildPricingFromItems } from '@/lib/shopPricing';
 import { resolveCheckoutTarget } from '@/lib/shopCheckout';
+import { runOrderPostPaymentEffects } from '@/lib/shopPostPayment';
 
 const checkoutSchema = z.object({
   minecraftUsername: z.string().default(''),
   productId: z.string().min(1).optional(),
   couponCode: z.string().max(40).optional(),
   loyaltyPointsToRedeem: z.number().int().min(0).optional(),
+  useBalance: z.boolean().optional(),
+  payWithBalance: z.boolean().optional(),
   gift: z
     .object({
       recipientUsername: z.string().max(40).optional(),
@@ -60,6 +63,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error?.message || 'Datos inválidos' }, { status: 400 });
     }
 
+    const wantsBalancePayment = Boolean(parsed.data.payWithBalance);
+    const useBalance = wantsBalancePayment || Boolean(parsed.data.useBalance);
+
     let pricing;
     try {
       pricing = await buildPricingFromItems({
@@ -67,6 +73,7 @@ export async function POST(request: Request) {
         couponCode: parsed.data.couponCode,
         buyerUserId: user?.id || '',
         loyaltyPointsToRedeem: parsed.data.loyaltyPointsToRedeem || 0,
+        useBalance,
       });
     } catch (err: any) {
       const msg = String(err?.message || 'Error');
@@ -81,10 +88,26 @@ export async function POST(request: Request) {
     const orderItems = pricing.orderItems;
     const totalPrice = pricing.totalPrice;
     const first = orderItems[0];
+    const balanceUsedAmount = Math.max(0, Number(pricing.storeBalance?.appliedBalance || 0));
+
+    if (wantsBalancePayment) {
+      if (!user?.id) {
+        return NextResponse.json({ error: 'Debes iniciar sesión para pagar con saldo' }, { status: 401 });
+      }
+
+      if (balanceUsedAmount <= 0) {
+        return NextResponse.json({ error: 'No hay saldo aplicable para este pedido' }, { status: 400 });
+      }
+
+      if (Number(totalPrice || 0) > 0) {
+        return NextResponse.json({ error: 'Saldo insuficiente para cubrir el pedido completo' }, { status: 400 });
+      }
+    }
 
     const headers = new Headers(request.headers);
     const ip = headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || '';
     const userAgent = headers.get('user-agent') || '';
+    const paidAt = wantsBalancePayment ? new Date() : undefined;
 
     const order = await ShopOrder.create({
       userId: user?.id || '',
@@ -112,17 +135,26 @@ export async function POST(request: Request) {
       referralRewardAmount: pricing.referral?.rewardAmount || 0,
       loyaltyPointsUsed: pricing.loyalty?.pointsUsed || 0,
       loyaltyDiscountAmount: pricing.loyalty?.discountAmount || 0,
+      balanceUsedAmount,
       currency: process.env.SHOP_CURRENCY || 'EUR',
-      status: 'PENDING',
+      status: wantsBalancePayment ? 'PAID' : 'PENDING',
       provider: 'MANUAL',
+      paidAt,
       ip,
       userAgent,
     });
+
+    if (wantsBalancePayment) {
+      await runOrderPostPaymentEffects(String(order._id));
+    }
 
     return NextResponse.json({
       orderId: String(order._id),
       status: order.status,
       provider: order.provider,
+      free: wantsBalancePayment,
+      paidWithBalance: wantsBalancePayment,
+      balanceUsedAmount,
       minecraftUsername: order.minecraftUsername,
       minecraftUuid: order.minecraftUuid,
       isGift: Boolean((order as any).isGift),

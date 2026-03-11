@@ -5,6 +5,7 @@ import ForumPost from '@/models/ForumPost';
 import { requireAdmin, requireAuth } from '@/lib/session';
 import Notification from '@/models/Notification';
 import User from '@/models/User';
+import { buildForumReputation, getForumReputationMap } from '@/lib/forumReputation';
 
 function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -83,6 +84,13 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       });
     }
 
+    const reputationMap = await getForumReputationMap(
+      normalized.map((r: any) => ({
+        id: String(r?.userId || ''),
+        username: String(r?.username || ''),
+      }))
+    );
+
     const enriched = normalized.map((r: any) => {
       const uname = typeof r?.username === 'string' ? r.username : '';
       const meta = uname ? userByUsernameLower.get(uname.toLowerCase()) : undefined;
@@ -90,6 +98,10 @@ export async function GET(_request: Request, { params }: { params: { id: string 
         ...r,
         userAvatar: meta?.avatar || null,
         userVerified: Boolean(meta?.verified),
+        userReputation:
+          reputationMap.get(String(r?.userId || '')) ||
+          reputationMap.get(`u:${String(r?.username || '').trim().toLowerCase()}`) ||
+          buildForumReputation(),
       };
     });
 

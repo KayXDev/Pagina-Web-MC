@@ -140,6 +140,18 @@ html {
   }
 }
 
+@keyframes home-title-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .shimmer {
   animation: shimmer 2s infinite linear;
   background: linear-gradient(to right, #e5e7eb 4%, #f3f4f6 25%, #e5e7eb 36%);

@@ -26,6 +26,7 @@ type AdminUser = {
   username: string;
   email: string;
   role: 'USER' | 'STAFF' | 'ADMIN' | 'OWNER';
+  balance?: number;
   badges?: string[];
   tags?: string[];
   verified?: boolean;
@@ -107,6 +108,7 @@ export default function AdminUserDetailPage() {
   const [bannedReasonDraft, setBannedReasonDraft] = useState('');
   const [followersExtraDraft, setFollowersExtraDraft] = useState('');
   const [followingExtraDraft, setFollowingExtraDraft] = useState('');
+  const [balanceDraft, setBalanceDraft] = useState('0');
   const [tagsDraft, setTagsDraft] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [badgesDraft, setBadgesDraft] = useState<string[]>([]);
@@ -117,6 +119,7 @@ export default function AdminUserDetailPage() {
     setBannedReasonDraft(String(u.bannedReason || ''));
     setFollowersExtraDraft(typeof u.followersCountOverride === 'number' ? String(u.followersCountOverride) : '');
     setFollowingExtraDraft(typeof u.followingCountOverride === 'number' ? String(u.followingCountOverride) : '');
+    setBalanceDraft(Number.isFinite(Number(u.balance)) ? String(Number(u.balance || 0)) : '0');
     setTagsDraft(Array.isArray(u.tags) ? u.tags : []);
     setBadgesDraft(Array.isArray(u.badges) ? u.badges.map((b) => normalizeBadgeId(b)) : []);
   };
@@ -404,6 +407,41 @@ export default function AdminUserDetailPage() {
                   <FaSave />
                   <span>{t(lang, 'common.save')}</span>
                 </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-gray-950/25" hover={false}>
+          <div className="px-4 py-4 border-b border-gray-200 dark:border-white/10">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{lang === 'es' ? 'Saldo del usuario' : 'User balance'}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">{lang === 'es' ? 'Modifica el saldo disponible para compras en tienda' : 'Edit the balance available for shop purchases'}</div>
+          </div>
+          <div className="p-4 space-y-4">
+            <div>
+              <div className="text-xs text-gray-700 dark:text-gray-400 mb-2">{lang === 'es' ? 'Saldo actual' : 'Current balance'}</div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={balanceDraft}
+                  onChange={(e) => setBalanceDraft(e.target.value)}
+                  disabled={!isOwner || saving || isProtectedOwner}
+                  placeholder="0.00"
+                />
+                <Button
+                  type="button"
+                  onClick={() => patchUser({ balance: Number(balanceDraft || 0) })}
+                  disabled={!isOwner || saving || isProtectedOwner}
+                  className="gap-2"
+                >
+                  <FaSave />
+                  <span>{t(lang, 'common.save')}</span>
+                </Button>
+              </div>
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                {lang === 'es' ? 'Usa decimales si necesitas céntimos, por ejemplo 12.50.' : 'Use decimals if you need cents, for example 12.50.'}
               </div>
             </div>
           </div>

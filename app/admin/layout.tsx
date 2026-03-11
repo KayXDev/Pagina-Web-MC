@@ -50,7 +50,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const canSee = (key: string) => {
     if (role === 'OWNER') return true;
-    if (key === 'license' && role === 'STAFF') return false;
     if (role !== 'ADMIN') return true; // STAFF keeps full panel behavior for now
     if (!adminSectionsConfigured) return true;
     if (key === 'dashboard') return true;
@@ -78,7 +77,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { key: 'partner', name: t(lang, 'admin.menu.partner'), href: '/admin/partner', icon: FaShieldAlt, group: 'content' },
     { key: 'newsletter', name: t(lang, 'admin.menu.newsletter'), href: '/admin/newsletter', icon: FaEnvelope, group: 'system' },
     { key: 'servicesStatus', name: t(lang, 'admin.menu.servicesStatus'), href: '/admin/services-status', icon: FaHeartbeat, group: 'system' },
-    { key: 'license', name: lang === 'es' ? 'Licencia' : 'License', href: '/admin/licencia', icon: FaKey, group: 'system' },
     { key: 'logs', name: t(lang, 'admin.menu.logs'), href: '/admin/logs', icon: FaHistory, group: 'system' },
     { key: 'settings', name: t(lang, 'admin.menu.settings'), href: '/admin/settings', icon: FaCog, group: 'system' },
   ];
@@ -114,7 +112,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (pathname.startsWith('/admin/partner')) return 'partner';
     if (pathname.startsWith('/admin/newsletter')) return 'newsletter';
     if (pathname.startsWith('/admin/services-status')) return 'servicesStatus';
-    if (pathname.startsWith('/admin/licencia')) return 'license';
     if (pathname.startsWith('/admin/logs')) return 'logs';
     if (pathname.startsWith('/admin/settings')) return 'settings';
     if (pathname.startsWith('/admin/permisos')) return 'permissions';
@@ -542,7 +539,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <main className="p-4 md:p-8">
           <div className="mx-auto max-w-[1480px] space-y-6 md:space-y-7">
-            {currentSectionKey !== 'license' && sectionBannerMeta ? (
+            {sectionBannerMeta ? (
               <AdminSectionBanner
                 eyebrow={sectionBannerMeta.eyebrow}
                 title={sectionBannerMeta.title}

@@ -5,17 +5,19 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { FaSearch, FaSyncAlt, FaUsers } from 'react-icons/fa';
+import { FaPen, FaSearch, FaSyncAlt, FaUsers } from 'react-icons/fa';
 
 import { Card, Input, Badge, Button, Select } from '@/components/ui';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
+import { formatPrice } from '@/lib/utils';
 
 interface UserRow {
   _id: string;
   username: string;
   email: string;
   role: string;
+  balance?: number;
   badges?: string[];
   verified?: boolean;
   isBanned: boolean;
@@ -314,12 +316,8 @@ export default function AdminUsersPage() {
               );
 
               return (
-                <Link
-                  key={user._id}
-                  href={`/admin/users/${encodeURIComponent(user._id)}`}
-                  className="block"
-                >
-                  <div className="px-4 py-4 transition-colors hover:bg-gray-50/70 dark:hover:bg-white/5 sm:px-5">
+                <div key={user._id} className="px-4 py-4 transition-colors hover:bg-gray-50/70 dark:hover:bg-white/5 sm:px-5">
+                    <Link href={`/admin/users/${encodeURIComponent(user._id)}`} className="block">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex min-w-0 items-start gap-3">
                         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[18px] border border-gray-200 bg-gray-100 font-semibold text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
@@ -349,13 +347,21 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                      <div className="flex flex-wrap items-center justify-end gap-2 sm:shrink-0">
+                        <Badge variant="info">{lang === 'es' ? `Saldo ${formatPrice(Number(user.balance || 0), 'es-ES')}` : `Balance ${formatPrice(Number(user.balance || 0), 'en-US')}`}</Badge>
                         {getRoleBadge(user.role)}
                         {statusBadge}
+                        <Link
+                          href={`/admin/users/${encodeURIComponent(user._id)}`}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+                        >
+                          <FaPen className="text-[11px]" />
+                          <span>{lang === 'es' ? 'Editar saldo' : 'Edit balance'}</span>
+                        </Link>
                       </div>
                     </div>
+                    </Link>
                   </div>
-                </Link>
               );
             })}
           </div>

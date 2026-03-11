@@ -13,6 +13,7 @@ const schema = z.object({
   ),
   couponCode: z.string().max(40).optional(),
   loyaltyPointsToRedeem: z.number().int().min(0).optional(),
+  useBalance: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       couponCode: parsed.data.couponCode,
       buyerUserId: user?.id || '',
       loyaltyPointsToRedeem: parsed.data.loyaltyPointsToRedeem || 0,
+      useBalance: parsed.data.useBalance ?? false,
     });
 
     return NextResponse.json({
@@ -38,7 +40,9 @@ export async function POST(request: Request) {
       coupon: pricing.coupon,
       referral: pricing.referral,
       loyalty: pricing.loyalty,
+      storeBalance: pricing.storeBalance,
       loyaltyEarned: pricing.loyaltyEarned,
+      loyaltyConfig: pricing.loyaltyConfig,
       totalPrice: pricing.totalPrice,
     });
   } catch (err: any) {

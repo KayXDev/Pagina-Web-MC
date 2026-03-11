@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/mongodb';
 import { applyOrderLoyalty, applyOrderLoyaltyRedemption } from '@/lib/loyalty';
 import { applyOrderIncentives } from '@/lib/referrals';
+import { applyOrderOfferBonuses } from '@/lib/shopOfferBonuses';
+import { applyOrderStoreBalance } from '@/lib/shopBalance';
 import { isEmailConfigured, sendGiftReceivedEmail } from '@/lib/email';
 import { sendGiftReceivedWebhook } from '@/lib/shopIncentivesDiscord';
 import Notification from '@/models/Notification';
@@ -90,12 +92,14 @@ async function notifyGiftRecipient(orderId: string) {
 }
 
 export async function runOrderPostPaymentEffects(orderId: string) {
-  const [incentives, loyaltyRedemption, loyalty, gift] = await Promise.all([
+  const [incentives, loyaltyRedemption, loyalty, storeBalance, offerBonuses, gift] = await Promise.all([
     applyOrderIncentives(orderId),
     applyOrderLoyaltyRedemption(orderId),
     applyOrderLoyalty(orderId),
+    applyOrderStoreBalance(orderId),
+    applyOrderOfferBonuses(orderId),
     notifyGiftRecipient(orderId),
   ]);
 
-  return { incentives, loyaltyRedemption, loyalty, gift };
+  return { incentives, loyaltyRedemption, loyalty, storeBalance, offerBonuses, gift };
 }

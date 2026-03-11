@@ -4,7 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import Follow from '@/models/Follow';
 import LoyaltyEvent from '@/models/LoyaltyEvent';
-import { getLoyaltyTier } from '@/lib/loyalty';
+import { getLoyaltyConfig, getLoyaltyTier } from '@/lib/loyalty';
 
 function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -45,7 +45,7 @@ export async function GET() {
     }
 
     const userId = user._id.toString();
-    const [followersCount, followingCount, recentLoyaltyEvents] = await Promise.all([
+    const [followersCount, followingCount, recentLoyaltyEvents, loyaltyConfig] = await Promise.all([
       Follow.countDocuments({ followingId: userId }),
       Follow.countDocuments({ followerId: userId }),
       LoyaltyEvent.find({ userId })
@@ -53,6 +53,7 @@ export async function GET() {
         .limit(5)
         .select('type points amountSpent currency description createdAt')
         .lean(),
+      getLoyaltyConfig(),
     ]);
 
     const followersOverride = (user as any).followersCountOverride;
@@ -76,6 +77,11 @@ export async function GET() {
       loyaltyPoints: Number((user as any).loyaltyPoints || 0),
       loyaltyLifetimePoints: Number((user as any).loyaltyLifetimePoints || 0),
       loyaltyLastEarnedAt: (user as any).loyaltyLastEarnedAt || null,
+      loyaltyConfig: {
+        earningPointsPerEuro: loyaltyConfig.earningPointsPerEuro,
+        redemptionPointsPerEuro: loyaltyConfig.redemptionPointsPerEuro,
+        balancePointsPerEuro: loyaltyConfig.balancePointsPerEuro,
+      },
       loyaltyTier: getLoyaltyTier(Number((user as any).loyaltyLifetimePoints || (user as any).loyaltyPoints || 0)),
       followersCountOverride: typeof followersOverride === 'number' ? followersOverride : null,
       followingCountOverride: typeof followingOverride === 'number' ? followingOverride : null,

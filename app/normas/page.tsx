@@ -244,7 +244,7 @@ export default function NormasPage() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       <PageHeader
         title={content.pageTitle}
         description={content.pageDesc}

@@ -114,7 +114,7 @@ export default function SoportePage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <PageHeader
         title={t(lang, 'support.title')}
         description={t(lang, 'support.headerDesc')}

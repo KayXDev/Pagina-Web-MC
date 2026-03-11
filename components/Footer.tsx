@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FaDiscord, FaTiktok, FaYoutube, FaHeart, FaStripe } from 'react-icons/fa';
 import { SiPaypal, SiVisa, SiAmericanexpress } from 'react-icons/si';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { t } from '@/lib/i18n';
 import { useClientLang } from '@/lib/useClientLang';
 import { Input, Button } from '@/components/ui';
@@ -21,11 +22,20 @@ function MastercardIcon({ size = 28 }: { size?: number }) {
 
 const Footer = () => {
   const lang = useClientLang();
+  const pathname = usePathname() || '';
+  const isHome = pathname === '/';
   const currentYear = new Date().getFullYear();
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterDone, setNewsletterDone] = useState(false);
   const [newsletterError, setNewsletterError] = useState('');
+  const [amexLogoError, setAmexLogoError] = useState(false);
+  const [amexLogoSrc, setAmexLogoSrc] = useState('/amex.png');
+
+  useEffect(() => {
+    setAmexLogoError(false);
+    setAmexLogoSrc(`/amex.png?v=${Date.now()}`);
+  }, []);
 
   const subscribeNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,11 +63,41 @@ const Footer = () => {
   };
 
   return (
-    <footer className="mt-16 border-t border-minecraft-diamond/20 bg-slate-950/72 backdrop-blur-md dark:bg-gray-950/70 sm:mt-20">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-10">
+    <footer
+      className={`relative mt-16 overflow-hidden sm:mt-20 ${
+        isHome
+          ? 'border-t border-minecraft-diamond/15 bg-[linear-gradient(180deg,rgba(2,7,20,0.72),rgba(2,10,26,0.94))]'
+          : 'border-t border-transparent bg-[linear-gradient(180deg,rgba(14,17,26,0.94),rgba(16,18,28,0.98))]'
+      }`}
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className={`absolute inset-x-0 top-0 h-32 ${
+            isHome
+              ? 'bg-[linear-gradient(180deg,rgba(71,209,232,0.1),transparent)]'
+              : 'bg-[linear-gradient(180deg,rgba(255,214,226,0.08),transparent)]'
+          }`}
+        />
+        <div
+          className={`absolute -left-16 top-12 h-44 w-44 rounded-full blur-3xl ${
+            isHome ? 'bg-minecraft-diamond/12' : 'bg-rose-300/8'
+          }`}
+        />
+        <div
+          className={`absolute right-0 top-10 h-56 w-56 rounded-full blur-3xl ${
+            isHome ? 'bg-minecraft-grass/10' : 'bg-amber-200/6'
+          }`}
+        />
+        <div
+          className={`absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:28px_28px] ${
+            isHome ? 'opacity-[0.08]' : 'opacity-[0.05]'
+          }`}
+        />
+      </div>
+      <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-12">
           {/* About */}
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5 xl:col-span-1">
+          <div className="xl:col-span-1">
             <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">999Wrld Network</h3>
             <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
               {t(lang, 'footer.about')}
@@ -65,7 +105,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+          <div>
             <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
@@ -97,7 +137,7 @@ const Footer = () => {
           </div>
 
           {/* Legal */}
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+          <div>
             <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.legal')}</h3>
             <ul className="space-y-2">
               <li>
@@ -119,7 +159,7 @@ const Footer = () => {
           </div>
 
           {/* Social */}
-          <div className="rounded-[28px] border border-white/10 bg-slate-900/72 p-5 shadow-[0_28px_80px_-50px_rgba(0,0,0,0.55)] dark:border-white/10 dark:bg-white/5">
+          <div>
             <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t(lang, 'footer.follow')}</h3>
             <div className="flex items-center space-x-4">
               <a
@@ -158,6 +198,7 @@ const Footer = () => {
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder={t(lang, 'footer.newsletter.placeholder')}
                   disabled={newsletterLoading}
+                  className="border-white/10 bg-white/[0.04]"
                 />
                 <Button type="submit" variant="secondary" className="w-full" disabled={newsletterLoading || !newsletterEmail.trim()}>
                   {newsletterLoading ? t(lang, 'footer.newsletter.loading') : t(lang, 'footer.newsletter.submit')}
@@ -173,7 +214,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-800">
+        <div className={`mt-8 pt-8 ${isHome ? 'border-t border-white/10' : 'border-t border-white/5'}`}>
           <div className="flex flex-col items-center gap-3 mb-6">
             <div className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               {t(lang, 'footer.payments')}
@@ -191,8 +232,20 @@ const Footer = () => {
               <span className="inline-flex items-center" aria-label="Mastercard" title="Mastercard">
                 <MastercardIcon size={28} />
               </span>
-              <span className="inline-flex items-center" style={{ color: '#2E77BB' }} aria-label="American Express" title="American Express">
-                <SiAmericanexpress size={22} />
+              <span className="inline-flex items-center" aria-label="American Express" title="American Express">
+                {!amexLogoError ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={amexLogoSrc}
+                    alt="American Express"
+                    className="h-[28px] w-[46px] rounded-[4px] object-contain"
+                    onError={() => setAmexLogoError(true)}
+                  />
+                ) : (
+                  <span style={{ color: '#2E77BB' }}>
+                    <SiAmericanexpress size={22} />
+                  </span>
+                )}
               </span>
             </div>
           </div>

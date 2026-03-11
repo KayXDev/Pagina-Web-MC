@@ -5,6 +5,7 @@ import PartnerAd from '@/models/PartnerAd';
 import PartnerBooking from '@/models/PartnerBooking';
 import { PARTNER_PAID_MAX_SLOT, PARTNER_VIP_SLOT } from '@/lib/partnerPricing';
 import { getPartnerSlotOverrides } from '@/lib/partnerSlotOverridesStore';
+import { getDefaultPartnerPublicMetrics, getPartnerPublicMetricsMap } from '@/lib/partnerPublicMetrics';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,8 @@ export async function GET() {
       .select('serverName address version description website discord banner ownerUsername')
       .lean();
 
+    const metricsMap = await getPartnerPublicMetricsMap(adIds);
+
     const adById = new Map<string, any>(ads.map((a: any) => [String(a._id), a]));
 
     const manualItems = Array.from(manualBySlot.entries())
@@ -66,6 +69,7 @@ export async function GET() {
             discord: String(ad.discord || ''),
             banner: String(ad.banner || ''),
             ownerUsername: String(ad.ownerUsername || ''),
+            publicMetrics: metricsMap.get(String(ad._id)) || getDefaultPartnerPublicMetrics(),
           },
         };
       })
@@ -89,6 +93,7 @@ export async function GET() {
             discord: String(ad.discord || ''),
             banner: String(ad.banner || ''),
             ownerUsername: String(ad.ownerUsername || ''),
+            publicMetrics: metricsMap.get(String(ad._id)) || getDefaultPartnerPublicMetrics(),
           },
         };
       })
