@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getKbSnippets } from '@/lib/ai/kb';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,6 +26,16 @@ const chatBodySchema = z
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('api:chat', request),
+      limit: 30,
+      windowMs: 5 * 60_000,
+      message: 'Demasiadas consultas al asistente. Espera un poco antes de volver a intentarlo.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const bodyJson = await request.json().catch(() => ({}));
     const body = chatBodySchema.parse(bodyJson);
 

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import PendingUser from '@/models/PendingUser';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 import { isEmailConfigured, sendEmailVerificationCodeEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -29,6 +30,16 @@ export async function POST(request: Request) {
     // Always generic response to avoid enumeration
     if (!email) {
       return NextResponse.json({ ok: true });
+    }
+
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('auth:resend-verification', request, email),
+      limit: 6,
+      windowMs: 10 * 60_000,
+      message: 'Demasiadas solicitudes de verificación. Espera unos minutos antes de volver a intentarlo.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
 
     if (!isEmailConfigured()) {

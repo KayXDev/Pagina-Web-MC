@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,16 @@ export async function POST(request: Request) {
 
     if (!token || newPassword.length < 6) {
       return NextResponse.json({ error: 'Token o contraseña inválidos' }, { status: 400 });
+    }
+
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('auth:reset-password', request, token.slice(0, 24)),
+      limit: 10,
+      windowMs: 10 * 60_000,
+      message: 'Demasiados intentos de restablecimiento. Espera unos minutos antes de volver a intentarlo.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
 
     await dbConnect();

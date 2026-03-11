@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import PendingUser from '@/models/PendingUser';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,16 @@ export async function POST(request: Request) {
 
     if (!email || !code) {
       return NextResponse.json({ error: 'Código inválido' }, { status: 400 });
+    }
+
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('auth:verify-email', request, email),
+      limit: 12,
+      windowMs: 10 * 60_000,
+      message: 'Demasiados intentos de verificación. Espera unos minutos antes de volver a intentarlo.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
 
     await dbConnect();

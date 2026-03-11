@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Rajdhani } from 'next/font/google';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import CookieConsent from '@/components/CookieConsent';
 import ChatbotWidget from '@/components/ChatbotWidget';
@@ -72,6 +72,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const lang = normalizeLang(cookies().get('lang')?.value);
+  const nonce = headers().get('x-csp-nonce') || undefined;
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -99,9 +100,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icon.png" />
-        <SeoJsonLd data={orgJsonLd} />
-        <SeoJsonLd data={websiteJsonLd} />
+        <SeoJsonLd data={orgJsonLd} nonce={nonce} />
+        <SeoJsonLd data={websiteJsonLd} nonce={nonce} />
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               "(() => {\n" +

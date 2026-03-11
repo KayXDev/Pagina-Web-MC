@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import {
+  applySecurityHeaders,
+  getTrustedOrigins,
+  isMutationMethod,
+  requestHasTrustedOrigin,
+  shouldRequireTrustedOrigin,
+} from '@/lib/security';
 
 let maintenanceCache:
   | {
@@ -14,16 +21,49 @@ const MAINTENANCE_CACHE_MS = 5000;
 const MAINTENANCE_TIMEOUT_MS = 5000;
 const MAINTENANCE_FALLBACK_MAX_AGE_MS = 60_000;
 
+function finalizeResponse(request: NextRequest, response: NextResponse, pathname: string, nonce: string) {
+  return applySecurityHeaders(response, {
+    nonce,
+    requestUrl: request.nextUrl,
+    pathname,
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isApiRoute = pathname.startsWith('/api');
+  const nonce = crypto.randomUUID().replace(/-/g, '');
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-csp-nonce', nonce);
 
   if (!isApiRoute && /\.[a-zA-Z0-9]+$/.test(pathname)) {
-    return NextResponse.next();
+    return finalizeResponse(
+      request,
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      pathname,
+      nonce
+    );
+  }
+
+  if (isApiRoute && isMutationMethod(request.method) && shouldRequireTrustedOrigin(pathname)) {
+    const trustedOrigins = getTrustedOrigins(request);
+    if (!requestHasTrustedOrigin(request, trustedOrigins)) {
+      return finalizeResponse(
+        request,
+        NextResponse.json({ error: 'Origen no permitido' }, { status: 403 }),
+        pathname,
+        nonce
+      );
+    }
   }
 
   if (isApiRoute) {
-    return NextResponse.next();
+    return finalizeResponse(
+      request,
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      pathname,
+      nonce
+    );
   }
 
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
@@ -108,13 +148,18 @@ export async function middleware(request: NextRequest) {
         // Maintenance applies only to configured paths.
         // Use "/" (or "/*") to put the entire site into maintenance.
         if (matchesMaintenancePath(maintenancePaths, pathname)) {
-          return NextResponse.redirect(new URL('/mantenimiento', request.url));
+          return finalizeResponse(
+            request,
+            NextResponse.redirect(new URL('/mantenimiento', request.url)),
+            pathname,
+            nonce
+          );
         }
       }
     } else {
       // Si no está en mantenimiento, evitamos que se quede en /mantenimiento
       if (pathname === '/mantenimiento') {
-        return NextResponse.redirect(new URL('/', request.url));
+        return finalizeResponse(request, NextResponse.redirect(new URL('/', request.url)), pathname, nonce);
       }
     }
   }
@@ -122,18 +167,23 @@ export async function middleware(request: NextRequest) {
   // Check if user is trying to access admin routes
   if (pathname.startsWith('/admin')) {
     if (!token) {
-      return NextResponse.redirect(new URL('/auth/login?callbackUrl=/admin', request.url));
+      return finalizeResponse(
+        request,
+        NextResponse.redirect(new URL('/auth/login?callbackUrl=/admin', request.url)),
+        pathname,
+        nonce
+      );
     }
     
     if (token.role !== 'ADMIN' && token.role !== 'STAFF' && token.role !== 'OWNER') {
-      return NextResponse.redirect(new URL('/', request.url));
+      return finalizeResponse(request, NextResponse.redirect(new URL('/', request.url)), pathname, nonce);
     }
 
     // OWNER can access everything.
     if (token.role !== 'OWNER') {
       // /admin/permisos is OWNER-only
       if (pathname.startsWith('/admin/permisos')) {
-        return NextResponse.redirect(new URL('/admin', request.url));
+        return finalizeResponse(request, NextResponse.redirect(new URL('/admin', request.url)), pathname, nonce);
       }
 
       // Restrict ADMIN users by configured section permissions.
@@ -162,13 +212,13 @@ export async function middleware(request: NextRequest) {
                           : null;
 
         if (sectionKey && sectionKey !== 'dashboard' && !sections.includes(sectionKey)) {
-          return NextResponse.redirect(new URL('/admin', request.url));
+          return finalizeResponse(request, NextResponse.redirect(new URL('/admin', request.url)), pathname, nonce);
         }
       }
     }
   }
   
-  const res = NextResponse.next();
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
   if (shouldSetLangCookie) {
     res.cookies.set('lang', inferLang(), {
       path: '/',
@@ -177,7 +227,7 @@ export async function middleware(request: NextRequest) {
       secure: request.nextUrl.protocol === 'https:',
     });
   }
-  return res;
+  return finalizeResponse(request, res, pathname, nonce);
 }
 
 export const config = {

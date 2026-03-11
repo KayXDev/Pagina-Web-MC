@@ -5,6 +5,7 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import PendingUser from '@/models/PendingUser';
 import ReferralProfile from '@/models/ReferralProfile';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 import { registerSchema } from '@/lib/validations';
 import { isEmailConfigured, sendEmailVerificationCodeEmail } from '@/lib/email';
 
@@ -37,6 +38,16 @@ export async function POST(request: Request) {
     
     // Validate input
     const validatedData = registerSchema.parse(body);
+
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('auth:register', request, validatedData.email.toLowerCase()),
+      limit: 5,
+      windowMs: 10 * 60_000,
+      message: 'Demasiados intentos de registro. Inténtalo de nuevo en unos minutos.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
     
     await dbConnect();
     

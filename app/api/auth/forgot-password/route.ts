@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
+import { buildRateLimitKey, enforceRateLimit } from '@/lib/security';
 import { isEmailConfigured, sendPasswordResetEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -29,6 +30,16 @@ export async function POST(request: Request) {
 
     if (!email) {
       return NextResponse.json({ success: true });
+    }
+
+    const rateLimitResponse = enforceRateLimit(request, {
+      key: buildRateLimitKey('auth:forgot-password', request, email),
+      limit: 5,
+      windowMs: 15 * 60_000,
+      message: 'Demasiados intentos de recuperación. Espera unos minutos antes de volver a intentarlo.',
+    });
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
 
     await dbConnect();
