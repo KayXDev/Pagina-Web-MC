@@ -21,7 +21,13 @@ export default function robots(): MetadataRoute.Robots {
           '/perfil/actividad',
         ],
       },
+      {
+        userAgent: ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'],
+        allow: ['/', '/llms.txt', '/noticias/rss.xml'],
+        disallow: ['/admin/', '/auth/', '/api/', '/carrito/', '/notificaciones/'],
+      },
     ],
+    host: baseUrl,
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

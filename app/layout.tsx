@@ -10,7 +10,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { normalizeLang } from '@/lib/i18n';
 import ConsentAnalytics from '@/components/ConsentAnalytics';
-import { getSiteUrl } from '@/lib/seo';
+import { buildPageMetadata, getAlternateLanguages, getDefaultKeywords, getSiteName, getSiteUrl } from '@/lib/seo';
 import SeoJsonLd from '@/components/SeoJsonLd';
 
 const rajdhani = Rajdhani({ 
@@ -29,39 +29,43 @@ const verification: Metadata['verification'] = {
 };
 
 export const metadata: Metadata = {
+  ...buildPageMetadata({
+    title: '999Wrld Network - Minecraft Server',
+    description:
+      'Servidor y comunidad de Minecraft con tienda oficial, foro, noticias, soporte y eventos. Preparado para usuarios, buscadores y asistentes IA.',
+    path: '/',
+    keywords: getDefaultKeywords(),
+  }),
   metadataBase: new URL(siteUrl),
   title: {
     default: '999Wrld Network - Minecraft Server',
     template: '%s | 999Wrld Network',
   },
-  description:
-    'Your next Minecraft home. A Spanish-speaking community with events, updates, a forum, and an official store — join and start your adventure.',
-  keywords: ['minecraft', 'minecraft server', 'spanish minecraft community', 'survival', 'pvp', 'skyblock'],
-  authors: [{ name: '999Wrld Network' }],
+  applicationName: getSiteName(),
+  authors: [{ name: getSiteName() }],
+  creator: getSiteName(),
+  publisher: getSiteName(),
+  category: 'games',
+  classification: 'Minecraft community website',
+  manifest: '/manifest.webmanifest',
   alternates: {
     canonical: '/',
+    languages: getAlternateLanguages('/'),
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
   icons: {
     icon: [{ url: '/favicon.png' }],
     shortcut: [{ url: '/favicon.png' }],
     apple: [{ url: '/icon.png' }],
   },
-  openGraph: {
-    title: '999Wrld Network - Minecraft Server',
-    description:
-      'Your next Minecraft home — a Spanish-speaking community with events, a forum, and an official store.',
-    type: 'website',
-    locale: 'en_US',
-    url: siteUrl,
-    siteName: '999Wrld Network',
-    images: [{ url: '/icon.png' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '999Wrld Network',
-    description:
-      'Your next Minecraft home — a Spanish-speaking community with events, a forum, and an official store.',
-    images: ['/icon.png'],
+  appleWebApp: {
+    capable: true,
+    title: getSiteName(),
+    statusBarStyle: 'default',
   },
   verification,
 };
@@ -90,9 +94,9 @@ export default function RootLayout({
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: process.env.SITE_NAME || '999Wrld Network',
+    name: getSiteName(),
     url: siteUrl,
-    inLanguage: lang,
+    inLanguage: ['es', 'en'],
   };
 
   return (

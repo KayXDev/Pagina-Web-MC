@@ -50,6 +50,23 @@ function toIsoFromDatetimeLocal(value: string) {
   return date.toISOString();
 }
 
+function parseOptionalDecimal(value: string) {
+  const raw = String(value || '').trim();
+  if (!raw) return undefined;
+
+  const parsed = Number(raw.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseStockValue(value: unknown) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return 0;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.max(0, Math.floor(parsed));
+}
+
 export default function AdminProductsPage() {
   const lang = useClientLang();
   const [products, setProducts] = useState<Product[]>([]);
@@ -114,15 +131,22 @@ export default function AdminProductsPage() {
         .map((l) => l.trim())
         .filter(Boolean);
 
+      const salePrice = parseOptionalDecimal(String((formData as any).salePrice || ''));
+      const compareAtPrice = parseOptionalDecimal(String((formData as any).compareAtPrice || ''));
+      const bonusBalanceAmount = parseOptionalDecimal(String((formData as any).bonusBalanceAmount || '')) || 0;
+      const stock = formData.isUnlimited ? undefined : parseStockValue(formData.stock);
+
       const payload = {
         ...formData,
         price: priceValue,
-        salePrice: String((formData as any).salePrice || '').trim() ? Number(String((formData as any).salePrice).replace(',', '.')) : undefined,
-        compareAtPrice: String((formData as any).compareAtPrice || '').trim() ? Number(String((formData as any).compareAtPrice).replace(',', '.')) : undefined,
+        salePrice,
+        compareAtPrice,
         saleStartsAt: toIsoFromDatetimeLocal(String((formData as any).saleStartsAt || '')),
         saleEndsAt: toIsoFromDatetimeLocal(String((formData as any).saleEndsAt || '')),
-        bonusBalanceAmount: String((formData as any).bonusBalanceAmount || '').trim() ? Number(String((formData as any).bonusBalanceAmount).replace(',', '.')) : 0,
+        bonusBalanceAmount,
         deliveryCommands,
+        features: formData.features.map((feature) => String(feature || '').trim()).filter(Boolean),
+        stock,
       };
 
       const body = editingProduct
@@ -135,7 +159,15 @@ export default function AdminProductsPage() {
         body: JSON.stringify(body),
       });
 
-      if (!response.ok) throw new Error(t(lang, 'admin.products.saveError'));
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof (data as any)?.error === 'string' && (data as any).error.trim()
+            ? (data as any).error
+            : t(lang, 'admin.products.saveError');
+        throw new Error(errorMessage);
+      }
 
       toast.success(
         editingProduct
@@ -147,7 +179,7 @@ export default function AdminProductsPage() {
       resetForm();
       fetchProducts();
     } catch (error) {
-      toast.error(t(lang, 'admin.products.saveError'));
+      toast.error(error instanceof Error ? error.message : t(lang, 'admin.products.saveError'));
     }
   };
 
@@ -550,7 +582,7 @@ export default function AdminProductsPage() {
                   <Input
                     type="number"
                     value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, stock: parseStockValue(e.target.value) })}
                     disabled={formData.isUnlimited}
                   />
                 </div>

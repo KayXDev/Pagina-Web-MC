@@ -3,6 +3,7 @@ import { getSiteUrl } from '@/lib/seo';
 import dbConnect from '@/lib/mongodb';
 import BlogPost from '@/models/BlogPost';
 import ForumPost from '@/models/ForumPost';
+import User from '@/models/User';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
@@ -18,6 +19,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/staff`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${baseUrl}/partner`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/soporte`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/llms.txt`, lastModified: now, changeFrequency: 'weekly', priority: 0.4 },
+    { url: `${baseUrl}/noticias/rss.xml`, lastModified: now, changeFrequency: 'daily', priority: 0.4 },
     { url: `${baseUrl}/terminos`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/privacidad`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/cookies`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
@@ -60,6 +63,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(last),
         changeFrequency: 'weekly',
         priority: 0.6,
+      });
+    }
+
+    const users = await User.find({ isBanned: { $ne: true } })
+      .select('username updatedAt createdAt')
+      .sort({ createdAt: -1 })
+      .limit(3000)
+      .lean();
+
+    for (const user of users) {
+      const username = String((user as any).username || '').trim();
+      if (!username) continue;
+      const last = (user as any).updatedAt || (user as any).createdAt || now;
+      entries.push({
+        url: `${baseUrl}/perfil/${encodeURIComponent(username)}`,
+        lastModified: new Date(last),
+        changeFrequency: 'monthly',
+        priority: 0.55,
       });
     }
   } catch {

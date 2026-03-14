@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/mongodb';
 import ForumPost from '@/models/ForumPost';
-import { absoluteUrl } from '@/lib/seo';
+import { absoluteUrl, buildPageMetadata } from '@/lib/seo';
 import SeoJsonLd from '@/components/SeoJsonLd';
 
 const getPost = cache(async (id: string) => {
@@ -36,22 +37,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const url = absoluteUrl(`/foro/${encodeURIComponent(params.id)}`);
 
   return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
+    ...buildPageMetadata({
       title,
       description,
+      path: `/foro/${encodeURIComponent(params.id)}`,
       type: 'article',
-      url,
-      images: [{ url: '/icon.png' }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: ['/icon.png'],
-    },
+      keywords: ['foro minecraft', 'discusion minecraft', String(post.authorUsername || '')],
+    }),
   };
 }
 
@@ -68,6 +60,7 @@ export default async function ForoIdLayout({
   const url = absoluteUrl(`/foro/${encodeURIComponent(params.id)}`);
   const createdAt = post.createdAt ? new Date(post.createdAt) : null;
   const modifiedAt = post.updatedAt ? new Date(post.updatedAt) : createdAt;
+  const nonce = headers().get('x-csp-nonce') || undefined;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -98,7 +91,7 @@ export default async function ForoIdLayout({
 
   return (
     <>
-      <SeoJsonLd data={jsonLd} />
+      <SeoJsonLd data={jsonLd} nonce={nonce} />
       {children}
     </>
   );

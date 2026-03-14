@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/mongodb';
 import BlogPost from '@/models/BlogPost';
-import { absoluteUrl } from '@/lib/seo';
+import { absoluteUrl, buildPageMetadata } from '@/lib/seo';
 import SeoJsonLd from '@/components/SeoJsonLd';
 
 const getPost = cache(async (slug: string) => {
@@ -38,25 +39,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const url = absoluteUrl(`/noticias/${encodeURIComponent(String(post.slug))}`);
 
   const image = String(post.image || '').trim();
-  const images = image ? [{ url: image }] : [{ url: '/icon.png' }];
+  const images = image ? [image] : ['/icon.png'];
 
   return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
+    ...buildPageMetadata({
       title,
       description,
+      path: `/noticias/${encodeURIComponent(String(post.slug))}`,
       type: 'article',
-      url,
       images,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: images.map((i) => i.url),
-    },
+      keywords: Array.isArray(post.tags) ? (post.tags as string[]) : [],
+    }),
   };
 }
 
@@ -73,6 +66,7 @@ export default async function NoticiaSlugLayout({
   const url = absoluteUrl(`/noticias/${encodeURIComponent(String(post.slug))}`);
   const publishedAt = post.publishedAt ? new Date(post.publishedAt) : null;
   const modifiedAt = post.updatedAt ? new Date(post.updatedAt) : publishedAt;
+  const nonce = headers().get('x-csp-nonce') || undefined;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -99,7 +93,7 @@ export default async function NoticiaSlugLayout({
 
   return (
     <>
-      <SeoJsonLd data={jsonLd} />
+      <SeoJsonLd data={jsonLd} nonce={nonce} />
       {children}
     </>
   );
