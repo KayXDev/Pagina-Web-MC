@@ -466,4 +466,4 @@ Additional documentation:
 - If a secret leaks, rotate credentials immediately.
 - Vulnerability reporting: see [SECURITY.md](SECURITY.md).
 
-Made by KayXDev with ❤️
+<p align="center">Made by KayXDev with ❤️</p>
