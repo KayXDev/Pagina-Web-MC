@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/favicon.png' }],
     shortcut: [{ url: '/favicon.png' }],
-    apple: [{ url: '/icon.png' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   appleWebApp: {
     capable: true,
@@ -103,7 +103,7 @@ export default function RootLayout({
     <html lang={lang} className="dark" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/icon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <SeoJsonLd data={orgJsonLd} nonce={nonce} />
         <SeoJsonLd data={websiteJsonLd} nonce={nonce} />
         <script
